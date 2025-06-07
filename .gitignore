@@ -1,0 +1,30 @@
+# ---- Python (FastAPI) ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.log
+.env
+venv/
+instance/
+.db.sqlite3
+*.sqlite3
+
+# ---- Vue CLI (Frontend) ----
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+frontend/.env.production
+frontend/.env.development
+
+# ---- OS/System Files ----
+.DS_Store
+Thumbs.db
+
+# ---- VSCode ----
+.vscode/
+
+# ---- Build or Cache ----
+*.bak
+*.swp
+*.tmp
+*.cache
