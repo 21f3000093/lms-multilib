@@ -8,6 +8,10 @@ from fastapi_jwt_auth import AuthJWT
 from app.database import engine, SessionLocal
 from pydantic import BaseSettings , BaseModel
 from passlib.context import CryptContext
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 models.Base.metadata.create_all(bind=engine)
@@ -31,7 +35,7 @@ preload_seats()  # ✅ Call this once at app start
 #     authjwt_secret_key: str = "your-secret-key"
 
 class Settings(BaseModel):
-    authjwt_secret_key: str = "your-secret-key"
+    authjwt_secret_key: str = os.getenv("JWT_SECRET_KEY") # type: ignore
     authjwt_token_location: set = {"cookies"}  # <- Important!
     authjwt_cookie_csrf_protect: bool = False  # Optional
 
@@ -73,14 +77,14 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 @app.on_event("startup")
 def startup_create_admin():
     db: Session = SessionLocal()
-    admin_username = "admin"
-    admin_password = "admin123"
+    admin_username = os.getenv("ADMIN_USERNAME")
+    admin_password = os.getenv("ADMIN_PASSWORD")
 
-    existing_admin = crud.get_admin_by_username(db, admin_username)
+    existing_admin = crud.get_admin_by_username(db, admin_username) # type: ignore
     if not existing_admin:
         print("Creating default admin user...")
-        hashed_password = pwd_context.hash(admin_password)
-        crud.create_admin(db, username=admin_username, password=hashed_password)
+        hashed_password = pwd_context.hash(admin_password) # type: ignore
+        crud.create_admin(db, username=admin_username, password=hashed_password) # type: ignore
     db.close()
 
 @app.post("/students/", response_model=schemas.StudentOut)

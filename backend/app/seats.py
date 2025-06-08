@@ -35,4 +35,7 @@ def get_seat_map(
                 "shifts": shift_status  # True for taken ✅, False for empty ❌
             })
 
+
+    result.sort(key=lambda s: s["seat_number"])
+
     return result
