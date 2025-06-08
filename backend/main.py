@@ -54,7 +54,7 @@ app.include_router(seats.router)
 # CORS config
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8080"],  # Change to frontend URL in production
+    allow_origins=["http://localhost:8080","https://library-management-system-lac-nine.vercel.app"],  # Change to frontend URL in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
