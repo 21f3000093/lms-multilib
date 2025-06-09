@@ -1,7 +1,7 @@
 <template>
   <nav class="navbar">
     <div class="navbar-top">
-      <router-link  to="/dashboard" style="text-decoration: none; background-color: unset;"><div class="logo">📚 LMS Admin</div></router-link>
+      <router-link  to="/dashboard" style="text-decoration: none; background-color: unset;"><div class="logo">📚 SONI LIBRARY</div></router-link>
       <!-- <div class="logo">📚 LMS Admin</div> -->
       <button class="hamburger" @click="toggleMenu">☰</button>
     </div>

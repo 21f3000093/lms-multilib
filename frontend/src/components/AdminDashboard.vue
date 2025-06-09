@@ -4,15 +4,15 @@
     <div class="dashboard-grid">
       <div class="dashboard-card">
         <h3>Shift 1</h3>
-        <p>{{ data.shift1_count }}/100</p>
+        <p>{{ data.shift1_count }}/75</p>
       </div>
       <div class="dashboard-card">
         <h3>Shift 2</h3>
-        <p>{{ data.shift2_count }}/100</p>
+        <p>{{ data.shift2_count }}/75</p>
       </div>
       <div class="dashboard-card">
         <h3>Shift 3</h3>
-        <p>{{ data.shift3_count }}/100</p>
+        <p>{{ data.shift3_count }}/75</p>
       </div>
       <div class="dashboard-card">
         <h3>Total Students</h3>
