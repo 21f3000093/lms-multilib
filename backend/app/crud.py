@@ -32,7 +32,7 @@ MAX_SEATS = os.getenv("MAX_SEATS", 100)
 
 
 def get_available_seats(db: Session, shift1: bool, shift2: bool, shift3: bool, student_id: int | None = None):
-    seats = db.query(models.Seat).all()
+    seats = db.query(models.Seat).order_by(models.Seat.id).all()
     available = []
 
     # Get current seat if student_id is provided
@@ -103,7 +103,7 @@ def create_student(db: Session, student: schemas.StudentCreate):
 
 def get_students(db: Session):
     # return db.query(Student).all() 
-    return db.query(Student).filter(Student.status == "active").all()
+    return db.query(Student).filter(Student.status == "active").order_by(Student.seat_id).all()
 
 def get_student(db: Session, student_id: int):
     return db.query(models.Student).filter(models.Student.id == student_id).first()
@@ -258,12 +258,12 @@ def delete_monthly_payment(db: Session, payment_id: int):
     return payment
 
 def get_student_payments(db: Session, student_id: int):
-    return db.query(models.MonthlyPayment).filter(models.MonthlyPayment.student_id == student_id).all()
+    return db.query(models.MonthlyPayment).filter(models.MonthlyPayment.student_id == student_id).order_by(models.MonthlyPayment.month.desc()).all()
 
 
 
 def export_monthly_payments_csv(db: Session, month: str):
-    payments = db.query(models.MonthlyPayment).filter_by(month=month).all()
+    payments = db.query(models.MonthlyPayment).filter_by(month=month).order_by(models.MonthlyPayment.student_id).all()
 
     stream = StringIO()
     writer = csv.writer(stream)
