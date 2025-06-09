@@ -53,8 +53,8 @@ export default {
   },
   methods: {
     async fetchStudent(id) {
-      const res = await API.get(`/students`);
-      this.student = res.data.find((s) => s.id == id);
+      const res = await API.get(`/students/${id}`);
+      this.student = res.data;
     },
     async fetchPayments(id) {
       const res = await API.get(`/students/${id}/payments`);

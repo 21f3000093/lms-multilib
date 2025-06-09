@@ -9,8 +9,12 @@ import csv
 from io import StringIO
 from fastapi.responses import StreamingResponse
 
+import os 
+from dotenv import load_dotenv
+load_dotenv()
+
 SHIFT_PRICE = 500
-MAX_SEATS = 100
+MAX_SEATS = os.getenv("MAX_SEATS", 100)
 
 # crud.py
 
@@ -101,6 +105,8 @@ def get_students(db: Session):
     # return db.query(Student).all() 
     return db.query(Student).filter(Student.status == "active").all()
 
+def get_student(db: Session, student_id: int):
+    return db.query(models.Student).filter(models.Student.id == student_id).first()
 
 
 def update_student(db: Session, student_id: int, updated_data: schemas.StudentCreate):

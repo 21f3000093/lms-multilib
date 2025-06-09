@@ -91,9 +91,18 @@ def startup_create_admin():
 def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)):
     return crud.create_student(db, student)
 
+
 @app.get("/students/", response_model=list[schemas.StudentOut])
 def get_students(db: Session = Depends(get_db)):
     return crud.get_students(db)
+
+@app.get("/students/{student_id}", response_model=schemas.StudentOut)
+def get_student_by_id(student_id: int, db: Session = Depends(get_db)):
+    student = crud.get_student(db, student_id)
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    return student
+
 
 @app.get("/dashboard/")
 def dashboard(db: Session = Depends(get_db)):
