@@ -8,6 +8,7 @@ venv/
 instance/
 .db.sqlite3
 *.sqlite3
+*.db
 
 # ---- Vue CLI (Frontend) ----
 frontend/node_modules/
