@@ -55,7 +55,8 @@ export default {
         const response = await API.get("/seats/view", {
           params: {
             shifts: this.selectedShifts,
-            only_empty: this.onlyEmpty
+            only_empty: this.onlyEmpty,
+            library_id: localStorage.getItem('library_id')
           }          
         });
         this.seats = response.data;

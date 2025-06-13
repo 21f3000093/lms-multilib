@@ -14,7 +14,7 @@ class StudentCreate(BaseModel):
     custom_fees: Optional[int] = None  # ✅ new field
     total_fee: Optional[int] = None
     status: Optional[str] = "active"
-
+    library_id: int  # ✅ NEW
 
 
 class StudentOut(StudentCreate):
@@ -22,6 +22,7 @@ class StudentOut(StudentCreate):
     seat_id: Optional[int] = None
     total_fee: Optional[int] = None
     custom_fees: Optional[int] = None
+    library_id: int  # ✅ Ensure it's present
 
     class Config:
         orm_mode = True
@@ -49,10 +50,50 @@ class AdminLogin(BaseModel):
     username: str
     password: str
 
+# class AdminOut(BaseModel):
+#     id: int
+#     username: str
+#     role: str  # ✅ NEW
+#     library_id: Optional[int]
+#     status: str
+
+#     class Config:
+#         orm_mode = True
+
+
+from datetime import date
+
 class AdminOut(BaseModel):
     id: int
     username: str
+    role: str
+    library_id: Optional[int]
+    status: str
+    created_at: Optional[date]
 
     class Config:
         orm_mode = True
 
+
+
+class LibraryCreate(BaseModel):
+    name: str
+    address: Optional[str] = None
+    contact_email: Optional[str] = None
+    contact_phone: Optional[str] = None
+    max_seats: int
+    
+    
+class LibraryOut(LibraryCreate):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+class AdminCreate(BaseModel):
+    username: str
+    password: str
+    library_id: Optional[int] = None
+
+    class Config:
+        orm_mode = True

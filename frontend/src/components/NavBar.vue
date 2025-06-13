@@ -1,7 +1,7 @@
 <template>
   <nav class="navbar">
     <div class="navbar-top">
-      <router-link  to="/dashboard" style="text-decoration: none; background-color: unset;"><div class="logo">📚 SONI LIBRARY</div></router-link>
+      <router-link  to="/dashboard" style="text-decoration: none; background-color: unset;"><div class="logo">📚 Multi-LIBRARY</div></router-link>
       <!-- <div class="logo">📚 LMS Admin</div> -->
       <button class="hamburger" @click="toggleMenu">☰</button>
     </div>
@@ -20,50 +20,56 @@
   </nav>
 </template>
 
-
 <script>
-import API from '../api';
+import API from '../api'
 
 export default {
   data() {
     return {
       isLoggedIn: false,
       menuOpen: false
-    };
+    }
   },
   mounted() {
-    this.checkLoginStatus();
+    this.checkLoginStatus()
   },
   methods: {
     closeMenu() {
-      this.menuOpen = false;
-    },
-    checkLoginStatus() {
-      this.isLoggedIn = localStorage.getItem('is_admin_logged_in') === 'true';
+      this.menuOpen = false
     },
     toggleMenu() {
-      this.menuOpen = !this.menuOpen;
+      this.menuOpen = !this.menuOpen
+    },
+    checkLoginStatus() {
+      // ✅ use role instead of unused is_admin_logged_in
+      this.isLoggedIn = !!localStorage.getItem('role')
     },
     async logout() {
       try {
         if (confirm('Are you sure you want to log out?')) {
-          await API.post('/auth/logout');
+          await API.post('/auth/logout')
         }
-        localStorage.removeItem('is_admin_logged_in');
-        localStorage.removeItem('admin');
-        this.isLoggedIn = false;
-        this.menuOpen = false;
-        this.$router.push('/login');
+
+        // ✅ Clear relevant localStorage keys only
+        localStorage.removeItem('role')
+        localStorage.removeItem('username')
+        localStorage.removeItem('library_id')
+
+        this.isLoggedIn = false
+        this.menuOpen = false
+        this.$router.push('/login')
       } catch (err) {
-        console.error('Logout failed', err);
+        console.error('Logout failed', err)
+        alert('Logout failed. Try again.')
       }
     }
   },
   watch: {
     '$route': 'checkLoginStatus'
   }
-};
+}
 </script>
+
 
 <style scoped>
 .navbar {

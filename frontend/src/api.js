@@ -1,7 +1,9 @@
+//frontend/src/api.js
+
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'https://librarymanagementsystem-production-6a76.up.railway.app',
+  baseURL: 'http://localhost:8000',
   withCredentials: true,  // 🔒 Send secure HttpOnly cookie with every request
 });
 

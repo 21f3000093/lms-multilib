@@ -1,3 +1,5 @@
+<!-- frontend/src/views/AdminLogin.vue -->
+
 <template>
   <div class="login-container">
     <h2>Admin Login</h2>
@@ -44,11 +46,24 @@ export default {
           username: this.username,
           password: this.password
         });
-        localStorage.setItem('admin', JSON.stringify(res.data));
-        localStorage.setItem('is_admin_logged_in', 'true');
-        this.$router.push('/dashboard');
+        localStorage.setItem('token', res.data.token);
+        localStorage.setItem('role', res.data.role); // response from backend
+        localStorage.setItem('username', res.data.username);
+        localStorage.setItem('library_id', res.data.library_id ?? '');  
+        
+
+        if (res.data.role === 'superadmin') {
+          this.$router.push('/superadmin');
+        } else {
+          this.$router.push('/dashboard');
+        }
+
       } catch (err) {
-        this.error = 'Invalid credentials';
+        if (err.response) {
+          this.error = err.response.data.detail || 'Login failed';
+        } else {
+          this.error = 'Network error. Please try again.';
+        }
       }
     }
   }

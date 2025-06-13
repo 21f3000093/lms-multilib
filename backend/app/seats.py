@@ -9,10 +9,11 @@ router = APIRouter()
 @router.get("/seats/view")
 def get_seat_map(
     shifts: List[int] = Query(...,alias="shifts[]"), 
-    only_empty: bool = False, 
+    only_empty: bool = False,
+    library_id: int = Query(...),
     db: Session = Depends(get_db)
 ):
-    seats = db.query(Seat).all()
+    seats = db.query(Seat).filter(Seat.library_id == library_id).all()
     result = []
 
     for seat in seats:
@@ -31,7 +32,7 @@ def get_seat_map(
 
         if not skip_seat:
             result.append({
-                "seat_number": seat.id,
+                "seat_number": seat.seat_number,
                 "shifts": shift_status  # True for taken ✅, False for empty ❌
             })
 

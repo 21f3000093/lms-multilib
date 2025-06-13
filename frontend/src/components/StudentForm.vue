@@ -16,8 +16,8 @@
         Seat:
         <select v-model="student.seat_id" required>
           <option disabled value="">Select a seat</option>
-          <option v-for="seat in availableSeats" :key="seat" :value="seat">
-            Seat {{ seat }}
+          <option v-for="seat in availableSeats" :key="seat.id" :value="seat.id">
+            Seat {{ seat.seat_number }}
           </option>
         </select>
       </label>
@@ -27,11 +27,7 @@
         <input type="date" v-model="student.date_of_joining" />
       </label>
 
-      <input v-model.number="student.custom_fees" type="number" placeholder="Monthly Fees(Rs)" />
-
-      <!-- <label class="paid-label">
-        <input type="checkbox" v-model="student.paid" /> Paid
-      </label> -->
+      <input v-model.number="student.custom_fees" type="number" placeholder="Monthly Fees (Rs)" />
 
       <div class="button-group">
         <button type="submit">{{ isEdit ? 'Update' : 'Submit' }}</button>
@@ -46,7 +42,7 @@ import API from '../api';
 
 export default {
   props: {
-    existingStudent: Object // null in create mode, full object in edit mode
+    existingStudent: Object
   },
   data() {
     return {
@@ -56,10 +52,11 @@ export default {
         shift1: false,
         shift2: false,
         shift3: false,
-        seat_id: '',        
+        seat_id: '',
         custom_fees: null,
         paid: false,
-        date_of_joining: null
+        date_of_joining: null,
+        library_id: localStorage.getItem('library_id'),
 
       },
       availableSeats: []
@@ -77,7 +74,7 @@ export default {
   },
   mounted() {
     if (this.isEdit) {
-      this.student = { ...this.existingStudent }; // copy existing data
+      this.student = { ...this.existingStudent };
     }
     this.fetchAvailableSeats();
   },
@@ -94,7 +91,8 @@ export default {
         const res = await API.get('/available-seats', { params });
         this.availableSeats = res.data;
 
-        if (!this.availableSeats.includes(this.student.seat_id)) {
+        const seatIds = this.availableSeats.map(s => s.id);
+        if (!seatIds.includes(this.student.seat_id)) {
           this.student.seat_id = '';
         }
       } catch (err) {
@@ -104,23 +102,21 @@ export default {
     async submitForm() {
       try {
         if (this.isEdit) {
-          // this.student.total_fee = this.student.custom_fees || 0;
           await API.put(`/students/${this.student.id}`, this.student);
           alert('Student updated!');
-
         } else {
           await API.post('/students/', this.student);
           alert('Student added!');
           this.student = {
-          name: '',
-          contact: '',
-          shift1: false,
-          shift2: false,
-          shift3: false,
-          seat_id: '',
-          custom_fees: null,
-          paid: false,
-          date_of_joining: null
+            name: '',
+            contact: '',
+            shift1: false,
+            shift2: false,
+            shift3: false,
+            seat_id: '',
+            custom_fees: null,
+            paid: false,
+            date_of_joining: null
           };
         }
 

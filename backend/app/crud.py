@@ -31,13 +31,13 @@ MAX_SEATS = os.getenv("MAX_SEATS", 100)
 #     return available
 
 
-def get_available_seats(db: Session, shift1: bool, shift2: bool, shift3: bool, student_id: int | None = None):
-    seats = db.query(models.Seat).order_by(models.Seat.id).all()
+def get_available_seats(db: Session, shift1: bool, shift2: bool, shift3: bool, library_id: int, student_id: int | None = None):
+    seats = db.query(models.Seat).filter_by(library_id=library_id).order_by(models.Seat.seat_number).all()
     available = []
 
     # Get current seat if student_id is provided
-    current_student = db.query(models.Student).filter_by(id=student_id).first() if student_id else None
-    current_seat_id = current_student.seat_id if current_student else None
+    # current_student = db.query(models.Student).filter_by(id=student_id).first() if student_id else None
+    # current_seat_id = current_student.seat_id if current_student else None
 
     for seat in seats:
         shift1_ok = not shift1 or seat.shift1_student_id is None or seat.shift1_student_id == student_id
@@ -45,7 +45,10 @@ def get_available_seats(db: Session, shift1: bool, shift2: bool, shift3: bool, s
         shift3_ok = not shift3 or seat.shift3_student_id is None or seat.shift3_student_id == student_id
 
         if shift1_ok and shift2_ok and shift3_ok: # type: ignore
-            available.append(seat.id)
+            available.append({
+                "id": seat.id,
+                "seat_number": seat.seat_number
+            })
 
     return available
 
@@ -57,6 +60,9 @@ def create_student(db: Session, student: schemas.StudentCreate):
     if not seat:
         raise Exception("Selected seat does not exist.")
 
+    if seat.library_id != student.library_id: # type: ignore
+        raise Exception("Seat does not belong to the specified library.")
+
     # Check availability of that seat for selected shifts
     if student.shift1 and seat.shift1_student_id is not None:
         raise Exception("Selected seat is already booked in Shift 1.")
@@ -66,11 +72,11 @@ def create_student(db: Session, student: schemas.StudentCreate):
         raise Exception("Selected seat is already booked in Shift 3.")
 
     # Calculate fee
-    if student.custom_fees is not None:
-        total_fee = student.custom_fees
-    else:
-        total_shifts = sum([student.shift1, student.shift2, student.shift3])
-        total_fee = total_shifts * SHIFT_PRICE
+    # if student.custom_fees is not None:
+    #     total_fee = student.custom_fees
+    # else:
+    #     total_shifts = sum([student.shift1, student.shift2, student.shift3])
+    #     total_fee = total_shifts * SHIFT_PRICE
 
     # Save student
     db_student = models.Student(
@@ -79,11 +85,12 @@ def create_student(db: Session, student: schemas.StudentCreate):
         shift1=student.shift1,
         shift2=student.shift2,
         shift3=student.shift3,
-        paid=student.paid,
+        # paid=student.paid,
         custom_fees=student.custom_fees,
-        total_fee=total_fee,
+        # total_fee=total_fee,
         seat_id=student.seat_id,  # link seat
-        date_of_joining=student.date_of_joining or date.today()
+        date_of_joining=student.date_of_joining or date.today(),
+        library_id=student.library_id
     )
     db.add(db_student)
     db.commit()
@@ -101,9 +108,9 @@ def create_student(db: Session, student: schemas.StudentCreate):
     return db_student
 
 
-def get_students(db: Session):
-    # return db.query(Student).all() 
-    return db.query(Student).filter(Student.status == "active").order_by(Student.seat_id).all()
+def get_students(db: Session, library_id: int):
+    return db.query(Student).filter(Student.status == "active", Student.library_id == library_id).order_by(Student.seat_id).all()
+
 
 def get_student(db: Session, student_id: int):
     return db.query(models.Student).filter(models.Student.id == student_id).first()
@@ -176,40 +183,22 @@ def mark_student_as_left(db: Session, student_id: int):
     db.commit()
     return student
 
-def get_dashboard_data(db: Session):
-    shift1_count = db.query(models.Student).filter(
-        models.Student.shift1 == True,
-        models.Student.status == "active"
-    ).count()
+def get_dashboard_data(db: Session, library_id: int):
+    shift1_count = db.query(models.Student).filter(models.Student.shift1 == True, models.Student.status == "active", models.Student.library_id == library_id).count()
+    shift2_count = db.query(models.Student).filter(models.Student.shift2 == True, models.Student.status == "active", models.Student.library_id == library_id).count()
+    shift3_count = db.query(models.Student).filter(models.Student.shift3 == True, models.Student.status == "active", models.Student.library_id == library_id).count()
+    total_students = db.query(models.Student).filter(models.Student.status == "active", models.Student.library_id == library_id).count()
 
-    shift2_count = db.query(models.Student).filter(
-        models.Student.shift2 == True,
-        models.Student.status == "active"
-    ).count()
 
-    shift3_count = db.query(models.Student).filter(
-        models.Student.shift3 == True,
-        models.Student.status == "active"
-    ).count()
-
-    total_students = db.query(models.Student).filter(
-        models.Student.status == "active"
-    ).count()
-
-    revenue = db.query(func.coalesce(func.sum(models.Student.custom_fees), 0)).filter(
-        # models.Student.paid == True,
-        models.Student.status == "active"
-    ).scalar()
-    
-    # 👉 Add this: get current month in format 'YYYY-MM'
+    revenue = db.query(func.coalesce(func.sum(models.Student.custom_fees), 0)).filter(models.Student.status == "active", models.Student.library_id == library_id).scalar()
     current_month = datetime.now().strftime('%Y-%m')
 
-    # 👉 Sum of amounts from paid monthly payments for this month
     monthly_collected = db.query(func.coalesce(func.sum(MonthlyPayment.amount), 0)).filter(
         MonthlyPayment.month == current_month,
-        MonthlyPayment.paid == True
+        MonthlyPayment.paid == True,
+        MonthlyPayment.library_id == library_id
     ).scalar()
-
+    
     return {
         "shift1_count": shift1_count,
         "shift2_count": shift2_count,
@@ -219,17 +208,16 @@ def get_dashboard_data(db: Session):
         "monthly_collected": monthly_collected
     }
     
-def create_monthly_payments_for_all(db: Session, month: str):
-    students = db.query(models.Student).filter(models.Student.status == "active").all()
-    for student in students:
-        # Check if payment record already exists for this student and month
-        exists = db.query(models.MonthlyPayment).filter_by(
-            student_id=student.id, month=month
-        ).first()
-        if not exists:
-            db.add(models.MonthlyPayment(student_id=student.id, month=month, paid=False , amount=student.custom_fees))
-    db.commit()
 
+def create_monthly_payments_for_all(db: Session, month: str, library_id: int):
+    students = db.query(models.Student).filter(models.Student.status == "active", models.Student.library_id == library_id).all()
+    for student in students:
+        exists = db.query(models.MonthlyPayment).filter_by(student_id=student.id, month=month).first()
+        if not exists:
+            db.add(models.MonthlyPayment(student_id=student.id, month=month, paid=False, amount=student.custom_fees, library_id=library_id))
+    db.commit()
+    
+    
 def mark_monthly_payment_as_paid(db: Session, payment_id: int):
     payment = db.query(models.MonthlyPayment).get(payment_id)
     if payment:
@@ -238,8 +226,8 @@ def mark_monthly_payment_as_paid(db: Session, payment_id: int):
         db.refresh(payment)
     return payment
 
-def get_monthly_payments(db: Session, month: str):
-    return db.query(models.MonthlyPayment).filter_by(month=month).all()
+def get_monthly_payments(db: Session, month: str, library_id: int):
+    return db.query(models.MonthlyPayment).filter_by(month=month, library_id=library_id).all()
 
 def toggle_monthly_payment_status(db: Session, payment_id: int):
     payment = db.query(models.MonthlyPayment).get(payment_id)
@@ -262,8 +250,8 @@ def get_student_payments(db: Session, student_id: int):
 
 
 
-def export_monthly_payments_csv(db: Session, month: str):
-    payments = db.query(models.MonthlyPayment).filter_by(month=month).order_by(models.MonthlyPayment.student_id).all()
+def export_monthly_payments_csv(db: Session, month: str, library_id: int):
+    payments = db.query(models.MonthlyPayment).filter_by(month=month, library_id=library_id).order_by(models.MonthlyPayment.student_id).all()
 
     stream = StringIO()
     writer = csv.writer(stream)
@@ -307,9 +295,16 @@ def authenticate_admin(db: Session, username: str, password: str):
 def get_admin(db: Session, admin_id: int):
     return db.query(Admin).filter(Admin.id == admin_id).first()
 
-def create_admin(db: Session, username: str, password: str):
-    new_admin = models.Admin(username=username, password=password)
+def create_admin(db: Session, username: str, password: str, role: str = "admin", library_id: int = None): # type: ignore
+    new_admin = models.Admin(username=username, password=password, role=role, library_id=library_id)
     db.add(new_admin)
     db.commit()
     db.refresh(new_admin)
     return new_admin
+
+def init_library(db: Session , name: str, address: str, contact_email: str, contact_phone: str, max_seats: int): # type: ignore
+    new_library = models.Library(name=name, address=address, contact_email=contact_email, contact_phone=contact_phone, max_seats=max_seats)
+    db.add(new_library)
+    db.commit()
+    db.refresh(new_library)
+    return new_library
