@@ -4,7 +4,7 @@ from app import models, schemas
 # from fastapi import HTTPException
 from sqlalchemy import func
 from datetime import date , datetime
-from app.models import Student ,MonthlyPayment
+from app.models import Student ,MonthlyPayment 
 import csv
 from io import StringIO
 from fastapi.responses import StreamingResponse
@@ -199,13 +199,16 @@ def get_dashboard_data(db: Session, library_id: int):
         MonthlyPayment.library_id == library_id
     ).scalar()
     
+    max_seats = db.query(models.Library).filter(models.Library.id == library_id).first().max_seats # type: ignore
+    
     return {
         "shift1_count": shift1_count,
         "shift2_count": shift2_count,
         "shift3_count": shift3_count,
         "total_students": total_students,
         "revenue": revenue,
-        "monthly_collected": monthly_collected
+        "monthly_collected": monthly_collected,
+        "max_seats": max_seats
     }
     
 
@@ -305,6 +308,12 @@ def create_admin(db: Session, username: str, password: str, role: str = "admin",
 def init_library(db: Session , name: str, address: str, contact_email: str, contact_phone: str, max_seats: int): # type: ignore
     new_library = models.Library(name=name, address=address, contact_email=contact_email, contact_phone=contact_phone, max_seats=max_seats)
     db.add(new_library)
+    
+    for seat_number in range(1, max_seats + 1):
+        seat = models.Seat(seat_number=seat_number, library_id=1)
+        db.add(seat)
+        
     db.commit()
     db.refresh(new_library)
+    
     return new_library

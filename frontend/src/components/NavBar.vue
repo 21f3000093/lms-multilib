@@ -1,17 +1,18 @@
 <template>
   <nav class="navbar">
     <div class="navbar-top">
-      <router-link  to="/dashboard" style="text-decoration: none; background-color: unset;"><div class="logo">📚 Multi-LIBRARY</div></router-link>
+      <router-link v-if="!isLoggedIn || role === 'admin'" to="/dashboard" style="text-decoration: none; background-color: unset;"><div class="logo">📚 {{ this.library_name }}</div></router-link>
+      <router-link  v-if="isLoggedIn && role === 'superadmin'" to="/superadmin" style="text-decoration: none; background-color: unset;"><div class="logo">📚 {{ this.library_name }}</div></router-link>
       <!-- <div class="logo">📚 LMS Admin</div> -->
       <button class="hamburger" @click="toggleMenu">☰</button>
     </div>
 
     <div class="nav-links" :class="{ open: menuOpen }">
-      <router-link v-if="isLoggedIn" to="/dashboard" @click="closeMenu">📊 Dashboard</router-link>
-      <router-link v-if="isLoggedIn" to="/register" @click="closeMenu">➕ Register</router-link>
-      <router-link v-if="isLoggedIn" to="/students" @click="closeMenu">📋 Student List</router-link>
-      <router-link v-if="isLoggedIn" to="/monthly-payments" @click="closeMenu">💰 Monthly Fees</router-link>
-      <router-link v-if="isLoggedIn" to="/seat-map" @click="closeMenu">🪑 Seat Map</router-link>
+      <router-link v-if="isLoggedIn && role === 'admin'" to="/dashboard" @click="closeMenu">📊 Dashboard</router-link>
+      <router-link v-if="isLoggedIn && role === 'admin'" to="/register" @click="closeMenu">➕ Register</router-link>
+      <router-link v-if="isLoggedIn && role === 'admin'" to="/students" @click="closeMenu">📋 Student List</router-link>
+      <router-link v-if="isLoggedIn && role === 'admin'" to="/monthly-payments" @click="closeMenu">💰 Monthly Fees</router-link>
+      <router-link v-if="isLoggedIn && role === 'admin'" to="/seat-map" @click="closeMenu">🪑 Seat Map</router-link>
       <button v-if="isLoggedIn" class="logout-btn mobile-logout" @click="logout">🚪 Logout</button>
     </div>
 
@@ -27,7 +28,11 @@ export default {
   data() {
     return {
       isLoggedIn: false,
-      menuOpen: false
+      menuOpen: false,
+      username: localStorage.getItem('username'),
+      library_name: localStorage.getItem('library_name')?.toUpperCase() || 'Library Management System',
+      role: localStorage.getItem('role') ?? '',      
+
     }
   },
   mounted() {
@@ -43,6 +48,8 @@ export default {
     checkLoginStatus() {
       // ✅ use role instead of unused is_admin_logged_in
       this.isLoggedIn = !!localStorage.getItem('role')
+      this.library_name = localStorage.getItem('library_name')?.toUpperCase() || 'Library Management System'
+      this.role = localStorage.getItem('role')?? ''
     },
     async logout() {
       try {
@@ -54,9 +61,12 @@ export default {
         localStorage.removeItem('role')
         localStorage.removeItem('username')
         localStorage.removeItem('library_id')
+        localStorage.removeItem('library_name')
+
 
         this.isLoggedIn = false
         this.menuOpen = false
+        this.library_name = 'Library Management System'
         this.$router.push('/login')
       } catch (err) {
         console.error('Logout failed', err)

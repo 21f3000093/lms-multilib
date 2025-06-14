@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from typing import List
-from app.dependencies import get_db
+from app.dependencies import get_db , get_current_admin
 from app.models import Seat
 
 router = APIRouter()
@@ -11,9 +11,10 @@ def get_seat_map(
     shifts: List[int] = Query(...,alias="shifts[]"), 
     only_empty: bool = False,
     library_id: int = Query(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin)
 ):
-    seats = db.query(Seat).filter(Seat.library_id == library_id).all()
+    seats = db.query(Seat).filter(Seat.library_id == admin.library_id).all()
     result = []
 
     for seat in seats:

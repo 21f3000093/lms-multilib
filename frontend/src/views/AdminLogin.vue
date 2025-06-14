@@ -46,11 +46,11 @@ export default {
           username: this.username,
           password: this.password
         });
-        localStorage.setItem('token', res.data.token);
+        // localStorage.setItem('token', res.data.token);
         localStorage.setItem('role', res.data.role); // response from backend
         localStorage.setItem('username', res.data.username);
-        localStorage.setItem('library_id', res.data.library_id ?? '');  
-        
+        localStorage.setItem('library_id', res.data.library_id ?? ''); 
+        localStorage.setItem('library_name', res.data.library?.name || '');        
 
         if (res.data.role === 'superadmin') {
           this.$router.push('/superadmin');

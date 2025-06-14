@@ -13,10 +13,23 @@ def get_db():
     finally:
         db.close()
 
+# def get_current_admin(Authorize: AuthJWT = Depends(), db: Session = Depends(get_db)):
+#     Authorize.jwt_required()
+#     username = Authorize.get_jwt_subject()
+#     admin = crud.get_admin_by_username(db, username) # type: ignore
+#     if not admin or admin.status != "active": # type: ignore
+#         raise HTTPException(status_code=403, detail="Unauthorized")
+#     return admin
+
+from fastapi_jwt_auth.exceptions import AuthJWTException
+
 def get_current_admin(Authorize: AuthJWT = Depends(), db: Session = Depends(get_db)):
-    Authorize.jwt_required()
-    username = Authorize.get_jwt_subject()
-    admin = crud.get_admin_by_username(db, username) # type: ignore
-    if not admin or admin.status != "active": # type: ignore
-        raise HTTPException(status_code=403, detail="Unauthorized")
-    return admin
+    try:
+        Authorize.jwt_required()
+        username = Authorize.get_jwt_subject()
+        admin = crud.get_admin_by_username(db, username)  # type: ignore
+        if not admin or admin.status != "active":  # type: ignore
+            raise HTTPException(status_code=403, detail="Unauthorized")
+        return admin
+    except AuthJWTException:
+        raise HTTPException(status_code=401, detail="token_expired_or_invalid")

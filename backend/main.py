@@ -42,8 +42,9 @@ class Settings(BaseModel):
     authjwt_secret_key: str = os.getenv("JWT_SECRET_KEY") # type: ignore
     authjwt_token_location: set = {"cookies"}  # <- Important!
     authjwt_cookie_csrf_protect: bool = False  # Optional
-    authjwt_cookie_samesite: str = "lax"   # ✅ allow cross-origin GETs
-    authjwt_cookie_domain: str = "localhost"  # ✅ important for matching frontend
+    authjwt_access_token_expires: int = 60 * 60 * 1  # 1 hours
+    # authjwt_cookie_samesite: str = "lax"   # ✅ allow cross-origin GETs
+    # authjwt_cookie_domain: str = "localhost"  # ✅ important for matching frontend
     
 
 @AuthJWT.load_config # type:ignore
@@ -81,18 +82,21 @@ def startup_create_admin():
     
     # crud.init_library(db, name="Library", address="Address", contact_email="email", contact_phone="9090909090", max_seats=20)
         
-    admin_username = os.getenv("ADMIN_USERNAME")
-    admin_password = os.getenv("ADMIN_PASSWORD")
+    superadmin_username = os.getenv("SUPERADMIN_USERNAME")
+    superadmin_password = os.getenv("SUPERADMIN_PASSWORD")
+    
+    if not superadmin_username or not superadmin_password:
+        raise ValueError("SUPERADMIN_USERNAME and SUPERADMIN_PASSWORD must be set in .env")
 
-    existing_admin = crud.get_admin_by_username(db, admin_username) # type: ignore
+    existing_admin = crud.get_admin_by_username(db, superadmin_username) # type: ignore
     if not existing_admin:
         print("Creating default admin user...")
-        crud.init_library(db, name="Library", address="Address", contact_email="email", contact_phone="9090909090", max_seats=20)
+        crud.init_library(db, name="SuperAdmin Library", address="Address", contact_email="shubhamnagar68819@gmail.com", contact_phone="9024600138", max_seats=10)
     
-        hashed_password1 = pwd_context.hash(admin_password) # type: ignore
-        hashed_password2 = pwd_context.hash("adminpassword") # type: ignore
-        crud.create_admin(db, username=admin_username, password=hashed_password1, role="superadmin") # type: ignore
-        crud.create_admin(db, username="admin", password=hashed_password2, role="admin", library_id=1) # type: ignore
+        hashed_password1 = pwd_context.hash(superadmin_password) # type: ignore
+        hashed_password2 = pwd_context.hash("password") # type: ignore
+        crud.create_admin(db, username=superadmin_username, password=hashed_password1, role="superadmin") # type: ignore
+        crud.create_admin(db, username="shubham", password=hashed_password2, role="admin", library_id=1) # type: ignore
     db.close()
 
 

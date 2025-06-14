@@ -63,16 +63,7 @@ class AdminLogin(BaseModel):
 
 from datetime import date
 
-class AdminOut(BaseModel):
-    id: int
-    username: str
-    role: str
-    library_id: Optional[int]
-    status: str
-    created_at: Optional[date]
 
-    class Config:
-        orm_mode = True
 
 
 
@@ -86,6 +77,7 @@ class LibraryCreate(BaseModel):
     
 class LibraryOut(LibraryCreate):
     id: int
+    name: str
 
     class Config:
         orm_mode = True
@@ -94,6 +86,19 @@ class AdminCreate(BaseModel):
     username: str
     password: str
     library_id: Optional[int] = None
+
+    class Config:
+        orm_mode = True
+        
+        
+class AdminOut(BaseModel):
+    id: int
+    username: str
+    role: str
+    library_id: Optional[int]
+    status: str
+    created_at: Optional[date]
+    library: Optional[LibraryOut]
 
     class Config:
         orm_mode = True

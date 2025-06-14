@@ -100,3 +100,16 @@ def get_library(library_id: int, db: Session = Depends(get_db), admin = Depends(
     if not library:
         raise HTTPException(status_code=404, detail="Library not found")
     return library
+
+@superadmin_router.delete("/admins/{admin_id}")
+def delete_admin(admin_id: int, db: Session = Depends(get_db), admin = Depends(get_current_admin)):
+    if admin.role != "superadmin":
+        raise HTTPException(status_code=403, detail="Only superadmin can access this")
+
+    target = db.query(models.Admin).filter_by(id=admin_id, role="admin").first()
+    if not target:
+        raise HTTPException(status_code=404, detail="Admin not found")
+
+    db.delete(target)
+    db.commit()
+    return {"message": f"Admin with ID {admin_id} has been deleted successfully."}

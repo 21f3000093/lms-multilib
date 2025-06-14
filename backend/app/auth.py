@@ -16,13 +16,17 @@ def login(
 ):
     admin = crud.authenticate_admin(db, data.username, data.password)
     if not admin:
-        raise HTTPException(status_code=401, detail="Invalid username or password")
+        raise HTTPException(status_code=401, detail="invalid_credentials")
 
     if admin.status != "active": # type: ignore
         raise HTTPException(status_code=403, detail="Your account is inactive or blocked")
 
     access_token = Authorize.create_access_token(subject=admin.username) # type: ignore
     Authorize.set_access_cookies(access_token)
+    
+    # ✅ Eagerly load the related library for response
+    db.refresh(admin)  # This ensures `admin.library` is populated
+
     return admin
 
 
