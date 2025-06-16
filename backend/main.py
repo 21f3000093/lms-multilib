@@ -29,7 +29,9 @@ class Settings(BaseModel):
     authjwt_secret_key: str = os.getenv("JWT_SECRET_KEY") # type: ignore
     authjwt_token_location: set = {"cookies"}  # <- Important!
     authjwt_cookie_csrf_protect: bool = False  # Optional
-    # authjwt_access_token_expires: int = 60 * 60 * 1  # 1 hours
+    authjwt_access_token_expires: int = 60 * 60 * 8  # 1 hours
+    authjwt_cookie_samesite: str = "none"
+    authjwt_cookie_secure: bool = True
     # authjwt_cookie_samesite: str = "lax"   # ✅ allow cross-origin GETs
     # authjwt_cookie_domain: str = "localhost"  # ✅ important for matching frontend
     
