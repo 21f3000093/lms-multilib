@@ -51,8 +51,9 @@ origins=os.getenv("ALLOWED_ORIGINS") # type: ignore
 # CORS config
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[origins],  # Change to frontend URL in production # type: ignore
+    # allow_origins=[origins],  # Change to frontend URL in production # type: ignore
     # allow_origins=["http://localhost:8080"],  # Change to frontend URL in production
+    allow_origins=["https://lms-virid-three.vercel.app"],  # Change to frontend URL in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
