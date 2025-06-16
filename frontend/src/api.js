@@ -3,7 +3,8 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: 'https://lms-multilib-production.up.railway.app/',
+  //// baseURL: 'http://localhost:8000',
   withCredentials: true,  // 🔒 Send secure HttpOnly cookie with every request
 });
 
