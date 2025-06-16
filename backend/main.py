@@ -21,20 +21,7 @@ load_dotenv()
 
 models.Base.metadata.create_all(bind=engine)
 
-# ✅ Insert 100 seats only if not already present
 
-# max_seats = 100
-# def preload_seats():
-#     db = SessionLocal()
-#     existing = db.query(models.Seat).count()
-#     if existing == 0:
-#         for i in range(1, max_seats + 1):
-#             seat = models.Seat(id=i)
-#             db.add(seat)
-#         db.commit()
-#     db.close()
-
-# preload_seats()  # ✅ Call this once at app start
 
 
 
@@ -59,12 +46,13 @@ app.include_router(auth.router)
 app.include_router(seats.router)
 app.include_router(superadmin.superadmin_router)
 
-
+origins=os.getenv("ALLOWED_ORIGINS").split(",") # type: ignore
 
 # CORS config
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8080"],  # Change to frontend URL in production
+    allow_origins=origins,  # Change to frontend URL in production
+    # allow_origins=["http://localhost:8080"],  # Change to frontend URL in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

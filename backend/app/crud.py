@@ -9,35 +9,16 @@ import csv
 from io import StringIO
 from fastapi.responses import StreamingResponse
 
-import os 
-from dotenv import load_dotenv
-load_dotenv()
 
-SHIFT_PRICE = 500
-MAX_SEATS = os.getenv("MAX_SEATS", 100)
 
-# crud.py
 
-# def get_available_seats(db: Session, shift1: bool, shift2: bool, shift3: bool):
-#     seats = db.query(models.Seat).all()
-#     available = []
-#     for seat in seats:
-#         if (
-#             (not shift1 or seat.shift1_student_id is None) and
-#             (not shift2 or seat.shift2_student_id is None) and
-#             (not shift3 or seat.shift3_student_id is None)
-#         ):
-#             available.append(seat.id)
-#     return available
 
 
 def get_available_seats(db: Session, shift1: bool, shift2: bool, shift3: bool, library_id: int, student_id: int | None = None):
     seats = db.query(models.Seat).filter_by(library_id=library_id).order_by(models.Seat.seat_number).all()
     available = []
 
-    # Get current seat if student_id is provided
-    # current_student = db.query(models.Student).filter_by(id=student_id).first() if student_id else None
-    # current_seat_id = current_student.seat_id if current_student else None
+   
 
     for seat in seats:
         shift1_ok = not shift1 or seat.shift1_student_id is None or seat.shift1_student_id == student_id

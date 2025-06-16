@@ -11,6 +11,8 @@ import StudentDetail from '@/components/StudentDetail.vue'
 import AdminLogin from '@/views/AdminLogin.vue'
 import SeatMap from '@/components/SeatMap.vue'
 import SuperAdminDashboard from '@/views/SuperAdminDashboard.vue'
+import LibraryStudentList from '@/components/LibraryStudentList.vue'
+
 
 
 
@@ -26,6 +28,12 @@ const routes = [
   { path: '/students/:id', name: 'StudentDetail', component: StudentDetail , meta: { requiresAuth: true } },
   { path: '/seat-map', name: 'SeatMap', component: SeatMap , meta: { requiresAuth: true }},
   { path: '/superadmin', name: 'SuperAdminDashboard', component: SuperAdminDashboard, meta: { requiresAuth: true } },
+  {
+    path: '/superadmin/library/:library_id/students',
+    name: 'LibraryStudentList',
+    component: LibraryStudentList,
+    meta: { requiresAuth: true }
+  },
 
 ]
 

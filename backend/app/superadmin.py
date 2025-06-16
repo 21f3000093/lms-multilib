@@ -113,3 +113,11 @@ def delete_admin(admin_id: int, db: Session = Depends(get_db), admin = Depends(g
     db.delete(target)
     db.commit()
     return {"message": f"Admin with ID {admin_id} has been deleted successfully."}
+
+@superadmin_router.get("/libraries/{library_id}/students", response_model=List[schemas.StudentOut])
+def get_students_by_library(library_id: int, db: Session = Depends(get_db), admin = Depends(get_current_admin)):
+    if admin.role != "superadmin":
+        raise HTTPException(status_code=403, detail="Only superadmin can access this")
+    
+    students = db.query(models.Student).filter(models.Student.library_id == library_id).all()
+    return students

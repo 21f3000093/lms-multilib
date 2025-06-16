@@ -27,6 +27,7 @@
             <th>Max Seats</th>
             <th>Email</th>
             <th>Phone</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -36,6 +37,11 @@
             <td>{{ lib.max_seats }}</td>
             <td>{{ lib.contact_email }}</td>
             <td>{{ lib.contact_phone }}</td>
+            <td>
+              <router-link :to="`/superadmin/library/${lib.id}/students`">
+                <button>👁️ View Students</button>
+              </router-link>
+            </td>
           </tr>
         </tbody>
       </table>
