@@ -33,7 +33,7 @@ export default {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: radial-gradient(125% 125% at 50% 90%, #fff 40%, #6366f1 100%);
+  background: radial-gradient(125% 125% at 50% 90%, #fff 40%, #475569 100%);
 }
 
 /* Content on top of the gradient */
