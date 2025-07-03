@@ -84,7 +84,7 @@ export default {
 <style scoped>
 .navbar {
   display: flex;
-  background-color: #1f2937;
+  background-color: #4f46e5;
   padding: 12px 24px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
