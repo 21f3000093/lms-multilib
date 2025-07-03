@@ -70,11 +70,11 @@ export default {
 <style scoped>
 .seat-map-container {
   max-width: 900px;
-  margin: 0 auto;
+  margin: 5vh auto;
   padding: 2rem;
   background: #f9fafc;
   border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
 .seat-map-container h2 {
