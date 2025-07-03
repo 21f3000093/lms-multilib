@@ -16,6 +16,12 @@ class StudentCreate(BaseModel):
     status: Optional[str] = "active"
     library_id: int  # ✅ NEW
 
+class SeatOut(BaseModel):
+    id: int
+    seat_number: int
+
+    class Config:
+        orm_mode = True
 
 class StudentOut(StudentCreate):
     id: int
@@ -23,6 +29,7 @@ class StudentOut(StudentCreate):
     total_fee: Optional[int] = None
     custom_fees: Optional[int] = None
     library_id: int  # ✅ Ensure it's present
+    seat: Optional[SeatOut]
 
     class Config:
         orm_mode = True

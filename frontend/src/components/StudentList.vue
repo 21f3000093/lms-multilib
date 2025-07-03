@@ -41,7 +41,7 @@
           <td><router-link :to="`/students/${student.id}`" class="student-link">{{ student.name }}</router-link></td>
           
           <td>{{ student.contact }}</td>
-          <td>{{ student.seat_id }}</td>
+          <td>{{ student.seat?.seat_number || '—' }}</td>
           <td>{{ student.shift1 ? '✅' : '❌' }}</td>
           <td>{{ student.shift2 ? '✅' : '❌' }}</td>
           <td>{{ student.shift3 ? '✅' : '❌' }}</td>
@@ -216,7 +216,8 @@ h2 {
 }
 
 .student-link:hover {
-  text-decoration: underline;
+  text-decoration: none;
+
 }
 
 /* Action Buttons */

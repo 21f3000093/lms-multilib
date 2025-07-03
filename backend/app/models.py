@@ -83,6 +83,8 @@ class Student(Base):
     library_id = Column(Integer, ForeignKey("libraries.id"), nullable=False)
     library = relationship("Library", back_populates="students")
     monthly_payments = relationship("MonthlyPayment", back_populates="student")
+    seat = relationship("Seat", backref="student", uselist=False)
+
     
     
 class MonthlyPayment(Base):
