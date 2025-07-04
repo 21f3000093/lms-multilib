@@ -23,8 +23,8 @@ export default {
 body, html, #app {
   margin: 0;
   padding: 0;
-  width: 100%;
-  height: 100%;
+  /* width: 100%;
+  height: 100%; */
 }
 
 /* Main wrapper styling */

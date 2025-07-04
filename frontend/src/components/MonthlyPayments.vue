@@ -156,9 +156,9 @@ export default {
   margin: 5vh auto;
   padding: 2rem;
   font-family: "Segoe UI", sans-serif;
-  background-color: #fdfdfd;
+  background-color: #fdfdfd00;
   border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 h2 {

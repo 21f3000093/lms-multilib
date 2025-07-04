@@ -219,11 +219,12 @@ export default {
 <style scoped>
 .dashboard {
   max-width: 1200px;
-  margin: auto;
+  margin: 3vh auto;
   padding: 2rem;
   font-family: "Segoe UI", sans-serif;
-  background-color: #f4f7fa;
+  background-color: rgb(244, 247, 250 , 0.3) ;
   color: #333;
+  ;
 }
 
 h1 {
