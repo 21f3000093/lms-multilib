@@ -75,9 +75,9 @@ export default {
   max-width: 400px;
   margin: 20vh auto;
   padding: 2rem;
-  background-color: #f9f9f9;
+  background-color: #f9f9f900;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   font-family: "Segoe UI", sans-serif;
   text-align: center;
 }
