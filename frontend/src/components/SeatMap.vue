@@ -72,9 +72,9 @@ export default {
   max-width: 900px;
   margin: 5vh auto;
   padding: 2rem;
-  background: #f9fafc;
+  background: #f9fafc00;
   border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 .seat-map-container h2 {

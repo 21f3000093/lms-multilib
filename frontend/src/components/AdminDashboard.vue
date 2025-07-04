@@ -81,11 +81,11 @@ export default {
 }
 
 .dashboard-card {
-  background-color: #f9f9f9;
+  background-color: rgba(249, 249, 249, 0);
   border-left: 6px solid #3498db;
   padding: 1rem;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
   text-align: center;
 }
 

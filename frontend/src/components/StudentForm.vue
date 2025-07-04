@@ -140,7 +140,7 @@ export default {
 }
 
 .form-box {
-  background-color: #fff;
+  background-color: #89729900;
   padding: 2rem;
   border-radius: 12px;
   max-width: 450px;
