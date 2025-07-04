@@ -30,7 +30,10 @@
       <input v-model.number="student.custom_fees" type="number" placeholder="Monthly Fees (Rs)" />
 
       <div class="button-group">
-        <button type="submit">{{ isEdit ? 'Update' : 'Submit' }}</button>
+        <!-- <button type="submit">{{ isEdit ? 'Update' : 'Submit' }}</button> -->
+        <button type="submit" :disabled="loading">
+            {{ loading ? 'Please wait...' : (isEdit ? 'Update' : 'Submit') }}
+        </button>
         <button type="button" @click="$emit('close')">Cancel</button>
       </div>
     </form>
@@ -59,7 +62,8 @@ export default {
         library_id: localStorage.getItem('library_id'),
 
       },
-      availableSeats: []
+      availableSeats: [],
+      loading: false
     };
   },
   computed: {
@@ -100,6 +104,10 @@ export default {
       }
     },
     async submitForm() {
+
+      if (this.loading) return; // 🔒 Prevent double-clicking
+      this.loading = true;
+
       try {
         if (this.isEdit) {
           await API.put(`/students/${this.student.id}`, this.student);
@@ -116,7 +124,8 @@ export default {
             seat_id: '',
             custom_fees: null,
             paid: false,
-            date_of_joining: null
+            date_of_joining: null,
+            library_id: localStorage.getItem('library_id')
           };
         }
 
@@ -124,7 +133,9 @@ export default {
         this.$emit('close');
       } catch (err) {
         alert('Error: ' + (err.response?.data?.detail || err.message));
-      }
+      } finally {
+          this.loading = false;
+    }
     }
   }
 };
