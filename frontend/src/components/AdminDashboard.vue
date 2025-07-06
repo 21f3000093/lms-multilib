@@ -81,7 +81,7 @@ export default {
 }
 
 .dashboard-card {
-  background-color: rgba(249, 249, 249, 0);
+  background-color: rgba(249, 249, 249, 0.119);
   border-left: 6px solid #3498db;
   padding: 1rem;
   border-radius: 8px;

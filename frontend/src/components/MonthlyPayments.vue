@@ -38,7 +38,8 @@
             <!-- <tr v-for="payment in payments" :key="payment.id"> -->
             <tr v-for="payment in filteredPayments" :key="payment.id">
             <td>{{ payment.student.name }}</td>
-            <td>{{ payment.student.seat_id }}</td>
+            <td>{{ payment.student.seat?.seat_number || '—' }}</td>  <!-- This should be the seat number . Will change in future-->
+            <!-- <td>{{ payment.student.seat_id }}</td>  This should be the seat number . Will change in future -->
             <td>₹{{ payment.amount }}</td>
             <td>
                 <span :style="{ color: payment.paid ? 'green' : 'red' }">
@@ -299,6 +300,14 @@ th, td {
     display: block;
     overflow-x: auto;
     white-space: nowrap;
+    max-width: fit-content;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    
   }
 
   th, td {

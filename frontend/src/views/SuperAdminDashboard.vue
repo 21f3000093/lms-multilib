@@ -300,7 +300,7 @@ table {
   margin-top: 1rem;
   background-color: #fff;
   border-radius: 8px;
-  overflow: hidden;
+  overflow:scroll;
   box-shadow: 0 4px 6px rgba(0,0,0,0.05);
 }
 

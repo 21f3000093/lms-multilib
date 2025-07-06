@@ -17,7 +17,20 @@
     </div>
 
     <!-- Desktop logout only -->
-    <button v-if="isLoggedIn" class="logout-btn desktop-logout" @click="logout">🚪 Logout</button>
+    <!-- <button v-if="isLoggedIn" class="logout-btn desktop-logout" @click="logout">🚪 Logout</button> -->
+
+    <button v-if="isLoggedIn" @click="logout" class="custom-logout-btn desktop-logout">
+      <div class="custom-logout-inner">
+        <svg class="logout-icon" viewBox="0 0 512 512" fill="white">
+          <path
+            d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32z"
+          ></path>
+        </svg>
+        <span class="logout-text">Logout</span>
+      </div>
+    </button>
+
+
   </nav>
 </template>
 
@@ -166,6 +179,64 @@ export default {
 .mobile-logout {
   display: none;
 }
+
+.custom-logout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  width: 44px;
+  height: 44px;
+  background-color: #e84118;
+  border-radius: 50%;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  position: relative;
+  border: none;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.custom-logout-btn:hover {
+  width: 130px;
+  border-radius: 8px;
+}
+
+.custom-logout-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  transition: all 0.3s ease;
+  padding-left: 0;
+}
+
+.custom-logout-btn:hover .custom-logout-inner {
+  justify-content: flex-start;
+  padding-left: 14px;
+}
+
+.logout-icon {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.3s;
+}
+
+.logout-text {
+  position: absolute;
+  right: 18px;
+  transform: translateX(100%);
+  opacity: 0;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.custom-logout-btn:hover .logout-text {
+  transform: translateX(0);
+  opacity: 1;
+}
+
 
 /* Mobile responsive */
 @media (max-width: 1080px) {

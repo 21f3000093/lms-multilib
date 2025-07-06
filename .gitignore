@@ -9,6 +9,7 @@ instance/
 .db.sqlite3
 *.sqlite3
 *.db
+commands.txt
 
 # ---- Vue CLI (Frontend) ----
 frontend/node_modules/
