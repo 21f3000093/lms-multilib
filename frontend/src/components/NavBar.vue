@@ -1,8 +1,8 @@
 <template>
   <nav class="navbar">
     <div class="navbar-top">
-      <router-link v-if="!isLoggedIn || role === 'admin'" to="/dashboard" style="text-decoration: none; background-color: unset;"><div class="logo">📚 {{ this.library_name }}</div></router-link>
-      <router-link  v-if="isLoggedIn && role === 'superadmin'" to="/superadmin" style="text-decoration: none; background-color: unset;"><div class="logo">📚 {{ this.library_name }}</div></router-link>
+      <router-link v-if="!isLoggedIn || role === 'admin'" to="/dashboard" style="text-decoration: none; background-color: unset;"><div class="logo">{{ this.library_name }}</div></router-link>
+      <router-link  v-if="isLoggedIn && role === 'superadmin'" to="/superadmin" style="text-decoration: none; background-color: unset;"><div class="logo">{{ this.library_name }}</div></router-link>
       <!-- <div class="logo">📚 LMS Admin</div> -->
       <button class="hamburger" @click="toggleMenu">☰</button>
     </div>
