@@ -192,6 +192,7 @@ export default {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.204);
   max-height: 70vh;
   /* overflow: auto; */
+  overflow-y: auto;
   
 }
 
