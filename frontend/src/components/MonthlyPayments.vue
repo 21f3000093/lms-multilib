@@ -4,10 +4,10 @@
 
     <!-- Month Selector and Generate Button -->
     <div class="month-controls">
-      <label>
-        Select Month:
-        <input type="month" v-model="selectedMonth" />
-      </label>
+      <!-- <label> -->
+        <!-- Select Month: -->
+      <input type="month" v-model="selectedMonth" />
+      <!-- </label> -->
       <button @click="generatePayments">Generate</button>
       <button @click="downloadCSV">📥 Export CSV</button>
 
@@ -30,6 +30,7 @@
             <th>Name</th>
             <th>Seat</th>
             <th>Amount</th>
+            <th>Date of Joining</th>
             <th>Status</th>
             <th>Actions</th> <!-- New -->
             </tr>
@@ -41,11 +42,13 @@
             <td>{{ payment.student.seat?.seat_number || '—' }}</td>  <!-- This should be the seat number . Will change in future-->
             <!-- <td>{{ payment.student.seat_id }}</td>  This should be the seat number . Will change in future -->
             <td>₹{{ payment.amount }}</td>
+            <td>{{ formatDate(payment.student.date_of_joining) }}</td>
             <td>
                 <span :style="{ color: payment.paid ? 'green' : 'red' }">
                 {{ payment.paid ?  '✅ Paid' : '❌ Unpaid' }}
                 </span>
             </td>
+
             <td>
                 <button class="action-button edit" @click="togglePaid(payment)" :style="{ backgroundColor: payment.paid ? 'blue' : 'green' }">
                 {{ payment.paid ? 'Mark Unpaid' : 'Mark Paid' }}
@@ -131,21 +134,48 @@ export default {
       } catch (err) {
         alert('Failed to export CSV');
       }
-    }
+    },
+
+    formatDate(dateString) {
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // JS months are 0-indexed
+        const year = String(date.getFullYear()).slice(-2); // get last 2 digits
+        return `${day}-${month}-${year}`;
+    },
 
   },
 
   computed: {
+      // filteredPayments() {
+      //   return this.payments.filter(payment => {
+      //     const matchesName = payment.student.name.toLowerCase().includes(this.searchTerm.toLowerCase());
+      //     const matchesStatus =
+      //       this.statusFilter === '' ||
+      //       (this.statusFilter === 'paid' && payment.paid) ||
+      //       (this.statusFilter === 'unpaid' && !payment.paid);
+      //     return matchesName && matchesStatus;
+      //   });
+      // },
+
+
       filteredPayments() {
-        return this.payments.filter(payment => {
-          const matchesName = payment.student.name.toLowerCase().includes(this.searchTerm.toLowerCase());
-          const matchesStatus =
-            this.statusFilter === '' ||
-            (this.statusFilter === 'paid' && payment.paid) ||
-            (this.statusFilter === 'unpaid' && !payment.paid);
-          return matchesName && matchesStatus;
-        });
-      }
+    return this.payments
+      .filter(payment => {
+        const matchesName = payment.student.name.toLowerCase().includes(this.searchTerm.toLowerCase());
+        const matchesStatus =
+          this.statusFilter === '' ||
+          (this.statusFilter === 'paid' && payment.paid) ||
+          (this.statusFilter === 'unpaid' && !payment.paid);
+        return matchesName && matchesStatus;
+      })
+      .sort((a, b) => {
+        const seatA = a.student.seat?.seat_number || 0;
+        const seatB = b.student.seat?.seat_number || 0;
+        return seatA - seatB;
+      });
+  }
+
     },
 
 };
@@ -159,7 +189,10 @@ export default {
   font-family: "Segoe UI", sans-serif;
   background-color: #fdfdfd00;
   border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.204);
+  max-height: 70vh;
+  /* overflow: auto; */
+  
 }
 
 h2 {
@@ -262,6 +295,9 @@ table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 1rem;
+  overflow: auto;
+  /* max-height: 20vh; */
+
 }
 
 th, td {
@@ -273,13 +309,30 @@ th, td {
 @media (max-width: 768px) {
   .container {
     padding: 1rem;
-    margin: 2vh 1rem;
+    /* margin: 3vh 1rem; */
+    margin-bottom: 0%;
+    margin-top: 0%;
+    max-height: 90vh;
+    overflow: auto;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   }
 
-  .month-controls,
+  .month-controls {
+    flex-direction: row;
+    align-items: center;
+    max-width: 90%;
+    margin: auto;
+    margin-bottom: 1rem;
+    gap: 0.3rem;
+  }
+  
   .filters {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: 100%;
+    margin: auto;
+    margin-bottom: 1rem;
   }
 
   .month-controls label,
