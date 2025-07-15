@@ -111,10 +111,10 @@ export default {
       try {
         if (this.isEdit) {
           await API.put(`/students/${this.student.id}`, this.student);
-          alert('Student updated!');
+          // alert('Student updated!');
         } else {
           await API.post('/students/', this.student);
-          alert('Student added!');
+          // alert('Student added!');
           this.student = {
             name: '',
             contact: '',
@@ -151,7 +151,7 @@ export default {
 }
 
 .form-box {
-  background-color: #89729900;
+  background-color: #ffffff4f;
   padding: 2rem;
   border-radius: 12px;
   max-width: 450px;
@@ -229,6 +229,18 @@ export default {
 
 /* ✅ Responsive Design for tablets and mobile */
 @media (max-width: 768px) {
+  .student-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  max-width: 80%;
+  margin: auto;
+  margin-top: 3vh;
+
+}
+  
   .form-box {
     padding: 1.2rem;
     gap: 1rem;

@@ -25,9 +25,11 @@
           <th>Name</th>
           <th>Contact</th>
           <th>Seat No</th>
-          <th>Shift 1</th>
-          <th>Shift 2</th>
-          <th>Shift 3</th>
+          <th>Shifts</th>
+          
+          <!-- <th>Shift 2</th> -->
+          <!-- <th>Shift 3</th> -->
+
           <th>Total Fees</th>
           <!-- <th>Paid</th> -->
           <th>Actions</th>
@@ -42,10 +44,12 @@
           
           <td>{{ student.contact }}</td>
           <td>{{ student.seat?.seat_number || '—' }}</td>
-          <td>{{ student.shift1 ? '✅' : '❌' }}</td>
-          <td>{{ student.shift2 ? '✅' : '❌' }}</td>
-          <td>{{ student.shift3 ? '✅' : '❌' }}</td>
-          <td>{{ student.custom_fees ?? student.total_fee }}</td>
+          <td>{{ student.shift1 ? '✅' : '❌' }} {{ student.shift2 ? '✅' : '❌' }} {{ student.shift3 ? '✅' : '❌' }}</td>
+
+          <!-- <td>{{ student.shift2 ? '✅' : '❌' }}</td> -->
+          <!-- <td>{{ student.shift3 ? '✅' : '❌' }}</td> -->
+           
+          <td>₹{{ student.custom_fees ?? student.total_fee }}</td>
           <!-- <td>{{ student.paid ? '✅' : '❌' }}</td> -->
           <td>
             <button class="action-button edit" @click="editStudent(student)">✏️ Edit</button>
@@ -54,7 +58,7 @@
               class="action-button mark-left"
               @click="markLeft(student.id)"
             >
-              Mark as Left
+              Delete
             </button>
             <span v-else class="status-left">Left</span>
           </td>
@@ -152,7 +156,7 @@ export default {
 <style scoped>
 .booking-container {
   max-width: 1200px;
-  margin: 5vh auto;
+  margin: 2vh auto;
   padding: 2rem;
   background-color: #ffffff00;
   border-radius: 12px;
@@ -189,30 +193,31 @@ h2 {
 .student-table {
   width: 100%;
   border-collapse: collapse;
-  overflow-x: auto;
+  /* overflow-x: auto; */
 }
 
 .student-table th,
 .student-table td {
-  border: 1px solid #ddd;
+  border: 1px solid #ffffff64;
   padding: 10px;
   text-align: center;
   font-size: 0.95rem;
 }
 
 .student-table th {
-  background-color: #f0f0f0;
+  background-color: #f0f0f000;
   font-weight: 600;
 }
 
 .student-table tbody tr:nth-child(even) {
-  background-color: #fafafa;
+  background-color: #fafafa00;
 }
 
 .student-link {
-  color: #007bff;
+  color: #2c2929;
   text-decoration: none;
   font-weight: 500;
+  text-transform: capitalize;
 }
 
 .student-link:hover {
@@ -260,36 +265,50 @@ h2 {
 @media (max-width: 768px) {
   .booking-container {
     padding: 1rem;
+    margin: 2vh 1rem;
+    max-height: 90vh;
+    overflow: auto;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   }
 
   .filters {
-    flex-direction: column;
+    flex-direction: row;
     gap: 0.8rem;
   }
 
   .filters input,
   .filters select {
-    width: 100%;
+    width: 95%;
   }
 
   .student-table thead {
     display: none;
   }
 
-  .student-table,
+  
   .student-table tbody,
-  .student-table tr,
   .student-table td {
     display: block;
-    width: 100%;
+    width: 98%;
+    /* box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15); */
+  }
+  .student-table {
+    display: block;
+    width: 99%;
+    /* box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15); */
+  }
+  .student-table tr{
+    display: block;
+    width: 99%;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   }
 
   .student-table tr {
     margin-bottom: 1rem;
-    border: 1px solid #ddd;
+    border: 1px solid #bca9ce;
     border-radius: 8px;
     padding: 0.8rem;
-    background-color: #fefefe;
+    background-color: #fefefe1b;
   }
 
   .student-table td {
@@ -298,6 +317,8 @@ h2 {
     position: relative;
     white-space: pre-wrap;
     box-sizing: border-box;
+    
+    
   }
 
   .student-table td::before {
@@ -306,17 +327,17 @@ h2 {
     top: 0.6rem;
     font-weight: bold;
     white-space: nowrap;
-    color: #444;
+    color: #444;    
   }
 
   .student-table td:nth-child(1)::before { content: "Name"; }
   .student-table td:nth-child(2)::before { content: "Contact"; }
   .student-table td:nth-child(3)::before { content: "Seat No"; }
-  .student-table td:nth-child(4)::before { content: "Shift 1"; }
-  .student-table td:nth-child(5)::before { content: "Shift 2"; }
-  .student-table td:nth-child(6)::before { content: "Shift 3"; }
-  .student-table td:nth-child(7)::before { content: "Total Fees"; }
-  .student-table td:nth-child(8)::before { content: "Actions"; }
+  .student-table td:nth-child(4)::before { content: "Shifts"; }
+  /* .student-table td:nth-child(5)::before { content: "Shift 2"; } */
+  /* .student-table td:nth-child(6)::before { content: "Shift 3"; } */
+  .student-table td:nth-child(5)::before { content: "Total Fees"; }
+  .student-table td:nth-child(6)::before { content: "Actions"; }
 
   .action-button {
     margin: 4px 0;
