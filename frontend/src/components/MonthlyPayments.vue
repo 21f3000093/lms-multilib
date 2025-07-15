@@ -10,6 +10,10 @@
       </label>
       <button @click="generatePayments">Generate</button>
       <button @click="downloadCSV">📥 Export CSV</button>
+      <router-link to="/reminders">
+        <button class="reminder-btn">📬 WhatsApp Reminders</button>
+      </router-link>
+
 
     </div>
 
