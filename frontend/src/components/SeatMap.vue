@@ -75,6 +75,9 @@ export default {
   background: #f9fafc00;
   border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  height: 70vh;
+  overflow-y: auto;
+  scrollbar-width: none;
 }
 
 .seat-map-container h2 {
@@ -109,6 +112,8 @@ export default {
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  margin:  auto;
+  width: 50%;
 }
 
 .filters button:hover {
@@ -153,10 +158,13 @@ export default {
   .seat-map-container {
     padding: 1rem;
     margin: 1rem;
+    height: 90vh;
+    overflow: auto;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   }
 
   .filters {
-    flex-direction: column;
+    flex-direction: row;
     align-items: stretch;
     gap: 0.75rem;
   }

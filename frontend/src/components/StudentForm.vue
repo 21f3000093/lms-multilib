@@ -237,7 +237,7 @@ export default {
   padding: 1rem;
   max-width: 80%;
   margin: auto;
-  margin-top: 3vh;
+  margin-top: 10vh;
 
 }
   

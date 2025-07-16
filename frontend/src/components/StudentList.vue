@@ -162,6 +162,9 @@ export default {
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   font-family: "Segoe UI", sans-serif;
+  height: 75vh;
+  overflow-y: auto;
+  scrollbar-width: none;
 }
 
 h2 {

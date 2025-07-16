@@ -97,9 +97,14 @@ export default {
 <style scoped>
 .navbar {
   display: flex;
-  background-color: #8082e3;
+  /* background-color: #8082e3; */
   padding: 12px 24px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+  background: linear-gradient(to right, #6a11cb, #2575fc); /* modern gradient */
+  color: white;
+  font-weight: 600;
+
 }
 
 /* Top bar */

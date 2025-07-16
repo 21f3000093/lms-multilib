@@ -10,11 +10,11 @@
       <!-- </label> -->
       <button @click="generatePayments">Generate</button>
       <button @click="downloadCSV">📥 Export CSV</button>
-      <router-link to="/reminders">
-        <button class="reminder-btn">📬 WhatsApp Reminders</button>
-      </router-link>
-
-
+      
+      
+    <router-link to="/reminders">
+      <button class="reminder-btn">📩 WhatsApp Reminders</button>
+    </router-link>
     </div>
 
     <!-- Filters -->
@@ -190,24 +190,26 @@ export default {
   max-width: 960px;
   margin: 5vh auto;
   padding: 2rem;
-  font-family: "Segoe UI", sans-serif;
-  background-color: #fdfdfd00;
+  font-family: "Segoe UI", "Poppins", sans-serif;
+  background: linear-gradient(to bottom right, #f7faff3e, #e0f7fa33);
   border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.204);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   max-height: 70vh;
-  /* overflow: auto; */
   overflow-y: auto;
-  
+  scrollbar-width: none;
 }
 
 h2 {
   text-align: center;
   margin-bottom: 2rem;
   color: #333;
+  font-size: 1.6rem;
+  font-weight: 600;
 }
 
-/* Month selector and buttons */
-.month-controls {
+/* Month Controls + Filters */
+.month-controls,
+.filters {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
@@ -216,67 +218,55 @@ h2 {
   margin-bottom: 1.5rem;
 }
 
-.month-controls label {
-  font-weight: 500;
-  font-size: 1rem;
-}
-
-.month-controls input[type="month"] {
-  padding: 8px;
-  font-size: 1rem;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  margin-left: 0.5rem;
-}
-
-.month-controls button {
-  padding: 10px 14px;
-  font-size: 0.95rem;
-  border: none;
-  border-radius: 6px;
-  background-color: #007bff;
-  color: white;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.month-controls button:hover {
-  background-color: #0056b3;
-}
-
-/* Filters */
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  justify-content: space-between;
-  margin-bottom: 1.5rem;
-}
-
+.month-controls input[type="month"],
 .filters input[type="text"],
 .filters select {
   padding: 10px;
   font-size: 0.95rem;
   border-radius: 6px;
   border: 1px solid #ccc;
-  flex: 1;
   min-width: 140px;
 }
 
-/* Action buttons */
+.month-controls button,
+.reminder-btn {
+  padding: 10px 16px;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  min-width: fit-content;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  background-color: #8725d3;
+}
+
+.reminder-btn:hover {
+  background-color: #1ebe54;
+}
+
+.month-controls button:hover {
+  background-color: #7f22c6;
+  transform: scale(1.03); /* 👈 Slight hover scale */
+}
+
+
+/* Action Buttons */
 .action-button {
-  padding: 6px 10px;
-  margin: 0 4px;
+  padding: 8px 12px;
   border: none;
   border-radius: 6px;
   color: white;
   font-size: 0.85rem;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  margin-right: 0.5rem;
 }
 
 .action-button.edit:hover {
   background-color: #006400;
+  transform: scale(1.03);
 }
 
 .action-button.mark-left {
@@ -285,106 +275,138 @@ h2 {
 
 .action-button.mark-left:hover {
   background-color: #b02a37;
+  transform: scale(1.03);
 }
 
-/* No data message */
-.no-data {
-  text-align: center;
-  margin-top: 2rem;
-  color: #666;
-  font-style: italic;
-}
-
-
+/* Table Base */
 table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 1rem;
-  overflow: auto;
-  /* max-height: 20vh; */
-
 }
 
 th, td {
   padding: 0.75rem;
-  border: 1px solid #ccc;
+  border: 1px solid #e0e0e0;
   text-align: left;
+  font-size: 0.95rem;
+  text-decoration: none;
+  font-weight: 500;
+  text-transform: capitalize;
 }
 
+thead {
+  background-color: #f3f3f3;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #fafafaa6;
+}
+
+.no-data {
+  text-align: center;
+  margin-top: 2rem;
+  color: green;
+  font-style: italic;
+  font-size: 1rem;
+}
+
+/* ✅ Responsive: Mobile Card Layout */
 @media (max-width: 768px) {
-  .container {
-    padding: 1rem;
-    /* margin: 3vh 1rem; */
-    margin-bottom: 0%;
-    margin-top: 0%;
-    max-height: 90vh;
-    overflow: auto;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  }
-
-  .month-controls {
-    flex-direction: row;
-    align-items: center;
-    max-width: 90%;
-    margin: auto;
-    margin-bottom: 1rem;
-    gap: 0.3rem;
-  }
-  
-  .filters {
-    flex-direction: row;
-    align-items: center;
-    gap: 0.5rem;
-    max-width: 100%;
-    margin: auto;
-    margin-bottom: 1rem;
-  }
-
-  .month-controls label,
-  .month-controls input[type="month"],
-  .month-controls button,
-  .filters input[type="text"],
-  .filters select {
-    width: 100%;
-    font-size: 1rem;
-  }
-
-  .month-controls button,
-  .filters select {
-    margin-top: 0.5rem;
-  }
-
   table {
     display: block;
-    overflow-x: auto;
-    white-space: nowrap;
-    max-width: fit-content;
-    margin-top: 1rem;
+    width: 98%;
+    margin: auto;
+    text-decoration: none;
+  font-weight: 500;
+  text-transform: capitalize;
+  }
+
+  thead {
+    display: none;
+    text-decoration: none;
+  font-weight: 500;
+  text-transform: capitalize;
+  }
+
+  tbody, tr, td {
+    display: block;
+    width: 98%;
+    text-decoration: none;
+  font-weight: 500;
+  text-transform: capitalize;
+  }
+
+  tr {
     margin-bottom: 1rem;
-    border-collapse: separate;
-    border-spacing: 0;
-    border: 1px solid #ccc;
-    border-radius: 6px;
+    background-color: #ffffff3f;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    text-decoration: none;
+    font-weight: 500;
+    text-transform: capitalize;
+  }
+
+  td {
+    text-align: left;
+    padding-left: 45%;
+    position: relative;
+    box-sizing: border-box;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    border: 1px solid #ddd;
+    text-decoration: none;
+    font-weight: 500;
+    text-transform: capitalize;
+  }
+
+  td::before {
+    position: absolute;
+    left: 1rem;
+    top: 0.6rem;
+    font-weight: 600;
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+    text-transform: capitalize;
+  }
+
+  td:nth-child(1)::before { content: "Name";  }
+  td:nth-child(2)::before { content: "Seat"; }
+  td:nth-child(3)::before { content: "Amount"; }
+  td:nth-child(4)::before { content: "Date of Joining"; }
+  td:nth-child(5)::before { content: "Status"; }
+  td:nth-child(6)::before { content: "Actions"; }
+
+  .action-button {
+    width: 100%;
+    margin-top: 0.6rem;
+    font-size: 1rem;
     
   }
 
-  th, td {
-    font-size: 0.85rem;
-    padding: 0.5rem;
+  .month-controls,
+  .filters {
+    flex-direction: row;
+    gap: 0.8rem;
+    /* max-width: 20%; */
+    /* margin: auto; */
+    
   }
 
-  .action-button {
-    margin: 4px 0;
-    display: block;
-    width: 100%;
-    font-size: 0.9rem;
+  .month-controls button{
+    /* display: flex; */
+    width: 40%;
+    /* flex-direction: row; */
+    gap: 0.8rem;
+    /* margin: auto; */
   }
 
-  .action-button.edit,
-  .action-button.mark-left {
+  /* .month-controls router-link .reminder-btn {
     width: 100%;
-    margin: 4px 0;
-  }
+    margin-bottom: 1rem;
+  } */
 }
-
 </style>
