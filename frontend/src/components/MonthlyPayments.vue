@@ -316,10 +316,11 @@ tbody tr:nth-child(even) {
   table {
     display: block;
     width: 98%;
-    margin: auto;
+    margin: 2vh 1rem;
     text-decoration: none;
   font-weight: 500;
   text-transform: capitalize;
+  max-height: 98vh;
   }
 
   thead {

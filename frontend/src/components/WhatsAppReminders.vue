@@ -191,17 +191,17 @@ h2 {
   .student-table tbody,
   .student-table td {
     display: block;
-    width: 100%;
+    width: 98%;
   }
 
   .student-table {
     display: block;
-    width: 100%;
+    width: 99%;
   }
 
   .student-table tr {
     display: block;
-    width: 100%;
+    width: 99%;
     margin-bottom: 1.2rem;
     border: 1px solid #dcdcdc;
     border-radius: 10px;
