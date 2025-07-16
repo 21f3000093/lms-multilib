@@ -71,6 +71,7 @@ export default {
 </script>
 
 <style scoped>
+
 .login-container {
   max-width: 400px;
   margin: 20vh auto;
@@ -98,7 +99,7 @@ input {
   border-radius: 8px;
   border: 1px solid #ccc;
   font-size: 1rem;
-  width: 100%;
+  width: 95%;
 }
 
 .password-wrapper {
@@ -131,5 +132,22 @@ p {
   color: red;
   margin-top: 10px;
   font-size: 0.95rem;
+}
+
+@media (max-width: 480px) {
+  .login-container {
+    margin: 8vh 1rem;
+    padding: 1.5rem;
+    max-width: 95%;
+
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  .toggle-btn {
+    font-size: 0.8rem;
+  }
 }
 </style>

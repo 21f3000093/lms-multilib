@@ -13,7 +13,7 @@
       
       
     <router-link to="/reminders">
-      <button class="reminder-btn">📩 WhatsApp Reminders</button>
+      <button class="reminder-btn">📩 WhatsApp</button>
     </router-link>
     </div>
 
