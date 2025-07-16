@@ -269,10 +269,10 @@ h2 {
   .booking-container {
     padding: 1rem;
     margin: 2vh 1rem;
-    max-height: 98vh;
+    height: 98vh;
     overflow: auto;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-    
+
   }
 
   .filters {

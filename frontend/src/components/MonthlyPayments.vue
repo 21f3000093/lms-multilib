@@ -318,7 +318,7 @@ tbody tr:nth-child(even) {
     padding: 1rem;
     margin: 2vh 1rem;
     max-height: 98vh;
-    overflow: auto;
+    overflow-y: auto;
     background: #f4fbff00; /* 👈 Subtle mobile bg */
   }
 
