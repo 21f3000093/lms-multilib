@@ -139,7 +139,7 @@ p {
     margin: 8vh 1rem;
     padding: 1.5rem;
     max-width: 95%;
-    margin-top: auto;
+    margin-top: 20vh;
 
   }
 
