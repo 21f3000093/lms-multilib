@@ -272,6 +272,7 @@ h2 {
     max-height: 98vh;
     overflow: auto;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    
   }
 
   .filters {

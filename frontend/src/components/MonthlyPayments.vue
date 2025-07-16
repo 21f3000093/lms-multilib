@@ -313,14 +313,23 @@ tbody tr:nth-child(even) {
 
 /* ✅ Responsive: Mobile Card Layout */
 @media (max-width: 768px) {
+
+  .container {
+    padding: 1rem;
+    margin: 2vh 1rem;
+    max-height: 98vh;
+    overflow: auto;
+    background: #f4fbff00; /* 👈 Subtle mobile bg */
+  }
+
+
   table {
     display: block;
     width: 98%;
     margin: 2vh 1rem;
     text-decoration: none;
-  font-weight: 500;
-  text-transform: capitalize;
-  max-height: 98vh;
+    font-weight: 500;
+    /* max-height: 98vh; */
   }
 
   thead {
