@@ -1,5 +1,5 @@
 # models.py
-from sqlalchemy import Column, Integer, String, Boolean , ForeignKey, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Boolean , ForeignKey, UniqueConstraint, Index
 from app.database import Base
 from sqlalchemy import Date
 from datetime import date
@@ -10,7 +10,7 @@ class Library(Base):
     __tablename__ = "libraries"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
+    name = Column(String, nullable=False,index=True)
     address = Column(String)
     contact_email = Column(String)
     contact_phone = Column(String)
@@ -37,9 +37,9 @@ class Admin(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
     password = Column(String, nullable=False)
-    role = Column(String, default="admin")  # admin / superadmin
-    library_id = Column(Integer, ForeignKey("libraries.id"), nullable=True)
-    status = Column(String, default="active")  # 'active', 'inactive', 'blocked'
+    role = Column(String, default="admin",index=True)  # admin / superadmin
+    library_id = Column(Integer, ForeignKey("libraries.id", ondelete="CASCADE"),index=True, nullable=True)
+    status = Column(String, default="active",index=True)  # 'active', 'inactive', 'blocked'
 
     created_at = Column(Date, default=date.today)
 
@@ -69,35 +69,45 @@ class Student(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
-    contact = Column(String)
-    seat_id = Column(Integer, ForeignKey("seats.id" ,use_alter=True,), nullable=True)
+    contact = Column(String,index=True)
+    seat_id = Column(Integer, ForeignKey("seats.id" ,use_alter=True, ondelete="SET NULL"), nullable=True,index=True)
     shift1 = Column(Boolean, default=False)
     shift2 = Column(Boolean, default=False)
     shift3 = Column(Boolean, default=False)
     total_fee = Column(Integer)
     paid = Column(Boolean, default=False)
     custom_fees = Column(Integer, nullable=True)
-    date_of_joining = Column(Date, default=date.today)
-    status = Column(String, default="active")
+    date_of_joining = Column(Date, default=date.today,index=True)
+    status = Column(String, default="active",index=True)
 
-    library_id = Column(Integer, ForeignKey("libraries.id"), nullable=False)
+    library_id = Column(Integer, ForeignKey("libraries.id", ondelete="CASCADE"), nullable=False,index=True)
     library = relationship("Library", back_populates="students")
     monthly_payments = relationship("MonthlyPayment", back_populates="student")
-    seat = relationship("Seat", foreign_keys=[seat_id],  uselist=False)
+    seat = relationship("Seat", foreign_keys=[seat_id],post_update=True,  uselist=False)
+    
+    __table_args__ = (
+        Index("idx_students_library_status", "library_id", "status"),
+    )
 
     
     
 class MonthlyPayment(Base):
     __tablename__ = 'monthly_payments'
     id = Column(Integer, primary_key=True, index=True)
-    student_id = Column(Integer, ForeignKey("students.id"))
+    student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False,index=True)
     month = Column(String, index=True)  # format: '2025-07'
     amount = Column(Integer)
-    paid = Column(Boolean, default=False)
+    paid = Column(Boolean, default=False,index=True)
 
     student = relationship("Student", back_populates="monthly_payments")
-    library_id = Column(Integer, ForeignKey("libraries.id"), nullable=False)
+    library_id = Column(Integer, ForeignKey("libraries.id", ondelete="CASCADE"), nullable=False,index=True)
     library = relationship("Library", back_populates="monthly_payments")
+    
+    __table_args__ = (
+        Index("idx_payments_student_month", "student_id", "month"),
+        Index("idx_payments_library_month", "library_id", "month"),
+        Index("idx_payments_library_paid", "library_id", "paid"),
+    )
 
 
     
@@ -112,15 +122,16 @@ class Seat(Base):
     __tablename__ = "seats"
 
     id = Column(Integer, primary_key=True, index=True)
-    shift1_student_id = Column(Integer, ForeignKey("students.id"), nullable=True)
-    shift2_student_id = Column(Integer, ForeignKey("students.id"), nullable=True)
-    shift3_student_id = Column(Integer, ForeignKey("students.id"), nullable=True)
+    shift1_student_id = Column(Integer, ForeignKey("students.id", ondelete="SET NULL"), nullable=True,index=True)
+    shift2_student_id = Column(Integer, ForeignKey("students.id", ondelete="SET NULL"), nullable=True,index=True)
+    shift3_student_id = Column(Integer, ForeignKey("students.id", ondelete="SET NULL"), nullable=True,index=True)
 
-    seat_number = Column(Integer, nullable=False)  # 1 to max_seats (unique per library)
-    library_id = Column(Integer, ForeignKey("libraries.id"), nullable=False)
+    seat_number = Column(Integer, nullable=False, index=True)  # 1 to max_seats (unique per library)
+    library_id = Column(Integer, ForeignKey("libraries.id", ondelete="CASCADE"), nullable=False,index=True)
 
     __table_args__ = (
         UniqueConstraint('library_id', 'seat_number', name='uq_library_seat_number'),
+        Index("idx_seats_library_number", "library_id", "seat_number"),
 )
     library = relationship("Library", back_populates="seats")
 
