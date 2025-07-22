@@ -70,7 +70,7 @@ class Student(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
     contact = Column(String)
-    seat_id = Column(Integer, ForeignKey("seats.id"), nullable=True)
+    seat_id = Column(Integer, ForeignKey("seats.id" ,use_alter=True,), nullable=True)
     shift1 = Column(Boolean, default=False)
     shift2 = Column(Boolean, default=False)
     shift3 = Column(Boolean, default=False)
@@ -83,7 +83,7 @@ class Student(Base):
     library_id = Column(Integer, ForeignKey("libraries.id"), nullable=False)
     library = relationship("Library", back_populates="students")
     monthly_payments = relationship("MonthlyPayment", back_populates="student")
-    seat = relationship("Seat", foreign_keys=[seat_id], backref="student", uselist=False)
+    seat = relationship("Seat", foreign_keys=[seat_id],  uselist=False)
 
     
     
