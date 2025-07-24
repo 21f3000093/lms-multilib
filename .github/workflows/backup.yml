@@ -1,0 +1,55 @@
+name: PostgreSQL Backup to S3 (Encrypted + Compressed)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 1,15 * *'  # Run at midnight on 1st and 15th of each month
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install PostgreSQL and GPG
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y postgresql-client gnupg
+
+    - name: Extract DB credentials
+      env:
+        DATABASE_URL: ${{ secrets.RAILWAY_DB_URL }}
+      run: |
+        export DATABASE_URL=${{ secrets.RAILWAY_DB_URL }}
+        echo "PGPASSWORD=$(echo $DATABASE_URL | sed -E 's/.*:([^@]*)@.*/\1/')" >> $GITHUB_ENV
+        echo "PGUSER=$(echo $DATABASE_URL | sed -E 's/.*:\/\/([^:]*):.*/\1/')" >> $GITHUB_ENV
+        echo "PGHOST=$(echo $DATABASE_URL | sed -E 's/.*@([^:/]*).*/\1/')" >> $GITHUB_ENV
+        echo "PGPORT=$(echo $DATABASE_URL | sed -E 's/.*:([0-9]+)\/.*/\1/')" >> $GITHUB_ENV
+        echo "PGDATABASE=$(echo $DATABASE_URL | sed -E 's/.*\/([^?]*).*/\1/')" >> $GITHUB_ENV
+
+    - name: Dump, compress, and encrypt database
+      run: |
+        TIMESTAMP=$(date +%Y-%m-%d-%H-%M-%S)
+        FILENAME=db-backup-$TIMESTAMP.sql
+        ARCHIVE=$FILENAME.gz.gpg
+
+        pg_dump --no-owner --no-acl -h $PGHOST -U $PGUSER -p $PGPORT -d $PGDATABASE > $FILENAME
+
+        # Compress the SQL file
+        gzip $FILENAME
+
+        # Encrypt using symmetric GPG with passphrase
+        gpg --batch --yes --symmetric --passphrase "${{ secrets.GPG_PASSPHRASE }}" $FILENAME.gz
+
+        echo "ARCHIVE=$ARCHIVE" >> $GITHUB_ENV
+
+    - name: Upload to S3 (Encrypted & Compressed File)
+      uses: jakejarvis/s3-sync-action@master
+      with:
+        args: --acl private --follow-symlinks
+      env:
+        AWS_S3_BUCKET: ${{ secrets.S3_BUCKET_NAME }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+        SOURCE_DIR: ./
+        DEST_DIR: backups/
