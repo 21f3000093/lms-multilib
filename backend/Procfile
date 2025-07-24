@@ -1,1 +1,1 @@
-web: alembic stamp 5ba3442501a3 && alembic upgrade head && gunicorn -k uvicorn.workers.UvicornWorker main:app
+web: gunicorn -k uvicorn.workers.UvicornWorker main:app

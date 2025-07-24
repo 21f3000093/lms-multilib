@@ -85,6 +85,14 @@ export default {
   mounted() {
     this.fetchPayments();
   },
+
+  watch: {
+    selectedMonth: {
+      handler: 'fetchPayments',
+      immediate: false // We already fetch in mounted, so no need for immediate
+    }
+  },
+
   methods: {
     async fetchPayments() {
       try {
@@ -163,22 +171,34 @@ export default {
       // },
 
 
-      filteredPayments() {
-    return this.payments
-      .filter(payment => {
-        const matchesName = payment.student.name.toLowerCase().includes(this.searchTerm.toLowerCase());
-        const matchesStatus =
-          this.statusFilter === '' ||
-          (this.statusFilter === 'paid' && payment.paid) ||
-          (this.statusFilter === 'unpaid' && !payment.paid);
-        return matchesName && matchesStatus;
-      })
-      .sort((a, b) => {
-        const seatA = a.student.seat?.seat_number || 0;
-        const seatB = b.student.seat?.seat_number || 0;
-        return seatA - seatB;
-      });
-  }
+  //     filteredPayments() {
+  //   return this.payments
+  //     .filter(payment => {
+  //       const matchesName = payment.student.name.toLowerCase().includes(this.searchTerm.toLowerCase());
+  //       const matchesStatus =
+  //         this.statusFilter === '' ||
+  //         (this.statusFilter === 'paid' && payment.paid) ||
+  //         (this.statusFilter === 'unpaid' && !payment.paid);
+  //       return matchesName && matchesStatus;
+  //     })
+  //     .sort((a, b) => {
+  //       const seatA = a.student.seat?.seat_number || 0;
+  //       const seatB = b.student.seat?.seat_number || 0;
+  //       return seatA - seatB;
+  //     });
+  // }
+
+        filteredPayments() {
+          return this.payments.filter(payment => {
+            const matchesName = payment.student.name.toLowerCase().includes(this.searchTerm.toLowerCase());
+            const matchesStatus =
+              this.statusFilter === '' ||
+              (this.statusFilter === 'paid' && payment.paid) ||
+              (this.statusFilter === 'unpaid' && !payment.paid);
+            return matchesName && matchesStatus;
+          });
+          // No sorting needed - database already sorted!
+        }
 
     },
 

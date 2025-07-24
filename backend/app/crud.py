@@ -1,8 +1,8 @@
 # crud.py
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session , joinedload 
 from app import models, schemas
 # from fastapi import HTTPException
-from sqlalchemy import func
+from sqlalchemy import func 
 from datetime import date , datetime
 from app.models import Student ,MonthlyPayment 
 import csv
@@ -210,8 +210,34 @@ def mark_monthly_payment_as_paid(db: Session, payment_id: int):
         db.refresh(payment)
     return payment
 
+# def get_monthly_payments(db: Session, month: str, library_id: int):
+#     return db.query(models.MonthlyPayment).filter_by(month=month, library_id=library_id).all()
+
 def get_monthly_payments(db: Session, month: str, library_id: int):
-    return db.query(models.MonthlyPayment).filter_by(month=month, library_id=library_id).all()
+    """
+    Optimized query leveraging existing indexes:
+    - Uses idx_payments_library_month for fast filtering
+    - Uses idx_seats_library_number for efficient seat ordering
+    - Prevents N+1 queries with eager loading
+    """
+    return (
+        db.query(models.MonthlyPayment)
+        .join(models.MonthlyPayment.student)
+        .join(models.Student.seat, isouter=True)  # LEFT JOIN for students without seats
+        .options(
+            joinedload(models.MonthlyPayment.student)
+            .joinedload(models.Student.seat)  # Eager load to prevent N+1 queries
+        )
+        .filter(
+            models.MonthlyPayment.library_id == library_id,
+            models.MonthlyPayment.month == month
+        )
+        .order_by(
+            models.Seat.seat_number.asc().nulls_last(),  # Uses idx_seats_library_number
+            models.Student.id.asc()  # Secondary sort for consistent ordering
+        )
+        .all()
+    )
 
 def toggle_monthly_payment_status(db: Session, payment_id: int):
     payment = db.query(models.MonthlyPayment).get(payment_id)
