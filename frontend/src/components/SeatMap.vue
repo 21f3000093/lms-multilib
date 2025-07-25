@@ -7,9 +7,9 @@
       <label><input type="checkbox" value="2" v-model="selectedShifts" /> Shift 2</label>
       <label><input type="checkbox" value="3" v-model="selectedShifts" /> Shift 3</label>
 
-      <label>
+      <label id="empty-checkbox">
         <input type="checkbox" v-model="onlyEmpty" />
-        Show only empty seats
+        Show Only Empty Seats
       </label>
 
       <button @click="fetchSeats">Apply Filters</button>
@@ -157,7 +157,7 @@ export default {
 @media (max-width: 768px) {
   .seat-map-container {
     padding: 1rem;
-    margin: 1rem;
+    margin: 0rem;
     height: 90vh;
     overflow: auto;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
@@ -169,7 +169,15 @@ export default {
     gap: 0.75rem;
   }
 
-  .filters label,
+  .filters label{
+    width: 30%;
+    font-size: 1rem;
+  }
+  .filters #empty-checkbox{
+    width: 100%;
+    font-size: 1rem;
+  }
+  
   .filters button {
     width: 100%;
     font-size: 1rem;

@@ -4,7 +4,7 @@
 
     <div class="filters">
       <button @click="$router.back()" class="action-button back">🔙 Back</button>
-      <button @click="fetchReminders" class="action-button edit">🔄 Load Reminders</button>
+      <button @click="fetchReminders" class="action-button edit">🔄 Refresh</button>
     </div>
 
     <table v-if="pendingList.length > 0" class="student-table">
@@ -26,7 +26,7 @@
           <td>{{ student.month }}</td>
           <td>{{ student.due_date }}</td>
           <td>
-            <button class="action-button edit" @click="sendWhatsApp(student)">📩 Send WhatsApp</button>
+            <button class="action-button edit" @click="sendWhatsApp(student)">📩 WhatsApp</button>
           </td>
         </tr>
       </tbody>
@@ -177,8 +177,8 @@ h2 {
 /* 🔧 Responsive Design for Mobiles */
 @media (max-width: 768px) {
   .booking-container {
-    padding: 1rem;
-    margin: 2vh 1rem;
+    padding: 0.5rem 1rem;
+    margin: 0vh 0rem;
     max-height: 90vh;
     overflow: auto;
     background: #f4fbff00; /* 👈 Subtle mobile bg */
@@ -196,12 +196,12 @@ h2 {
 
   .student-table {
     display: block;
-    width: 99%;
+    width: 98%;
   }
 
   .student-table tr {
     display: block;
-    width: 99%;
+    width: 97%;
     margin-bottom: 1.2rem;
     border: 1px solid #dcdcdc;
     border-radius: 10px;

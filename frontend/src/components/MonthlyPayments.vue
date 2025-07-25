@@ -12,8 +12,8 @@
       <button @click="downloadCSV">📥 Export CSV</button>
       
       
-    <router-link to="/reminders">
-      <button class="reminder-btn">📩 WhatsApp</button>
+    <router-link to="/reminders" class="reminder-btn">
+      <button >📩 WhatsApp Reminders</button>
     </router-link>
     </div>
 
@@ -246,6 +246,7 @@ h2 {
   border-radius: 6px;
   border: 1px solid #ccc;
   min-width: 140px;
+  width: 40%;
 }
 
 .month-controls button,
@@ -262,15 +263,28 @@ h2 {
   background-color: #8725d3;
 }
 
-.reminder-btn:hover {
-  background-color: #1ebe54;
+.reminder-btn {
+  padding: 0px 0px;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  min-width: fit-content;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  background-color: #8725d3;
 }
+
 
 .month-controls button:hover {
   background-color: #7f22c6;
   transform: scale(1.03); /* 👈 Slight hover scale */
 }
 
+.reminder-btn button:hover {
+  background-color: #1ebe54;
+}
 
 /* Action Buttons */
 .action-button {
@@ -335,8 +349,8 @@ tbody tr:nth-child(even) {
 @media (max-width: 768px) {
 
   .container {
-    padding: 1rem;
-    margin: 2vh 1rem;
+    padding: 0.5rem;
+    margin: 0vh 0rem;
     max-height: 98vh;
     overflow-y: auto;
     background: #f4fbff00; /* 👈 Subtle mobile bg */
@@ -345,8 +359,8 @@ tbody tr:nth-child(even) {
 
   table {
     display: block;
-    width: 98%;
-    margin: 2vh 1rem;
+    width: 95%;
+    margin: 2vh 0rem;
     text-decoration: none;
     font-weight: 500;
     /* max-height: 98vh; */
@@ -423,15 +437,27 @@ tbody tr:nth-child(even) {
     gap: 0.8rem;
     /* max-width: 20%; */
     /* margin: auto; */
+    padding: auto;
     
   }
 
-  .month-controls button{
+  .month-controls input[type="month"],
+  .month-controls button,
+  .reminder-btn {
     /* display: flex; */
-    width: 40%;
+    width: 100%;
     /* flex-direction: row; */
     gap: 0.8rem;
     /* margin: auto; */
+  }
+
+  .filters input[type="text"],
+  .filters select {
+    display: flex;
+    flex-direction: row;
+    gap: 0.2rem;
+    margin: auto;
+    width: 40%;
   }
 
   /* .month-controls router-link .reminder-btn {
