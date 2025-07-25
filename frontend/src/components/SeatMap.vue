@@ -179,7 +179,7 @@ export default {
   }
   
   .filters button {
-    width: 100%;
+    width: 90%;
     font-size: 1rem;
   }
 
