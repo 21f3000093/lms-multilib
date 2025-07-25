@@ -445,7 +445,7 @@ tbody tr:nth-child(even) {
   .month-controls button,
   .reminder-btn {
     /* display: flex; */
-    width: 100%;
+    width: 95%;
     /* flex-direction: row; */
     gap: 0.8rem;
     /* margin: auto; */
