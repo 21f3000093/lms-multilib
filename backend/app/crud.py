@@ -241,87 +241,87 @@ def mark_monthly_payment_as_paid(db: Session, payment_id: int):
     
     
 import time
-# def get_monthly_payments(db: Session, month: str, library_id: int):
-#     """
-#     Optimized query leveraging existing indexes:
-#     - Uses idx_payments_library_month for fast filtering
-#     - Uses idx_seats_library_number for efficient seat ordering
-#     - Prevents N+1 queries with eager loading
-#     """
-#     start_time = time.time()
-#     results = (
-#         db.query(models.MonthlyPayment)
-#         .join(models.MonthlyPayment.student)
-#         .join(models.Student.seat, isouter=True)  # LEFT JOIN for students without seats
-#         .options(
-#             joinedload(models.MonthlyPayment.student)
-#             .joinedload(models.Student.seat)  # Eager load to prevent N+1 queries
-#         )
-#         .filter(
-#             models.MonthlyPayment.library_id == library_id,
-#             models.MonthlyPayment.month == month
-#         )
-#         .order_by(
-#             models.Seat.seat_number.asc().nulls_last(),  # Uses idx_seats_library_number
-#             models.Student.id.asc()  # Secondary sort for consistent ordering
-#         )
-#         .all()
-#     )
-#     end_time = time.time()
-#     print(f"Query time: {end_time - start_time} seconds")
-#     return results
-
-
 def get_monthly_payments(db: Session, month: str, library_id: int):
     """
-    Optimized query that selects only required fields
-    This reduces memory usage and transfer time significantly
+    Optimized query leveraging existing indexes:
+    - Uses idx_payments_library_month for fast filtering
+    - Uses idx_seats_library_number for efficient seat ordering
+    - Prevents N+1 queries with eager loading
     """
     start_time = time.time()
-    
     results = (
-        db.query(
-            models.MonthlyPayment.id,
-            models.MonthlyPayment.amount,
-            models.MonthlyPayment.paid,
-            models.Student.name.label('student_name'),
-            models.Student.date_of_joining,
-            models.Seat.seat_number
+        db.query(models.MonthlyPayment)
+        .join(models.MonthlyPayment.student)
+        .join(models.Student.seat, isouter=True)  # LEFT JOIN for students without seats
+        .options(
+            joinedload(models.MonthlyPayment.student)
+            .joinedload(models.Student.seat)  # Eager load to prevent N+1 queries
         )
-        .join(models.MonthlyPayment.student)  # INNER JOIN to students
-        .join(models.Student.seat, isouter=True)  # LEFT JOIN to seats
         .filter(
             models.MonthlyPayment.library_id == library_id,
             models.MonthlyPayment.month == month
         )
         .order_by(
-            models.Seat.seat_number.asc().nulls_last(),  # Uses your idx_seats_library_number
-            models.Student.id.asc()
+            models.Seat.seat_number.asc().nulls_last(),  # Uses idx_seats_library_number
+            models.Student.id.asc()  # Secondary sort for consistent ordering
         )
         .all()
     )
-    
     end_time = time.time()
-    print(f"Query time: {end_time - start_time} seconds, returned {len(results)} records")
+    print(f"Query time: {end_time - start_time} seconds")
+    return results
+
+
+# def get_monthly_payments(db: Session, month: str, library_id: int):
+#     """
+#     Optimized query that selects only required fields
+#     This reduces memory usage and transfer time significantly
+#     """
+#     start_time = time.time()
     
-    # Transform to your desired JSON structure
-    transformed_results = []
-    for row in results:
-        payment_data = {
-            "id": row.id,
-            "amount": row.amount,
-            "paid": row.paid,
-            "student": {
-                "name": row.student_name,
-                "date_of_joining": row.date_of_joining.isoformat() if row.date_of_joining else None,
-                "seat": {
-                    "seat_number": row.seat_number
-                } if row.seat_number is not None else None
-            }
-        }
-        transformed_results.append(payment_data)
+#     results = (
+#         db.query(
+#             models.MonthlyPayment.id,
+#             models.MonthlyPayment.amount,
+#             models.MonthlyPayment.paid,
+#             models.Student.name.label('student_name'),
+#             models.Student.date_of_joining,
+#             models.Seat.seat_number
+#         )
+#         .join(models.MonthlyPayment.student)  # INNER JOIN to students
+#         .join(models.Student.seat, isouter=True)  # LEFT JOIN to seats
+#         .filter(
+#             models.MonthlyPayment.library_id == library_id,
+#             models.MonthlyPayment.month == month
+#         )
+#         .order_by(
+#             models.Seat.seat_number.asc().nulls_last(),  # Uses your idx_seats_library_number
+#             models.Student.id.asc()
+#         )
+#         .all()
+#     )
     
-    return transformed_results
+#     end_time = time.time()
+#     print(f"Query time: {end_time - start_time} seconds, returned {len(results)} records")
+    
+#     # Transform to your desired JSON structure
+#     transformed_results = []
+#     for row in results:
+#         payment_data = {
+#             "id": row.id,
+#             "amount": row.amount,
+#             "paid": row.paid,
+#             "student": {
+#                 "name": row.student_name,
+#                 "date_of_joining": row.date_of_joining.isoformat() if row.date_of_joining else None,
+#                 "seat": {
+#                     "seat_number": row.seat_number
+#                 } if row.seat_number is not None else None
+#             }
+#         }
+#         transformed_results.append(payment_data)
+    
+#     return transformed_results
 
 def toggle_monthly_payment_status(db: Session, payment_id: int):
     payment = db.query(models.MonthlyPayment).get(payment_id)
