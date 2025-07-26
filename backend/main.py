@@ -166,9 +166,13 @@ def generate_monthly(month: str, db: Session = Depends(get_db), admin = Depends(
     return {"message": f"Monthly records created for {month}"}
 
 
-@app.get("/monthly-payments/{month}", response_model=List[schemas.MonthlyPaymentOut])
+@app.get("/monthly-payments/{month}")
 def get_payments(month: str, db: Session = Depends(get_db), admin = Depends(get_current_admin)):
     return crud.get_monthly_payments(db, month, library_id=admin.library_id)
+
+# @app.get("/monthly-payments/{month}", response_model=List[schemas.MonthlyPaymentOut])
+# def get_payments(month: str, db: Session = Depends(get_db), admin = Depends(get_current_admin)):
+#     return crud.get_monthly_payments(db, month, library_id=admin.library_id)
 
 @app.put("/monthly-payments/{payment_id}", response_model=schemas.MonthlyPaymentOut)
 def mark_paid(payment_id: int, db: Session = Depends(get_db)):
