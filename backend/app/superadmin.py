@@ -16,7 +16,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 superadmin_router = APIRouter(prefix="/superadmin", tags=["superadmin"])
 
 
-
+# routes for superadmin to manage libraries 
 @superadmin_router.get("/libraries", response_model=list[schemas.LibraryOut])
 def get_libraries(db: Session = Depends(get_db),admin = Depends(get_current_admin)):
     if admin.role != "superadmin":
@@ -47,6 +47,8 @@ def create_library(library: schemas.LibraryCreate, db: Session = Depends(get_db)
 
     return new_library
 
+
+# routes for superadmin to manage admins
 @superadmin_router.get("/admins", response_model=List[schemas.AdminOut])
 def list_admins(db: Session = Depends(get_db), admin = Depends(get_current_admin)):
     if admin.role != "superadmin":

@@ -8,6 +8,7 @@ from app.models import Student ,MonthlyPayment
 import csv
 from io import StringIO
 from fastapi.responses import StreamingResponse
+import time
 
 
 
@@ -88,15 +89,22 @@ def create_student(db: Session, student: schemas.StudentCreate):
 
     return db_student
 
-
+# To get all active students of a library
 def get_students(db: Session, library_id: int):
-    return db.query(Student).filter(Student.status == "active", Student.library_id == library_id).order_by(Student.seat_id).all()
+    
+    start_time = time.time()
+    result = db.query(Student).filter(Student.status == "active", Student.library_id == library_id).order_by(Student.seat_id).all()
+
+    end_time = time.time()
+    print(f"Query time: {end_time - start_time} seconds, returned {len(result)} students records")
+    return result
 
 
+# To get a single student
 def get_student(db: Session, student_id: int):
     return db.query(models.Student).filter(models.Student.id == student_id).first()
 
-
+# To update a student
 def update_student(db: Session, student_id: int, updated_data: schemas.StudentCreate):
     student = db.query(models.Student).filter(models.Student.id == student_id).first()
     if not student:
@@ -135,7 +143,7 @@ def update_student(db: Session, student_id: int, updated_data: schemas.StudentCr
     
     return student
 
-
+# To mark a student as left
 def mark_student_as_left(db: Session, student_id: int):
     student = db.query(models.Student).filter_by(id=student_id).first()
     if not student:
@@ -164,6 +172,8 @@ def mark_student_as_left(db: Session, student_id: int):
     db.commit()
     return student
 
+
+# To get dashboard data for a library
 def get_dashboard_data(db: Session, library_id: int):
     shift1_count = db.query(models.Student).filter(models.Student.shift1 == True, models.Student.status == "active", models.Student.library_id == library_id).count()
     shift2_count = db.query(models.Student).filter(models.Student.shift2 == True, models.Student.status == "active", models.Student.library_id == library_id).count()
@@ -192,7 +202,7 @@ def get_dashboard_data(db: Session, library_id: int):
         "max_seats": max_seats
     }
     
-
+# To create monthly payments for all active students
 def create_monthly_payments_for_all(db: Session, month: str, library_id: int):
     students = db.query(models.Student).filter(models.Student.status == "active", models.Student.library_id == library_id).all()
     for student in students:
@@ -201,7 +211,7 @@ def create_monthly_payments_for_all(db: Session, month: str, library_id: int):
             db.add(models.MonthlyPayment(student_id=student.id, month=month, paid=False, amount=student.custom_fees, library_id=library_id))
     db.commit()
     
-    
+# To mark a monthly payment as paid
 def mark_monthly_payment_as_paid(db: Session, payment_id: int):
     payment = db.query(models.MonthlyPayment).get(payment_id)
     if payment:
@@ -213,34 +223,8 @@ def mark_monthly_payment_as_paid(db: Session, payment_id: int):
 # def get_monthly_payments(db: Session, month: str, library_id: int):
 #     return db.query(models.MonthlyPayment).filter_by(month=month, library_id=library_id).all()
 
-# def get_monthly_payments(db: Session, month: str, library_id: int):
-#     """
-#     Optimized query leveraging existing indexes:
-#     - Uses idx_payments_library_month for fast filtering
-#     - Uses idx_seats_library_number for efficient seat ordering
-#     - Prevents N+1 queries with eager loading
-#     """
-#     return (
-#         db.query(models.MonthlyPayment)
-#         .join(models.MonthlyPayment.student)
-#         .join(models.Student.seat, isouter=True)  # LEFT JOIN for students without seats
-#         .options(
-#             joinedload(models.MonthlyPayment.student)
-#             .joinedload(models.Student.seat)  # Eager load to prevent N+1 queries
-#         )
-#         .filter(
-#             models.MonthlyPayment.library_id == library_id,
-#             models.MonthlyPayment.month == month
-#         )
-#         .order_by(
-#             models.Seat.seat_number.asc().nulls_last(),  # Uses idx_seats_library_number
-#             models.Student.id.asc()  # Secondary sort for consistent ordering
-#         )
-#         .all()
-#     )
     
-    
-import time
+
 # def get_monthly_payments(db: Session, month: str, library_id: int):
 #     """
 #     Optimized query leveraging existing indexes:
@@ -271,7 +255,7 @@ import time
 #     print(f"Query time: {end_time - start_time} seconds")
 #     return results
 
-
+# ''' Optimized query to get monthly payments with only required fields '''
 def get_monthly_payments(db: Session, month: str, library_id: int):
     """
     Optimized query that selects only required fields
@@ -323,6 +307,7 @@ def get_monthly_payments(db: Session, month: str, library_id: int):
     
     return transformed_results
 
+# To toggle the status of a monthly payment between paid and not paid
 def toggle_monthly_payment_status(db: Session, payment_id: int):
     payment = db.query(models.MonthlyPayment).get(payment_id)
     if payment:
@@ -331,7 +316,7 @@ def toggle_monthly_payment_status(db: Session, payment_id: int):
         db.refresh(payment)
     return payment
 
-
+# To delete a monthly payment record
 def delete_monthly_payment(db: Session, payment_id: int):
     payment = db.query(models.MonthlyPayment).get(payment_id)
     if payment:
@@ -339,11 +324,12 @@ def delete_monthly_payment(db: Session, payment_id: int):
         db.commit()
     return payment
 
+# To get payments for a specific student 
 def get_student_payments(db: Session, student_id: int):
     return db.query(models.MonthlyPayment).filter(models.MonthlyPayment.student_id == student_id).order_by(models.MonthlyPayment.month.desc()).all()
 
 
-
+# To export monthly payments to CSV 
 def export_monthly_payments_csv(db: Session, month: str, library_id: int):
     payments = db.query(models.MonthlyPayment).filter_by(month=month, library_id=library_id).order_by(models.MonthlyPayment.student_id).all()
 
@@ -368,10 +354,11 @@ def export_monthly_payments_csv(db: Session, month: str, library_id: int):
         headers={"Content-Disposition": f"attachment; filename=monthly_payments_{month}.csv"}
     )
 
+
 from .models import Admin
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
-
+# Password hasher
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def verify_password(plain, hashed):
@@ -389,6 +376,7 @@ def authenticate_admin(db: Session, username: str, password: str):
 def get_admin(db: Session, admin_id: int):
     return db.query(Admin).filter(Admin.id == admin_id).first()
 
+# To create an admin 
 def create_admin(db: Session, username: str, password: str, role: str = "admin", library_id: int = None): # type: ignore
     new_admin = models.Admin(username=username, password=password, role=role, library_id=library_id)
     db.add(new_admin)
@@ -396,6 +384,8 @@ def create_admin(db: Session, username: str, password: str, role: str = "admin",
     db.refresh(new_admin)
     return new_admin
 
+
+# To create a library 
 def init_library(db: Session , name: str, address: str, contact_email: str, contact_phone: str, max_seats: int): # type: ignore
     new_library = models.Library(name=name, address=address, contact_email=contact_email, contact_phone=contact_phone, max_seats=max_seats)
     db.add(new_library)
