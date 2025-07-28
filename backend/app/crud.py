@@ -92,12 +92,31 @@ def create_student(db: Session, student: schemas.StudentCreate):
 # To get all active students of a library
 def get_students(db: Session, library_id: int):
     
+    """
+    Basic optimization - leverages existing composite index
+    """
     start_time = time.time()
-    result = db.query(Student).filter(Student.status == "active", Student.library_id == library_id).order_by(Student.seat_id).all()
-
+    
+    # Use the composite index idx_students_library_status more effectively
+    result = (db.query(Student)
+              .filter(Student.library_id == library_id, Student.status == "active")
+              .order_by(Student.seat_id.nulls_last())  # Handle NULL seat_ids properly
+              .all())
+    
     end_time = time.time()
-    print(f"Query time: {end_time - start_time} seconds, returned {len(result)} students records")
+    print(f"Basic optimized query time: {end_time - start_time} seconds, returned {len(result)} students")
     return result
+
+    
+    
+# def get_students(db: Session, library_id: int):
+    
+#     start_time = time.time()
+#     result = db.query(Student).filter(Student.status == "active", Student.library_id == library_id).order_by(Student.seat_id).all()
+
+#     end_time = time.time()
+#     print(f"Query time: {end_time - start_time} seconds, returned {len(result)} students records")
+#     return result
 
 
 # To get a single student
