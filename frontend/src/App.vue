@@ -4,8 +4,8 @@
     <div class="gradient-bg"></div>
 
     <!-- App content above background -->
-    <div class="app-content">
-      <NavBar />
+    <div class="app-content" :class="{ 'no-sidebar': !isLoggedIn }">
+      <NavBar class="navbar"  />
       <router-view />
     </div>
   </div>
@@ -15,7 +15,25 @@
 import NavBar from './components/NavBar.vue';
 
 export default {
-  components: { NavBar }
+  components: { NavBar },
+  data() {
+    return {
+      isLoggedIn: false
+    }
+  },
+  mounted() {
+    this.checkLoginStatus()
+  },
+  methods: {
+    checkLoginStatus() {
+      this.isLoggedIn = !!localStorage.getItem('role')
+    }
+  },
+  watch: {
+    '$route'() {
+      this.checkLoginStatus()
+    }
+  }
 };
 </script>
 
@@ -23,8 +41,7 @@ export default {
 body, html, #app {
   margin: 0;
   padding: 0;
-  /* width: 100%;
-  height: 100%; */
+  padding-top: 0vh;
 }
 
 /* Main wrapper styling */
@@ -47,6 +64,15 @@ body, html, #app {
 .app-content {
   position: relative;
   z-index: 10;
+  margin-left: 260px; /* Same as sidebar width */
+  transition: margin-left 0.3s ease;
+  padding-top: 10px; /* Account for navbar height */
+}
+
+/* When user is not logged in or no sidebar */
+.app-content.no-sidebar {
+  margin-left: 0;
+  padding-top: 10px; /* Keep navbar spacing */
 }
 
 /* Existing styles */
@@ -58,16 +84,13 @@ body, html, #app {
   color: #2c3e50;
 }
 
-nav {
-  padding: 30px;
-}
 
-nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
 
-nav a.router-link-exact-active {
-  color: #42b983;
+/* Mobile responsive */
+@media (max-width: 1080px) {
+  .app-content {
+    margin-left: 0 !important;
+    padding-top: 0px; /* More space for mobile navbar */
+  }
 }
 </style>

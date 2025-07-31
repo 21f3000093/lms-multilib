@@ -109,3 +109,12 @@ class AdminOut(BaseModel):
 
     class Config:
         orm_mode = True
+        
+        
+class AdminChangePassword(BaseModel):
+    current_password: str
+    new_password: str
+    confirm_password: str
+
+    class Config:
+        orm_mode = True

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi_jwt_auth import AuthJWT
 from sqlalchemy.orm import Session
 from . import schemas, crud
-from app.dependencies import get_db
+from app.dependencies import get_db, get_current_admin
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -36,11 +36,35 @@ def logout( Authorize: AuthJWT = Depends()):
     Authorize.unset_jwt_cookies()
     return {"msg": "Logged out"}
 
-@router.get("/whoami", response_model=schemas.AdminOut)
-def whoami(Authorize: AuthJWT = Depends(), db: Session = Depends(get_db)):
-    Authorize.jwt_required()
-    username = Authorize.get_jwt_subject()
-    admin = crud.get_admin_by_username(db, username) # type: ignore
-    if not admin or admin.status != "active": # type: ignore
-        raise HTTPException(status_code=403, detail="Unauthorized")
-    return admin
+
+
+# To change admin password
+@router.put("/change-password")
+def change_password(
+    data: schemas.AdminChangePassword,
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin)
+):
+    # Validate new password confirmation
+    if data.new_password != data.confirm_password:
+        raise HTTPException(status_code=400, detail="New passwords do not match")
+    
+    # Check if new password is different from current
+    if data.current_password == data.new_password:
+        raise HTTPException(status_code=400, detail="New password must be different from current password")
+    
+    # Validate password strength (optional)
+    if len(data.new_password) < 6:
+        raise HTTPException(status_code=400, detail="New password must be at least 6 characters long")
+    
+    # Change password
+    result = crud.change_admin_password(db, admin.id, data.current_password, data.new_password)
+    
+    if result is None:
+        raise HTTPException(status_code=404, detail="Admin not found")
+    elif result is False:
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    
+    return {"message": "Password changed successfully"}
+
+

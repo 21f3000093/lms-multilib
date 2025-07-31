@@ -65,12 +65,13 @@ export default {
   max-width: 800px;
   margin: auto;
   padding: 1.5rem;
+  padding-top: 10vh;
 }
 
 .dashboard-title {
   text-align: center;
   font-size: 1.8rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   color: #2c3e50;
 }
 
@@ -110,11 +111,21 @@ export default {
   .dashboard-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
 }
 
 @media (min-width: 900px) {
   .dashboard-grid {
     grid-template-columns: repeat(3, 1fr);
+  }  
+}
+
+@media (max-width: 768px) {
+  .dashboard-container {
+    max-width: 800px;
+    /* margin: auto; */
+    padding: 1.5rem;
+    padding-top: 7vh;
   }
 }
 </style>

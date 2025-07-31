@@ -69,15 +69,16 @@ export default {
 </script>
 <style scoped>
 .seat-map-container {
-  max-width: 900px;
+  width: 95%;
   margin: 5vh auto;
   padding: 2rem;
   background: #f9fafc00;
   border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  height: 70vh;
+  height: 80vh;
   overflow-y: auto;
   scrollbar-width: none;
+  padding-top: 5vh;
 }
 
 .seat-map-container h2 {
@@ -156,11 +157,15 @@ export default {
 
 @media (max-width: 768px) {
   .seat-map-container {
-    padding: 1rem;
-    margin: 0rem;
+    padding: 1rem 0.5rem ;
+    margin: auto;
     height: 90vh;
     overflow: auto;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    padding-top: 7vh;
+    /* width: 95%; */
+    
+
   }
 
   .filters {

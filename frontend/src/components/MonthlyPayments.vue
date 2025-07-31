@@ -207,21 +207,23 @@ export default {
 
 <style scoped>
 .container {
-  max-width: 960px;
+  max-width: 100%;
   margin: 5vh auto;
   padding: 2rem;
   font-family: "Segoe UI", "Poppins", sans-serif;
   background: linear-gradient(to bottom right, #f7faff3e, #e0f7fa33);
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  max-height: 70vh;
+  /* max-height: 70vh; */
+  height: 80vh;
   overflow-y: auto;
   scrollbar-width: none;
+  padding-top: 5vh;
 }
 
 h2 {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   color: #333;
   font-size: 1.6rem;
   font-weight: 600;
@@ -281,6 +283,7 @@ h2 {
   background-color: #7f22c6;
   transform: scale(1.03); /* 👈 Slight hover scale */
 }
+
 
 .reminder-btn button:hover {
   background-color: #1ebe54;
@@ -351,9 +354,10 @@ tbody tr:nth-child(even) {
   .container {
     padding: 0.5rem;
     margin: 0vh 0rem;
-    max-height: 98vh;
+    height: 98vh;
     overflow-y: auto;
     background: #f4fbff00; /* 👈 Subtle mobile bg */
+    padding-top: 7vh;
   }
 
 
@@ -449,6 +453,7 @@ tbody tr:nth-child(even) {
     /* flex-direction: row; */
     gap: 0.8rem;
     margin: auto;
+    
   }
 
   .filters input[type="text"],
@@ -460,9 +465,13 @@ tbody tr:nth-child(even) {
     width: 40%;
   }
 
-  /* .month-controls router-link .reminder-btn {
+  .reminder-btn:hover {
+  background-color: #1ebe54;
+}
+
+  .month-controls .reminder-btn button {
     width: 100%;
-    margin-bottom: 1rem;
-  } */
+    
+  }
 }
 </style>

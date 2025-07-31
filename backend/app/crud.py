@@ -417,3 +417,27 @@ def init_library(db: Session , name: str, address: str, contact_email: str, cont
     db.refresh(new_library)
     
     return new_library
+
+
+# To change admin password
+def change_admin_password(db: Session, admin_id: int, current_password: str, new_password: str):
+    """
+    Change admin password after verifying current password
+    """
+    admin = db.query(Admin).filter(Admin.id == admin_id).first()
+    if not admin:
+        return None
+    
+    # Verify current password
+    if not verify_password(current_password, admin.password):
+        return False
+    
+    # Hash new password
+    hashed_new_password = pwd_context.hash(new_password)
+    
+    # Update password
+    admin.password = hashed_new_password # type: ignore
+    db.commit()
+    db.refresh(admin)
+    
+    return admin

@@ -148,11 +148,12 @@ export default {
   justify-content: center;
   align-items: center;
   padding: 1rem;
+  padding-top: 15vh;
 }
 
 .form-box {
   background-color: #ffffff4f;
-  padding: 2rem;
+  padding: 1.5rem;
   border-radius: 12px;
   max-width: 450px;
   width: 100%;
@@ -160,11 +161,13 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  
 }
 
 .form-box h2 {
   text-align: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0rem;
+  margin-top: 0%;
   font-size: 1.6rem;
   color: #333;
 }
@@ -237,13 +240,21 @@ export default {
   padding: 1rem;
   max-width: 80%;
   margin: auto;
-  margin-top: 10vh;
+  margin-top: 15vh;
+
 
 }
   
   .form-box {
-    padding: 1.2rem;
+    padding: 1rem;
     gap: 1rem;
+  }
+
+  .form-box h2 {
+    text-align: center;
+    margin-bottom: 0rem;
+    font-size: 1.6rem;
+    color: #333;
   }
 
   .checkbox-group {

@@ -80,22 +80,23 @@ export default {
 
 <style scoped>
 .booking-container {
-  max-width: 1200px;
+  max-width: 100%;
   margin: 2vh auto;
   padding: 2rem;
   border-radius: 12px;
   background: linear-gradient(to bottom right, #f7faff3e, #e0f7fa33); /* 👈 Updated: Light pleasant gradient */
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); /* 👈 Softer shadow */
   font-family: "Segoe UI", "Poppins", sans-serif; /* 👈 Better font */
-  max-height: 75vh;
+  height: 85vh;
   /* overflow: auto; */
   overflow-y: auto;
   scrollbar-width: none;
+  padding-top: 7vh;
 }
 
 h2 {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   color: #333;
   font-size: 1.6rem; /* 👈 Better visual hierarchy */
   font-weight: 600;
@@ -179,9 +180,10 @@ h2 {
   .booking-container {
     padding: 0.5rem 1rem;
     margin: 0vh 0rem;
-    max-height: 90vh;
+    height: 90vh;
     overflow: auto;
     background: #f4fbff00; /* 👈 Subtle mobile bg */
+    padding-top: 7vh;
   }
 
   .student-table thead {

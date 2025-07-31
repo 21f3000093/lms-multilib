@@ -162,14 +162,16 @@ export default {
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   font-family: "Segoe UI", sans-serif;
-  height: 75vh;
+  height: 85vh;
   overflow-y: auto;
   scrollbar-width: none;
+  padding-top: 8vh;
+  
 }
 
 h2 {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 0.8rem;
   color: #333;
 }
 
@@ -269,9 +271,10 @@ h2 {
   .booking-container {
     padding: 1rem;
     margin: 0vh 0rem;
-    height: 98vh;
+    height: 90vh;
     overflow: auto;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    padding-top: 7vh;
 
   }
 

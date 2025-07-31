@@ -13,6 +13,7 @@ import SeatMap from '@/components/SeatMap.vue'
 import SuperAdminDashboard from '@/views/SuperAdminDashboard.vue'
 import LibraryStudentList from '@/components/LibraryStudentList.vue'
 import WhatsAppReminders from '@/components/WhatsAppReminders.vue';
+import ChangePassword from '@/components/ChangePassword.vue'
 
 
 
@@ -41,6 +42,12 @@ const routes = [
     name: 'WhatsAppReminders',
     component: WhatsAppReminders,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/change-password',
+    name: 'ChangePassword',
+    component: ChangePassword,
+    meta: { requiresAuth: true } // If you have auth guards
   },
 
 ]
