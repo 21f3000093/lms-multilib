@@ -5,7 +5,7 @@ module.exports = defineConfig({
 
   // ✅ Add this block for PWA
   pwa: {
-    name: 'SmartLibrary',
+    name: 'Smart Library App',
     themeColor: '#3f51b5',
     msTileColor: '#ffffff',
     manifestPath: 'manifest.json',
