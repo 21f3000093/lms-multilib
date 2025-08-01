@@ -46,19 +46,22 @@
         <router-link v-if="!isLoggedIn" to="/login" 
                     style="text-decoration: none; background-color: unset;" 
                     class="desktop-logo-when-not-logged-in desktop-only">
-          <div class="logo ">{{ this.library_name }}</div>
+          <!-- <div class="logo ">{{ this.library_name }}</div> -->
+           <div class="logo">Smart Library App</div>
         </router-link>
         <!-- Mobile logo (hidden on desktop when logged in) -->
         <router-link v-if="!isLoggedIn || role === 'admin'" to="/dashboard" 
                      style="text-decoration: none; background-color: unset; margin: auto; " 
                      class="mobile-logo">
-          <div class="logo">{{ this.library_name }}</div>
+          <div class="logo">Smart Library App</div>
+          <!-- <div class="logo">{{ this.library_name }}</div> -->
         </router-link>
         <router-link v-if="isLoggedIn && role === 'superadmin'" to="/superadmin" 
                      style="text-decoration: none; background-color: unset;" 
                      class="mobile-logo">
-          <div class="logo">{{ this.library_name }}</div>
-        </router-link>
+          <!-- <div class="logo">{{ this.library_name }}</div> -->
+           <div class="logo">Smart Library App</div>
+        </router-link> 
         
         
         
@@ -338,7 +341,7 @@ export default {
 
 .logo {
   color: white;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   font-weight: bold;
 }
 
@@ -351,10 +354,10 @@ export default {
 }
 
 .hamburger.menu-open {
-  border: 2px solid rgba(255, 255, 255, 0.8);
+  /* border: 2px solid rgba(255, 255, 255, 0.8); */
   border-radius: 10px;
   padding: 3px 6px;
-  font-size: 1.2rem;
+  font-size: 1.8rem;
   font-weight: bold;
   
 }
@@ -560,7 +563,7 @@ export default {
     left: 0 !important;
     flex-direction: column;
     align-items: stretch;
-    padding: 9px 10px;
+    padding: 12px 10px;
     /* padding-bottom: 0%; */
     /* height: 35px; */
     
@@ -595,6 +598,19 @@ export default {
     /* margin-right: 8px; */
     
   }
+
+  /* User Dropdown */
+.user-dropdown {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 0px 0px;
+  border-radius: 8px;
+  transition: background-color 0.3s;
+  position: relative;
+  margin-left: 0vh;
+  
+}
   
 }
 </style>

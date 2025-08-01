@@ -76,13 +76,14 @@ export default {
 
 <style scoped>
 .student-detail {
-  max-width: 800px;
+  max-width: 100vw;
   margin: 2rem auto;
   padding: 1.5rem;
-  background: #f9f9f9;
+  background: #f9f9f968;
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
   font-family: Arial, sans-serif;
+  padding-top: 10vh;
 }
 
 .student-detail h2,
@@ -102,12 +103,13 @@ table {
   margin-top: 1rem;
   background: #fff;
   border-radius: 8px;
-  overflow: hidden;
+  overflow: auto;
 }
 
 thead {
   background-color: #0066cc;
   color: white;
+  
 }
 
 th, td {
@@ -159,6 +161,49 @@ td button:last-of-type:hover {
   font-weight: bold;
 }
 
+@media(max-width: 768px) {
+  .student-detail {
+    padding: 1rem;
+    overflow: auto;
+    padding-top: 7vh;
+    background-color: #ffffff5e;
+  }
+  table {
+    width: 110%;
+    overflow: auto;
+    background-color: #ffffff00;
+
+  }
+
+  thead {
+  background-color: #0066cc;
+  color: white;
+  /* width: 130%; */
+  overflow: auto
+  
+}
+
+td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+  width: 10%;
+}
+
+  td button {
+  margin-right: 8px;
+  margin-bottom: 8px;
+  width: 80%;
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  gap: 1rem;
+}
+
+}
 
 
 

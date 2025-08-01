@@ -195,8 +195,8 @@ const resetForm = () => {
 
 <style scoped>
 .change-password-container {
-  max-width: 500px;
-  margin: 20vh auto;
+  max-width: 40vw;
+  margin: 30vh auto;
   padding: 0 1rem;
   /* background-color: #ffffff; */
 }
@@ -319,4 +319,12 @@ const resetForm = () => {
   width: 1rem;
   height: 1rem;
 }
+
+@media (max-width: 768px) {
+  .change-password-container {
+    max-width: 80vw;
+  }
+}
+
+
 </style>
