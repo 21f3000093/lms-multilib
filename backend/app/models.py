@@ -135,4 +135,20 @@ class Seat(Base):
 )
     library = relationship("Library", back_populates="seats")
 
+
+class MonthlyExpense(Base):
+    __tablename__ = 'monthly_expenses'
+
+    id = Column(Integer, primary_key=True, index=True)
+    library_id = Column(Integer, ForeignKey("libraries.id", ondelete="CASCADE"), nullable=False, index=True)
+    month = Column(String, index=True)  # Format: '2025-08'
+    name = Column(String, nullable=False)  # Expense name (e.g., 'Electricity Bill')
+    amount = Column(Integer, nullable=False)
+    date = Column(Date, nullable=False)
+    description = Column(String)
+    category = Column(String, nullable=True)  # E.g., 'Utilities', 'Maintenance'
+    created_at = Column(Date, default=lambda: date.today(), nullable=False)
+
+    library = relationship("Library", backref="monthly_expenses")
+
     
