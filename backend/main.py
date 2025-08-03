@@ -222,3 +222,16 @@ def add_monthly_expense(
 @app.get("/monthly-expenses/{month}", response_model=List[schemas.MonthlyExpenseOut])
 def get_expenses(month: str, db: Session = Depends(get_db), admin = Depends(get_current_admin)):
     return crud.get_expenses_for_month(db, admin.library_id, month)
+
+
+
+@app.delete("/monthly-expenses/{expense_id}", status_code=204)
+def delete_monthly_expense(
+    expense_id: int,
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin)
+):
+    success = crud.delete_monthly_expense(db, expense_id, admin.library_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Expense not found")
+    return None  # Or just use `pass`, since 204 = No Content

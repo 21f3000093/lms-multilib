@@ -19,7 +19,7 @@
 
     <!-- Filters -->
     <div class="filters">
-      <input type="text" v-model="searchTerm" placeholder="Search by name" />
+      <input type="text" v-model="searchTerm" placeholder="Search by Name or Seat Number" />
       <select v-model="statusFilter">
         <option value="">All</option>
         <option value="paid">Paid</option>
@@ -190,15 +190,23 @@ export default {
 
         filteredPayments() {
           return this.payments.filter(payment => {
-            const matchesName = payment.student.name.toLowerCase().includes(this.searchTerm.toLowerCase());
+            const search = this.searchTerm.trim().toLowerCase();
+            // Student name search
+            const matchesName = payment.student.name.toLowerCase().includes(search);
+            // Seat number search (convert to string, handle null)
+            const seatNum = payment.student.seat?.seat_number ? String(payment.student.seat.seat_number) : '';
+            const matchesSeat = seatNum.includes(search);
+
             const matchesStatus =
               this.statusFilter === '' ||
               (this.statusFilter === 'paid' && payment.paid) ||
               (this.statusFilter === 'unpaid' && !payment.paid);
-            return matchesName && matchesStatus;
+
+            // Search should match name OR seat number
+            return (matchesName || matchesSeat) && matchesStatus;
           });
-          // No sorting needed - database already sorted!
         }
+
 
     },
 
@@ -261,6 +269,7 @@ h2 {
   cursor: pointer;
   transition: all 0.2s ease-in-out;
   min-width: fit-content;
+  width: 14%;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   background-color: #8725d3;
 }
@@ -282,6 +291,7 @@ h2 {
 .month-controls button:hover {
   background-color: #7f22c6;
   transform: scale(1.03); /* 👈 Slight hover scale */
+  filter: brightness(1.08);
 }
 
 

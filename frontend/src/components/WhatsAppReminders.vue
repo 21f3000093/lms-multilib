@@ -111,6 +111,16 @@ h2 {
   justify-content: space-between;
 }
 
+.filters button {
+    display: flex;
+    width: 30%;
+    flex-direction: row;
+    gap: 0.8rem;
+    margin: auto;     
+    justify-content: center;
+    
+  }
+
 .action-button {
   padding: 10px 16px; /* 👈 Slightly larger */
   border: none;
@@ -248,9 +258,7 @@ h2 {
     max-width: 40%;
     flex-direction: row;
     gap: 0.8rem;
-    margin: auto;
-    
-    
+    margin: auto;   
     
   }
 }

@@ -3,7 +3,7 @@
     <h2>All Student Bookings</h2>
     <!-- Student Filters -->
     <div class="filters">
-      <input type="text" v-model="searchName" placeholder="Search by name" />
+      <input type="text" v-model="searchName" placeholder="Search by Name or Seat Number" />
 
       <select v-model="shiftFilter">
         <option value="">All Shifts</option>
@@ -131,21 +131,32 @@ export default {
 
   computed: {
   filteredStudents() {
-      return this.students.filter(student => {
-        const matchesName = student.name.toLowerCase().includes(this.searchName.toLowerCase());
+    return this.students.filter(student => {
+      const search = this.searchName.trim().toLowerCase();
 
-        const matchesShift =
-          this.shiftFilter === '' ||
-          (this.shiftFilter === '1' && student.shift1) ||
-          (this.shiftFilter === '2' && student.shift2) ||
-          (this.shiftFilter === '3' && student.shift3);
+      // Name search
+      const matchesName = student.name.toLowerCase().includes(search);
 
-        const matchesStatus =
-          this.statusFilter === '' || student.status === this.statusFilter;
+      // Seat number search (convert to string, handle null/undefined)
+      const seatNum = student.seat?.seat_number ? String(student.seat.seat_number) : '';
+      const matchesSeat = seatNum.includes(search);
 
-        return matchesName && matchesShift && matchesStatus;
-      });
-    }
+      // Shift filter
+      const matchesShift =
+        this.shiftFilter === '' ||
+        (this.shiftFilter === '1' && student.shift1) ||
+        (this.shiftFilter === '2' && student.shift2) ||
+        (this.shiftFilter === '3' && student.shift3);
+
+      // Status filter (if you want to use it in future)
+      const matchesStatus =
+        this.statusFilter === '' || student.status === this.statusFilter;
+
+      // Match name OR seat, and filters
+      return (matchesName || matchesSeat) && matchesShift && matchesStatus;
+    });
+  }
+
   },
 
   created() {

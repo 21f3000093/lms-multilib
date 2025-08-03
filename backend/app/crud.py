@@ -474,3 +474,14 @@ def get_monthly_expenses(db: Session, library_id: int):
         .order_by(models.MonthlyExpense.date.desc())
         .all()
     )
+    
+def delete_monthly_expense(db: Session, expense_id: int, library_id: int):
+    expense = db.query(models.MonthlyExpense).filter(
+        models.MonthlyExpense.id == expense_id,
+        models.MonthlyExpense.library_id == library_id
+    ).first()
+    if not expense:
+        return False
+    db.delete(expense)
+    db.commit()
+    return True

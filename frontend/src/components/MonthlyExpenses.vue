@@ -4,8 +4,7 @@
     <!-- Month Selector & Controls -->
     <div class="month-controls">
       <input type="month" v-model="selectedMonth" />
-      <button @click="openExpenseModal">➕ Add Expense</button>
-      <button @click="downloadCSV">📥 Export CSV</button>
+      <button @click="openExpenseModal" style="font-size: 1.1rem;">Add Expense</button>      
     </div>
 
     <!-- Add Expense Modal -->
@@ -38,18 +37,18 @@
       <thead>
         <tr>
           <th>Name</th>
-          <th>Date</th>
           <th>Amount</th>
+          <th>Date</th>
           <th>Category</th>
           <th>Description</th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="expense in expenses" :key="expense.id">
+        <tr v-for="expense in expenses" :key="expense.id" >
           <td>{{ expense.name }}</td>
-          <td>{{ formatDate(expense.date) }}</td>
           <td>₹{{ expense.amount }}</td>
+          <td>{{ formatDate(expense.date) }}</td>
           <td>{{ expense.category || '—' }}</td>
           <td>{{ expense.description || '—' }}</td>
           <td>
@@ -58,9 +57,9 @@
         </tr>
         <!-- Monthly Total Row -->
         <tr style="font-weight: bold; background: #E8E8EE">
-          <td colspan="2">Total</td>
-          <td>₹{{ totalExpenses }}</td>
-          <td colspan="3"></td>
+          <td colspan="1">Total</td>
+          <td colspan="1">₹{{ totalExpenses }}</td>
+          <!-- <td colspan="3"></td> -->
         </tr>
       </tbody>
     </table>
@@ -140,23 +139,7 @@ export default {
         alert('Error deleting expense');
       }
     },
-    async downloadCSV() {
-      try {
-        const res = await API.get(`/export-monthly-expenses/${this.selectedMonth}`, {
-          responseType: 'blob',
-        });
-        const blob = new Blob([res.data], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', `monthly_expenses_${this.selectedMonth}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } catch (err) {
-        alert('Failed to export CSV');
-      }
-    },
+    
     formatDate(dateStr) {
       const d = new Date(dateStr);
       return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
@@ -182,6 +165,7 @@ export default {
   height: 80vh;
   overflow-y: auto;
   padding-top: 5vh;
+  scrollbar-width: 0px;
 }
 
 h2 {
@@ -196,7 +180,7 @@ h2 {
 .month-controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 5rem;
   align-items: center;
   justify-content: flex-start;
   margin-bottom: 1.5rem;
@@ -208,7 +192,7 @@ h2 {
   border-radius: 6px;
   border: 1px solid #ccc;
   min-width: 140px;
-  width: 32%;
+  width: 25%;
 }
 .month-controls button {
   padding: 10px 16px;
@@ -219,10 +203,13 @@ h2 {
   cursor: pointer;
   background-color: #8725d3;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  width: 30%;
 }
 .month-controls button:hover {
   background-color: #7f22c6;
   transform: scale(1.03);
+  filter: brightness(1.08);
+  
 }
 
 /* Table Styles */
@@ -230,6 +217,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 1rem;
+  text-transform: capitalize;
 }
 th, td {
   padding: 0.75rem;
@@ -263,13 +251,15 @@ tbody tr:nth-child(even) {
   cursor: pointer;
   transition: background-color 0.3s ease;
   margin-right: 0.5rem;
+  width: 90%;
 }
 .action-button.mark-left {
   background-color: #dc3545;
 }
 .action-button.mark-left:hover {
-  background-color: #b02a37;
+  /* background-color: #b02a37; */
   transform: scale(1.03);
+  filter: brightness(1.08);
 }
 
 /* Modal */
@@ -287,14 +277,15 @@ tbody tr:nth-child(even) {
   padding: 2rem;
   border-radius: 12px;
   min-width: 320px;
-  max-width: 94vw;
+  max-width: 50vw;
   box-shadow: 0 8px 32px rgba(50,32,81,0.18);
 }
+
 .modal h3 {
   margin-bottom: 1rem;
 }
 .modal input, .modal textarea, .modal select {
-  width: 100%;
+  width: 95%;
   margin-bottom: 1rem;
   padding: 10px;
   border-radius: 5px;
@@ -302,7 +293,8 @@ tbody tr:nth-child(even) {
 }
 .modal-actions {
   display: flex;
-  gap: 1rem;
+  gap: 2rem;
+  justify-content: center;
 }
 .modal-actions button {
   padding: 0.8em 1.4em;
@@ -312,6 +304,7 @@ tbody tr:nth-child(even) {
   color: #fff;
   border: none;
   cursor: pointer;
+  width: 45%;
 }
 .modal-actions button[type="button"] {
   background: #bbb;
@@ -329,6 +322,17 @@ tbody tr:nth-child(even) {
     height: 98vh;
     padding-top: 7vh;
   }
+
+.month-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 1.5rem;
+  
+}
+
   .month-controls input[type="month"], .month-controls button {
     width: 90%;
     margin-bottom: 0.5rem;
@@ -350,7 +354,7 @@ tbody tr:nth-child(even) {
   padding: 0.5rem;
   border-radius: 12px;
   /* min-width: 320px; */
-  width: 90%;
+  width: 80%;
   box-shadow: 0 8px 32px rgba(50,32,81,0.18);
 }
 .modal h3 {
@@ -366,7 +370,8 @@ tbody tr:nth-child(even) {
 .modal-actions {
   display: flex;
   gap: 1rem;
-  margin: auto;
+  margin: 1rem;
+  justify-content: center;
 }
 .modal-actions button {
   padding: 0.8em 1.4em;
@@ -381,9 +386,11 @@ tbody tr:nth-child(even) {
 .modal-actions button[type="button"] {
   background: #bbb;
   color: #222;
+  width: 40%;
 }
 .modal-actions button:hover {
   filter: brightness(1.08);
+  transform:scale(1.03)
 }
 
 
@@ -391,6 +398,7 @@ tbody tr:nth-child(even) {
     display: block;
     width: 95%;
     margin: 2vh 0rem;
+    text-transform: capitalize;
   }
   thead {
     display: none;
@@ -398,6 +406,7 @@ tbody tr:nth-child(even) {
   tbody, tr, td {
     display: block;
     width: 98%;
+    text-transform: capitalize;
   }
   tr {
     margin-bottom: 1rem;
@@ -405,6 +414,7 @@ tbody tr:nth-child(even) {
     border: 1px solid #ddd;
     border-radius: 10px;
     padding: 1rem;
+    text-transform: capitalize;
   }
   td {
     text-align: left;
@@ -414,6 +424,7 @@ tbody tr:nth-child(even) {
     font-size: 0.95rem;
     line-height: 1.5;
     border: 1px solid #ddd;
+    text-transform: capitalize;
   }
   td::before {
     position: absolute;
@@ -421,10 +432,11 @@ tbody tr:nth-child(even) {
     top: 0.6rem;
     font-weight: 600;
     color: #333;
+    /* text-transform: capitalize; */
   }
   td:nth-child(1)::before { content: "Name";  }
-  td:nth-child(2)::before { content: "Date"; }
-  td:nth-child(3)::before { content: "Amount"; }
+  td:nth-child(2)::before { content: "Amount"; }
+  td:nth-child(3)::before { content: "Date"; }
   td:nth-child(4)::before { content: "Category"; }
   td:nth-child(5)::before { content: "Description"; }
   td:nth-child(6)::before { content: "Actions"; }

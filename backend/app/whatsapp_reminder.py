@@ -39,6 +39,16 @@ def get_pending_reminders(
                 "amount": payment.amount,
                 "month": payment.month,
                 "due_date": due_date.strftime("%d-%m-%Y"),
+                "due_date_obj": due_date,  # Add raw date for sorting
             })
+            
+            
+        
+    # SORT by due_date_obj (ascending)
+    results.sort(key=lambda x: x["due_date_obj"])
 
+    # Optionally, remove 'due_date_obj' before returning to the client:
+    for r in results:
+        r.pop("due_date_obj", None)
+        
     return results
