@@ -206,3 +206,19 @@ def get_student_payments(student_id: int, db: Session = Depends(get_db)):
 @app.get("/export-monthly-payments/{month}")
 def export_csv(month: str, db: Session = Depends(get_db), admin = Depends(get_current_admin)):
     return crud.export_monthly_payments_csv(db, month, library_id=admin.library_id)
+
+
+
+# Add new expense
+@app.post("/monthly-expenses/", response_model=schemas.MonthlyExpenseOut)
+def add_monthly_expense(
+    expense: schemas.MonthlyExpenseCreate,
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin)
+):
+    return crud.add_monthly_expense(db, admin.library_id, expense)
+
+# Get expenses for current month
+@app.get("/monthly-expenses/{month}", response_model=List[schemas.MonthlyExpenseOut])
+def get_expenses(month: str, db: Session = Depends(get_db), admin = Depends(get_current_admin)):
+    return crud.get_expenses_for_month(db, admin.library_id, month)

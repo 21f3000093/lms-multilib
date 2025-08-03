@@ -441,3 +441,36 @@ def change_admin_password(db: Session, admin_id: int, current_password: str, new
     db.refresh(admin)
     
     return admin
+
+def add_monthly_expense(db: Session, library_id: int, expense: schemas.MonthlyExpenseCreate):
+    month = expense.date.strftime('%Y-%m')
+    db_expense = models.MonthlyExpense(
+        library_id=library_id,
+        month=month,
+        name=expense.name,
+        date=expense.date,
+        amount=expense.amount,
+        description=expense.description,
+        category=expense.category,
+    )
+    db.add(db_expense)
+    db.commit()
+    db.refresh(db_expense)
+    return db_expense
+
+def get_expenses_for_month(db: Session, library_id: int, month: str):
+    return (
+        db.query(models.MonthlyExpense)
+        .filter(models.MonthlyExpense.library_id == library_id,
+                models.MonthlyExpense.month == month)
+        .order_by(models.MonthlyExpense.date.desc())
+        .all()
+    )
+
+def get_monthly_expenses(db: Session, library_id: int):
+    return (
+        db.query(models.MonthlyExpense)
+        .filter(models.MonthlyExpense.library_id == library_id)
+        .order_by(models.MonthlyExpense.date.desc())
+        .all()
+    )

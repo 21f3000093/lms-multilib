@@ -118,3 +118,26 @@ class AdminChangePassword(BaseModel):
 
     class Config:
         orm_mode = True
+        
+        
+        
+class MonthlyExpenseBase(BaseModel):
+    name: str
+    date: date
+    amount: int
+    description: Optional[str] = None
+    category: Optional[str] = None
+    
+    
+
+class MonthlyExpenseCreate(MonthlyExpenseBase):
+    pass
+
+class MonthlyExpenseOut(MonthlyExpenseBase):
+    id: int
+    month: str
+    library_id: int
+    created_at: Optional[date]
+
+    class Config:
+        orm_mode = True

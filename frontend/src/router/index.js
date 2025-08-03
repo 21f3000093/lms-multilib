@@ -14,6 +14,7 @@ import SuperAdminDashboard from '@/views/SuperAdminDashboard.vue'
 import LibraryStudentList from '@/components/LibraryStudentList.vue'
 import WhatsAppReminders from '@/components/WhatsAppReminders.vue';
 import ChangePassword from '@/components/ChangePassword.vue'
+import MonthlyExpenses from '@/components/MonthlyExpenses.vue'
 
 
 
@@ -28,6 +29,7 @@ const routes = [
   { path: '/register', name: 'Register', component: StudentForm , meta: { requiresAuth: true }},
   { path: '/students', name: 'StudentList', component: StudentList , meta: { requiresAuth: true }},
   { path: '/monthly-payments',name: 'MonthlyPayments', component: MonthlyPayments , meta: { requiresAuth: true } },
+  { path: '/monthly-expenses',name: 'MonthlyExpenses', component: MonthlyExpenses , meta: { requiresAuth: true } },
   { path: '/students/:id', name: 'StudentDetail', component: StudentDetail , meta: { requiresAuth: true } },
   { path: '/seat-map', name: 'SeatMap', component: SeatMap , meta: { requiresAuth: true }},
   { path: '/superadmin', name: 'SuperAdminDashboard', component: SuperAdminDashboard, meta: { requiresAuth: true } },

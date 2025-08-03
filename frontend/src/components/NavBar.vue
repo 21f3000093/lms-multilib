@@ -32,6 +32,10 @@
           <span class="sidebar-icon">🪑</span>
           <span class="sidebar-text">Seat Map</span>
         </router-link>
+        <router-link v-if="isLoggedIn && role === 'admin'" to="/monthly-expenses" class="sidebar-link">
+          <span class="sidebar-icon">💰</span>
+          <span class="sidebar-text">Expenses</span>
+        </router-link>
       </nav>
     </aside>
 
@@ -135,6 +139,7 @@
         <router-link v-if="isLoggedIn && role === 'admin'" to="/students" @click="closeMenu">📋 Student List</router-link>
         <router-link v-if="isLoggedIn && role === 'admin'" to="/monthly-payments" @click="closeMenu">💰 Monthly Fees</router-link>
         <router-link v-if="isLoggedIn && role === 'admin'" to="/seat-map" @click="closeMenu">🪑 Seat Map</router-link>
+        <router-link v-if="isLoggedIn && role === 'admin'" to="/monthly-expenses" @click="closeMenu">💰 Expenses</router-link>
         <!-- <button v-if="isLoggedIn" class="logout-btn mobile-logout" @click="logout">🚪 Logout</button> -->
       </div>
     </nav>
