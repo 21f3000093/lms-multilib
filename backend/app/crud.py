@@ -9,6 +9,8 @@ import csv
 from io import StringIO
 from fastapi.responses import StreamingResponse
 import time
+import calendar
+
 
 
 
@@ -222,13 +224,45 @@ def get_dashboard_data(db: Session, library_id: int):
     }
     
 # To create monthly payments for all active students
+# def create_monthly_payments_for_all(db: Session, month: str, library_id: int):
+#     students = db.query(models.Student).filter(models.Student.status == "active", models.Student.library_id == library_id).all()
+#     for student in students:
+#         exists = db.query(models.MonthlyPayment).filter_by(student_id=student.id, month=month).first()
+#         if not exists:
+#             db.add(models.MonthlyPayment(student_id=student.id, month=month, paid=False, amount=student.custom_fees, library_id=library_id))
+#     db.commit()
+
+
+
 def create_monthly_payments_for_all(db: Session, month: str, library_id: int):
-    students = db.query(models.Student).filter(models.Student.status == "active", models.Student.library_id == library_id).all()
+    # Parse 'YYYY-MM' → year, month
+    year, month_num = map(int, month.split('-'))
+    last_day = calendar.monthrange(year, month_num)[1]
+    end_of_month = date(year, month_num, last_day)
+
+    students = db.query(models.Student).filter(
+        models.Student.status == "active",
+        models.Student.library_id == library_id,
+        models.Student.date_of_joining <= end_of_month,  # <-- Only joined on or before month
+    ).all()
+
     for student in students:
         exists = db.query(models.MonthlyPayment).filter_by(student_id=student.id, month=month).first()
         if not exists:
-            db.add(models.MonthlyPayment(student_id=student.id, month=month, paid=False, amount=student.custom_fees, library_id=library_id))
+            db.add(models.MonthlyPayment(
+                student_id=student.id,
+                month=month,
+                paid=False,
+                amount=student.custom_fees,
+                library_id=library_id
+            ))
     db.commit()
+
+
+
+
+
+
     
 # To mark a monthly payment as paid
 def mark_monthly_payment_as_paid(db: Session, payment_id: int):
