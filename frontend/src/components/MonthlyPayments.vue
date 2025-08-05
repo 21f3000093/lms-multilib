@@ -28,7 +28,7 @@
     </div>
 
 
-    <table v-if="payments.length">
+    <table v-if="payments.length" class="student-table">
         <thead>
             <tr>
             <th>Name</th>
@@ -42,7 +42,8 @@
         <tbody>
             <!-- <tr v-for="payment in payments" :key="payment.id"> -->
             <tr v-for="payment in filteredPayments" :key="payment.id">
-            <td>{{ payment.student.name }}</td>
+            <!-- <td>{{ payment.student.name }}</td> -->
+            <td><router-link :to="`/students/${payment.student.id}`" class="student-link" style="text-transform:uppercase;">{{ payment.student.name }}</router-link></td>
             <td>{{ payment.student.seat?.seat_number || '—' }}</td>  <!-- This should be the seat number . Will change in future-->
             <!-- <td>{{ payment.student.seat_id }}</td>  This should be the seat number . Will change in future -->
             <td>₹{{ payment.amount }}</td>
@@ -301,14 +302,17 @@ h2 {
 
 /* Action Buttons */
 .action-button {
-  padding: 8px 12px;
+  padding: 8px 8px;
   border: none;
   border-radius: 6px;
   color: white;
   font-size: 0.85rem;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  margin-right: 0.5rem;
+  /* margin-right: 1rem;
+  margin-left: 1rem; */
+  margin: 0.3rem;
+  width: 40%;
 }
 
 .action-button.edit:hover {
@@ -327,14 +331,17 @@ h2 {
 
 /* Table Base */
 table {
-  width: 100%;
+  width: 98%;
   border-collapse: collapse;
   margin-top: 1rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 th, td {
   padding: 0.75rem;
-  border: 1px solid #e0e0e0;
+  /* border: 1px solid #e0e0e0; */
+  border: 1px solid #ffffff64;
   text-align: left;
   font-size: 0.95rem;
   text-decoration: none;
@@ -358,78 +365,82 @@ tbody tr:nth-child(even) {
   font-size: 1rem;
 }
 
+.student-link {
+  color: #494ed5;
+  /* color: #2c2929; */
+  text-decoration: none;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.student-link:hover {
+  text-decoration: none;
+  color: #8725d3;
+  transform: scale(1.03);
+
+}
+
 /* ✅ Responsive: Mobile Card Layout */
 @media (max-width: 768px) {
 
   .container {
-    padding: 0.5rem;
+    padding: 1rem;
     margin: 0vh 0rem;
     height: 98vh;
-    overflow-y: auto;
+    overflow: auto;
     background: #f4fbff00; /* 👈 Subtle mobile bg */
     padding-top: 7vh;
   }
-
-
-  table {
-    display: block;
-    width: 95%;
-    margin: 2vh 0rem;
-    text-decoration: none;
-    font-weight: 500;
-    /* max-height: 98vh; */
-  }
-
+  
   thead {
     display: none;
-    text-decoration: none;
-  font-weight: 500;
-  text-transform: capitalize;
+    
   }
 
-  tbody, tr, td {
+.student-table tbody,
+  .student-table td {
     display: block;
     width: 98%;
-    text-decoration: none;
-  font-weight: 500;
-  text-transform: capitalize;
+    /* box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15); */
+  }
+  .student-table {
+    display: block;
+    width: 95%;
+    /* box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15); */
+  }
+  .student-table tr{
+    display: block;
+    width: 99%;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   }
 
-  tr {
+  .student-table tr {
     margin-bottom: 1rem;
-    background-color: #ffffff3f;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    padding: 1rem;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
-    text-decoration: none;
-    font-weight: 500;
-    text-transform: capitalize;
+    border: 1px solid #bca9ce;
+    border-radius: 8px;
+    padding: 0.8rem;
+    background-color: #fefefe1b;
   }
 
-  td {
+  .student-table td {
     text-align: left;
-    padding-left: 45%;
+    padding-left: 50%;
     position: relative;
+    white-space: pre-wrap;
     box-sizing: border-box;
-    font-size: 0.95rem;
-    line-height: 1.5;
-    border: 1px solid #ddd;
-    text-decoration: none;
-    font-weight: 500;
-    text-transform: capitalize;
+    
+    
   }
 
-  td::before {
+  .student-table td::before {
     position: absolute;
     left: 1rem;
     top: 0.6rem;
-    font-weight: 600;
-    color: #333;
-    text-decoration: none;
-    font-weight: 500;
-    text-transform: capitalize;
+    font-weight: bold;
+    white-space: nowrap;
+    color: #444;    
   }
+
 
   td:nth-child(1)::before { content: "Name";  }
   td:nth-child(2)::before { content: "Seat"; }
@@ -439,8 +450,8 @@ tbody tr:nth-child(even) {
   td:nth-child(6)::before { content: "Actions"; }
 
   .action-button {
-    width: 100%;
-    margin-top: 0.6rem;
+    width: 90%;
+    margin-top: 0.5rem;
     font-size: 1rem;
     
   }
@@ -466,11 +477,18 @@ tbody tr:nth-child(even) {
     
   }
 
-  .filters input[type="text"],
+  .filters input[type="text"]{
+    display: flex;
+    flex-direction: row;
+    gap: 0.1rem;
+    margin: auto;
+    width: 40%;
+  }
+  
   .filters select {
     display: flex;
     flex-direction: row;
-    gap: 0.2rem;
+    gap: 0.1rem;
     margin: auto;
     width: 40%;
   }

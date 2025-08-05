@@ -25,8 +25,9 @@
             </span>
           </td>
           <td>
-            <button @click="markAsPaid(payment)" :disabled="payment.paid">Mark Paid</button>
-            <button @click="deletePayment(payment.id)">🗑️ Delete</button>
+            <!-- <button @click="markAsPaid(payment)" :disabled="payment.paid">Mark Paid</button> -->
+            <button @click="togglePaid(payment)" :style="{ backgroundColor: payment.paid ? 'blue' : 'green' }">{{ payment.paid ? 'Mark Unpaid' : 'Mark Paid' }}</button>
+            <button @click="deletePayment(payment.id)">Delete</button>
           </td>
         </tr>
       </tbody>
@@ -69,7 +70,15 @@ export default {
         await API.delete(`/monthly-payments/${id}`);
         this.payments = this.payments.filter(p => p.id !== id);
       }
-    }
+    },
+    async togglePaid(payment) {
+        try {
+        const res = await API.put(`/monthly-payments/toggle/${payment.id}`);
+        payment.paid = res.data.paid;
+        } catch (err) {
+        alert('Failed to toggle status');
+        }
+    },
   }
 };
 </script>
@@ -107,7 +116,7 @@ table {
 }
 
 thead {
-  background-color: #0066cc;
+  background-color: #3a00ccb8;
   color: white;
   
 }
@@ -140,6 +149,8 @@ td button:first-of-type {
 
 td button:first-of-type:hover:enabled {
   background-color: #43a047;
+  transform: scale(1.03);
+  
 }
 
 td button:last-of-type {
@@ -149,16 +160,17 @@ td button:last-of-type {
 
 td button:last-of-type:hover {
   background-color: #e53935;
+  transform: scale(1.03);
 }
 
 .paid {
   color: green;
-  font-weight: bold;
+  /* font-weight: bold; */
 }
 
 .unpaid {
   color: red;
-  font-weight: bold;
+  /* font-weight: bold; */
 }
 
 @media(max-width: 768px) {
@@ -176,7 +188,7 @@ td button:last-of-type:hover {
   }
 
   thead {
-  background-color: #0066cc;
+  background-color: #3a00ccb8;
   color: white;
   /* width: 130%; */
   overflow: auto

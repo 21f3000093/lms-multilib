@@ -40,7 +40,7 @@
           <tr v-for="student in filteredStudents" :key="student.id">
 
           <!-- <td>{{ student.name }}</td> -->
-          <td><router-link :to="`/students/${student.id}`" class="student-link">{{ student.name }}</router-link></td>
+          <td><router-link :to="`/students/${student.id}`" class="student-link" style="text-transform:uppercase;">{{ student.name }}</router-link></td>
           
           <td>{{ student.contact }}</td>
           <td>{{ student.seat?.seat_number || '—' }}</td>
@@ -202,7 +202,7 @@ h2 {
   border-radius: 6px;
   border: 1px solid #ccc;
   flex: 1;
-  min-width: 150px;
+  /* min-width: 150px; */
 }
 
 /* Table */
@@ -230,7 +230,8 @@ h2 {
 }
 
 .student-link {
-  color: #2c2929;
+  color: #494ed5;
+  /* color: #2c2929; */
   text-decoration: none;
   font-weight: 500;
   text-transform: capitalize;
@@ -238,9 +239,11 @@ h2 {
 
 .student-link:hover {
   text-decoration: none;
+  color: #8725d3;
+  transform: scale(1.03);
 
 }
-
+ 
 /* Action Buttons */
 .action-button {
   padding: 6px 10px;

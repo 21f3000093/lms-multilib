@@ -35,6 +35,7 @@ def get_pending_reminders(
         if due_date <= upcoming:
             results.append({
                 "student_name": payment.student.name,
+                "student_id": payment.student.id,
                 "phone": payment.student.contact,
                 "amount": payment.amount,
                 "month": payment.month,

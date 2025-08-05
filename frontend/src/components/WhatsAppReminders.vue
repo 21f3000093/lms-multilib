@@ -20,7 +20,8 @@
       </thead>
       <tbody>
         <tr v-for="student in pendingList" :key="student.phone">
-          <td>{{ student.student_name }}</td>
+          <!-- <td>{{ student.student_name }}</td> -->
+           <td><router-link :to="`/students/${student.student_id}`" class="student-link" style="text-transform:uppercase;">{{ student.student_name }}</router-link></td>
           <td>{{ student.phone }}</td>
           <td>₹{{ student.amount }}</td>
           <td>{{ student.month }}</td>
@@ -183,6 +184,21 @@ h2 {
   color: green;
   font-style: italic;
   font-size: 1rem;
+}
+
+.student-link {
+  color: #494ed5;
+  /* color: #2c2929; */
+  text-decoration: none;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.student-link:hover {
+  text-decoration: none;
+  color: #8725d3;
+  transform: scale(1.03);
+
 }
 
 /* 🔧 Responsive Design for Mobiles */

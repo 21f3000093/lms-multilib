@@ -323,7 +323,8 @@ def get_monthly_payments(db: Session, month: str, library_id: int):
             models.MonthlyPayment.paid,
             models.Student.name.label('student_name'),
             models.Student.date_of_joining,
-            models.Seat.seat_number
+            models.Seat.seat_number,
+            models.Student.id.label('student_id')
         )
         .join(models.MonthlyPayment.student)  # INNER JOIN to students
         .join(models.Student.seat, isouter=True)  # LEFT JOIN to seats
@@ -350,6 +351,7 @@ def get_monthly_payments(db: Session, month: str, library_id: int):
             "paid": row.paid,
             "student": {
                 "name": row.student_name,
+                "id": row.student_id,
                 "date_of_joining": row.date_of_joining.isoformat() if row.date_of_joining else None,
                 "seat": {
                     "seat_number": row.seat_number
