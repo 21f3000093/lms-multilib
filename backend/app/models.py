@@ -1,8 +1,8 @@
 # models.py
 from sqlalchemy import Column, Integer, String, Boolean , ForeignKey, UniqueConstraint, Index
 from app.database import Base
-from sqlalchemy import Date
-from datetime import date
+from sqlalchemy import Date , DateTime
+from datetime import date 
 from sqlalchemy.orm import relationship
 
 
@@ -21,6 +21,8 @@ class Library(Base):
     students = relationship("Student", back_populates="library")
     seats = relationship("Seat", back_populates="library")
     monthly_payments = relationship("MonthlyPayment", back_populates="library")
+    subscription = relationship("Subscription", uselist=False, back_populates="library")
+
 
 
 # class Admin(Base):
@@ -152,3 +154,21 @@ class MonthlyExpense(Base):
     library = relationship("Library", backref="monthly_expenses")
 
     
+class Subscription(Base):
+    __tablename__ = "subscriptions"
+    id = Column(Integer, primary_key=True, index=True)
+    library_id = Column(Integer, ForeignKey("libraries.id", ondelete="CASCADE"), nullable=False, unique=True)
+    status = Column(String, default="inactive")   # "active", "inactive", etc.
+    valid_until = Column(DateTime)
+    plan = Column(String)                         # e.g., 'per_seat_monthly'
+    payment_gateway_id = Column(String)           # Razorpay sub ID, etc.
+
+    last_payment_at = Column(DateTime)            # NEW: tracks last payment timestamp
+    is_trial = Column(Boolean, default=False)     # NEW: is user on trial
+    trial_valid_until = Column(DateTime)          # NEW: trial end timestamp
+
+    library = relationship("Library", back_populates="subscription")
+
+    __table_args__ = (
+        Index("idx_subscriptions_library_status", "library_id", "status"),
+    )

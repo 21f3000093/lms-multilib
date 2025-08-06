@@ -3,8 +3,10 @@
     <form @submit.prevent="submitForm" class="form-box">
       <h2>{{ isEdit ? 'Update Student' : 'Add Student' }}</h2>
 
-      <input v-model="student.name" placeholder="Name" required />
-      <input v-model="student.contact" placeholder="Contact" required />
+      <input v-model="student.name" placeholder="Name" required @blur="onNameBlur" />
+      <input v-model="student.contact" placeholder="Contact (10 digits)" required maxlength="10" @input="onContactInput" @blur="onContactBlur" />
+      <div v-if="contactError" style="color: red; font-size: 0.95rem;">{{ contactError }}</div>
+
 
       <div class="checkbox-group">
         <label><input type="checkbox" v-model="student.shift1" /> Shift 1</label>
@@ -41,6 +43,7 @@
 </template>
 
 <script>
+/* eslint-disable */
 import API from '../api';
 
 export default {
@@ -63,12 +66,17 @@ export default {
 
       },
       availableSeats: [],
-      loading: false
+      loading: false,
+      contactError: ''
     };
   },
   computed: {
     isEdit() {
       return !!this.existingStudent;
+    },
+
+    isContactValid() {
+      return /^\d{10}$/.test(this.student.contact);
     }
   },
   watch: {
@@ -103,9 +111,44 @@ export default {
         console.error('Error fetching available seats:', err);
       }
     },
+
+    onContactInput(event) {
+      // Remove any non-digit characters
+      this.student.contact = this.student.contact.replace(/\D/g, '');
+      if (!this.isContactValid && this.student.contact.length > 0) {
+        this.contactError = 'Contact number must be exactly 10 digits';
+      } else {
+        this.contactError = '';
+      }
+    },
+
+    capitalizeName(name) {
+      // Capitalize each word
+      return name.replace(/\b\w/g, l => l.toUpperCase()).replace(/\s+/g, ' ').trim();
+    },
+
+    onNameBlur() {
+      // Trim whitespace and collapse multiple spaces
+      this.student.name = this.student.name.trim().replace(/\s+/g, ' ');
+    },
+    onContactBlur() {
+      // Remove all whitespace
+      this.student.contact = this.student.contact.replace(/\s+/g, '');
+    },
+
+
+
     async submitForm() {
 
       if (this.loading) return; // 🔒 Prevent double-clicking
+
+      if (!this.isContactValid) {
+        this.contactError = 'Contact number must be exactly 10 digits';
+        return;
+      }
+      // Capitalize name before sending
+      this.student.name = this.capitalizeName(this.student.name);
+
       this.loading = true;
 
       try {

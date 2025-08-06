@@ -4,7 +4,7 @@
   <div class="login-container">
     <h2>Admin Login</h2>
     <form @submit.prevent="login">
-      <input v-model="username" placeholder="Username" required />
+      <input v-model="username" placeholder="Username" required @blur="onUsernameBlur" />
 
       <div class="password-wrapper">
         <input
@@ -12,6 +12,7 @@
           v-model="password"
           placeholder="Password"
           required
+          @blur="onPasswordBlur"
         />
         <button type="button" class="toggle-btn" @click="togglePassword">
           {{ showPassword ? '🙈 Hide' : '👁 Show' }}
@@ -65,7 +66,16 @@ export default {
           this.error = 'Network error. Please try again.';
         }
       }
-    }
+    },
+
+    onUsernameBlur() {
+      this.username = this.username.trim().replace(/\s+/g, ' ');
+    },
+    onPasswordBlur() {
+      this.password = this.password.trim();
+    },
+    
+    
   }
 };
 </script>
