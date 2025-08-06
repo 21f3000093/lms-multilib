@@ -19,7 +19,10 @@
         </button>
       </div>
 
-      <button type="submit">Login</button>
+      <button type="submit" :disabled="loading">
+        {{ loading ? 'Please wait...' : 'Login' }}
+      </button>
+
       <p v-if="error">{{ error }}</p>
     </form>
   </div>
@@ -34,7 +37,8 @@ export default {
       username: '',
       password: '',
       error: '',
-      showPassword: false
+      showPassword: false,
+      loading: false,
     };
   },
   methods: {
@@ -42,6 +46,17 @@ export default {
       this.showPassword = !this.showPassword;
     },
     async login() {
+
+      this.error = '';
+      this.onUsernameBlur();
+      this.onPasswordBlur();
+      
+      if (!this.username || !this.password) {
+        this.error = 'Please enter username and password';
+        return;
+      }
+
+      this.loading = true;
       try {
         const res = await API.post('/auth/login', {
           username: this.username,
@@ -65,6 +80,8 @@ export default {
         } else {
           this.error = 'Network error. Please try again.';
         }
+      } finally {
+        this.loading = false;
       }
     },
 
