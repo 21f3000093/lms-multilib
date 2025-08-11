@@ -29,7 +29,7 @@ API.interceptors.response.use(
       const detail = error.response.data?.detail;
 
       if (status === 403) {
-        alert('❌ Your account is blocked. Please contact the Owner for more details.');
+        alert('❌ Your account is inactive.Please contact(9024600138) the Owner for more details.');
       } 
       else if (status === 401) {
         if (detail === 'invalid_credentials') {
