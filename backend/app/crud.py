@@ -323,6 +323,7 @@ def get_monthly_payments(db: Session, month: str, library_id: int):
             models.MonthlyPayment.paid,
             models.Student.name.label('student_name'),
             models.Student.date_of_joining,
+            models.Student.contact,
             models.Seat.seat_number,
             models.Student.id.label('student_id')
         )
@@ -352,6 +353,7 @@ def get_monthly_payments(db: Session, month: str, library_id: int):
             "student": {
                 "name": row.student_name,
                 "id": row.student_id,
+                "contact": row.contact if row.contact else None,
                 "date_of_joining": row.date_of_joining.isoformat() if row.date_of_joining else None,
                 "seat": {
                     "seat_number": row.seat_number

@@ -65,13 +65,72 @@
     </table>
 
     <p v-else class="no-data">No records found. Try generating for this month.</p>
+
+
+    <!-- Replace alert with custom modal -->
+    <ConfirmationModal
+      :show="showConfirmationModal"
+      title="Payment Confirmed! 🎉"
+      :message="`Send confirmation message to ${selectedPayment?.student?.name.toUpperCase()}?`"
+      @whatsapp="sendWhatsAppConfirmation"
+      @sms="sendSMSConfirmation"
+      @cancel="closeModal"
+    />
+
+
+
   </div>
 </template>
 
 <script>
 import API from '../api';
+import { useToast } from 'vue-toast-notification';
+import 'vue-toast-notification/dist/theme-sugar.css';
+import ConfirmationModal from './ConfirmationModal.vue';
 
 export default {
+
+  components: {
+    ConfirmationModal
+  },
+  setup() {
+    const toast = useToast();
+    
+    // Create wrapper methods instead
+    const showSuccess = (message, options = {}) => {
+      toast.success(message, {
+        position: 'top',
+        timeout: 3000,
+        closeOnClick: true,
+        pauseOnFocusLoss: true,
+        pauseOnHover: true,
+        draggable: true,
+        draggablePercent: 0.6,
+        showCloseButtonOnHover: false,
+        hideProgressBar: true,
+        closeButton: "button",
+        icon: true,
+        rtl: false,
+        style: {                               // object - inline styles
+          backgroundColor: '#8725d3',
+          color: '#fff',
+          borderRadius: '8px'
+        },       
+        ...options
+      });
+    };
+    
+    const showError = (message) => {
+      toast.error(message);
+    };
+    
+    return {
+      showSuccess,
+      showError
+    };
+  },
+
+
   data() {
     const today = new Date();
     const defaultMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
@@ -79,7 +138,9 @@ export default {
       selectedMonth: defaultMonth,
       payments: [],
       searchTerm: '',
-      statusFilter: ''
+      statusFilter: '',
+      showConfirmationModal: false,
+      selectedPayment: null
     };
     
   },
@@ -103,14 +164,85 @@ export default {
         alert('Error fetching monthly payments');
       }
     },
+    // async togglePaid(payment) {
+    //     try {
+    //     const res = await API.put(`/monthly-payments/toggle/${payment.id}`);
+    //     payment.paid = res.data.paid;
+    //     } catch (err) {
+    //     alert('Failed to toggle status');
+    //     }
+    // },
+
     async togglePaid(payment) {
-        try {
+      try {
         const res = await API.put(`/monthly-payments/toggle/${payment.id}`);
         payment.paid = res.data.paid;
-        } catch (err) {
-        alert('Failed to toggle status');
+        
+        if (payment.paid) {
+          this.showSuccess('Payment marked as paid!');
+          
+          // Show confirmation modal instead of alert
+          this.showConfirmationModal = true;
+          this.selectedPayment = payment;
         }
+      } catch (err) {
+        this.showError('Failed to toggle status');
+      }
     },
+
+    sendWhatsAppConfirmation() {
+      this.sendPaymentConfirmation(this.selectedPayment);
+      this.closeModal();
+    },
+
+    sendSMSConfirmation() {
+      this.sendSMS(this.selectedPayment);
+      this.closeModal();
+    },
+
+    closeModal() {
+      this.showConfirmationModal = false;
+      this.selectedPayment = null;
+    },
+
+    sendPaymentConfirmation(payment) {
+    const libraryName = localStorage.getItem('library_name') || "Your Library";
+    
+    // Format the month from selectedMonth (YYYY-MM to readable format)
+    const monthDate = new Date(this.selectedMonth + '-01');
+    const monthName = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    
+    const msg = `Dear ${payment.student.name},\n` +
+                // `Thank you for your payment!\n` +
+                `We have received your library fee of ₹${payment.amount} for ${monthName}.\n` +
+                `Your payment has been successfully recorded.\n\n` +
+                `Thanks,\n${libraryName}`;
+    
+    const phone = "91" + payment.student.contact.replace(/^0+/, "");
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+    window.open(url, "_blank");
+  },
+
+
+  sendSMS(payment) {
+    const libraryName = localStorage.getItem('library_name') || "Your Library";
+    
+    // Format the month from selectedMonth (YYYY-MM to readable format)
+    const monthDate = new Date(this.selectedMonth + '-01');
+    const monthName = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    
+    const msg = `Dear ${payment.student.name},\n` +
+                // `Thank you for your payment! \n` +
+                `We have received your library fee of ₹${payment.amount} for ${monthName}.\n` +
+                `Your payment has been successfully recorded.\n\n` +
+                `Thanks,\n${libraryName}`;
+    
+    // Remove country code prefix if present
+    const phone = payment.student.contact.replace(/^(\+91|91)/, "");
+    const url = `sms:${phone}?body=${encodeURIComponent(msg)}`;
+    window.open(url, "_blank");
+  },
+    
 
   async deletePayment(payment) {
         if (!confirm('Are you sure you want to delete this payment?')) return;
@@ -159,35 +291,7 @@ export default {
 
   },
 
-  computed: {
-      // filteredPayments() {
-      //   return this.payments.filter(payment => {
-      //     const matchesName = payment.student.name.toLowerCase().includes(this.searchTerm.toLowerCase());
-      //     const matchesStatus =
-      //       this.statusFilter === '' ||
-      //       (this.statusFilter === 'paid' && payment.paid) ||
-      //       (this.statusFilter === 'unpaid' && !payment.paid);
-      //     return matchesName && matchesStatus;
-      //   });
-      // },
-
-
-  //     filteredPayments() {
-  //   return this.payments
-  //     .filter(payment => {
-  //       const matchesName = payment.student.name.toLowerCase().includes(this.searchTerm.toLowerCase());
-  //       const matchesStatus =
-  //         this.statusFilter === '' ||
-  //         (this.statusFilter === 'paid' && payment.paid) ||
-  //         (this.statusFilter === 'unpaid' && !payment.paid);
-  //       return matchesName && matchesStatus;
-  //     })
-  //     .sort((a, b) => {
-  //       const seatA = a.student.seat?.seat_number || 0;
-  //       const seatB = b.student.seat?.seat_number || 0;
-  //       return seatA - seatB;
-  //     });
-  // }
+  computed: {    
 
         filteredPayments() {
           return this.payments.filter(payment => {
@@ -410,7 +514,7 @@ tbody tr:nth-child(even) {
   }
   .student-table tr{
     display: block;
-    width: 99%;
+    width: 95%;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   }
 
