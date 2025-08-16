@@ -1,9 +1,19 @@
 <template>
   <div class="student-detail">
-    <h2>Student: {{ student?.name }}</h2>
-    <p><strong>Contact:</strong> {{ student?.contact }}</p>
-    <p><strong>Date of Joining:</strong> {{ student?.date_of_joining }}</p>
-    <p><strong>Status:</strong> {{ student?.status }}</p>
+    <!-- Student Profile Card -->
+    <div class="profile-card">
+      <div class="profile-header">
+        <div class="avatar">{{ student?.name?.charAt(0) }}</div>
+        <div class="info">
+          <h2>{{ student?.name }}</h2>
+          <p><strong>Contact:</strong> {{ student?.contact }}</p>
+          <p><strong>Date of Joining:</strong> {{ formatDate(student?.date_of_joining) }}</p>
+          <p><strong>Status:</strong> 
+            <span class="status-badge" :class="student?.status">{{ student?.status }}</span>
+          </p>
+        </div>
+      </div>
+    </div>
 
     <h3>Monthly Payments</h3>
     <table v-if="payments.length">
@@ -17,7 +27,7 @@
       </thead>
       <tbody>
         <tr v-for="payment in payments" :key="payment.id">
-          <td>{{ payment.month }}</td>
+          <td>{{ formatMonth(payment.month) }}</td>
           <td>₹{{ payment.amount }}</td>
           <td>
             <span :class="{ paid: payment.paid, unpaid: !payment.paid }">
@@ -26,7 +36,7 @@
           </td>
           <td>
             <!-- <button @click="markAsPaid(payment)" :disabled="payment.paid">Mark Paid</button> -->
-            <button @click="togglePaid(payment)" :style="{ backgroundColor: payment.paid ? 'blue' : 'green' }">{{ payment.paid ? 'Mark Unpaid' : 'Mark Paid' }}</button>
+            <button @click="togglePaid(payment)" :style="{ backgroundColor: payment.paid ? 'blue' : 'green' }">{{ payment.paid ? 'Unpaid' : 'Paid' }}</button>
             <button @click="deletePayment(payment.id)">Delete</button>
           </td>
         </tr>
@@ -79,6 +89,30 @@ export default {
         alert('Failed to toggle status');
         }
     },
+    formatDate(dateStr) {
+      if (!dateStr) return '';
+      // remove time part if present
+      const ymd = dateStr.split('T')[0];
+      const parts = ymd.split('-');
+      if (parts.length !== 3) return dateStr; // fallback
+      const [y, m, d] = parts;
+      // ensure two digits for day/month
+      return `${d.padStart(2, '0')}-${m.padStart(2, '0')}-${y}`;
+    },
+
+    formatMonth(monthStr) {
+      if (!monthStr) return '';
+      // Accept both 'YYYY-MM' and 'YYYY-MM-DD' and 'YYYY-MM-DDTHH:MM:SS'
+      const ymd = monthStr.split('T')[0];
+      const parts = ymd.split('-');
+      if (parts.length < 2) return monthStr;
+      const year = parseInt(parts[0], 10);
+      const monthIndex = parseInt(parts[1], 10) - 1; // JS monthIndex 0-11
+      if (Number.isNaN(year) || Number.isNaN(monthIndex)) return monthStr;
+      const dt = new Date(year, monthIndex, 1);
+      // returns e.g. "August 2025"
+      return dt.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    },
   }
 };
 </script>
@@ -106,13 +140,60 @@ export default {
   font-size: 1rem;
 }
 
+
+/* Profile Card */
+.profile-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  margin-bottom: 1rem;
+  padding: 1rem;
+  margin: auto;
+  width: 40%;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.avatar {
+  width: 60px;
+  height: 60px;
+  background: #6200ea;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  margin-right: 1rem;
+}
+.info h2 {
+  margin: 0;
+}
+
+/* Status badge */
+.status-badge {
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: white;
+}
+.status-badge.active { background: green; }
+.status-badge.left { background: red; }
+.status-badge.paid { background: green; }
+.status-badge.unpaid { background: red; }
+
 table {
-  width: 100%;
+  width: 90%;
   border-collapse: collapse;
   margin-top: 1rem;
   background: #fff;
   border-radius: 8px;
   overflow: auto;
+  margin: auto;
 }
 
 thead {
@@ -135,6 +216,7 @@ td button {
   border-radius: 6px;
   cursor: pointer;
   transition: background 0.3s ease;
+  width: 40%;
 }
 
 td button:disabled {
@@ -176,12 +258,12 @@ td button:last-of-type:hover {
 @media(max-width: 768px) {
   .student-detail {
     padding: 1rem;
-    overflow: auto;
+    /* overflow: auto; */
     padding-top: 7vh;
     background-color: #ffffff5e;
   }
   table {
-    width: 110%;
+    width: 100%;
     overflow: auto;
     background-color: #ffffff00;
 
@@ -215,8 +297,12 @@ td {
   gap: 1rem;
 }
 
+.profile-card {
+  width: 90%;
+
 }
 
+}
 
 
 
