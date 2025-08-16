@@ -7,6 +7,7 @@
       <label><input type="checkbox" value="2" v-model="selectedShifts" /> Shift 2</label>
       <label><input type="checkbox" value="3" v-model="selectedShifts" /> Shift 3</label>
 
+
       <label id="empty-checkbox">
         <input type="checkbox" v-model="onlyEmpty" />
         Show Only Empty Seats
@@ -52,6 +53,7 @@ export default {
       }
 
       try {
+        this.selectedShifts = this.selectedShifts.sort((a, b) => a - b); // Sort the selected shifts
         const response = await API.get("/seats/view", {
           params: {
             shifts: this.selectedShifts,
@@ -59,6 +61,7 @@ export default {
             library_id: localStorage.getItem('library_id')
           }          
         });
+        this.seats = [];
         this.seats = response.data;
       } catch (err) {
         console.error("Failed to fetch seats:", err);
@@ -67,6 +70,8 @@ export default {
   }
 };
 </script>
+
+
 <style scoped>
 .seat-map-container {
   width: 95%;
