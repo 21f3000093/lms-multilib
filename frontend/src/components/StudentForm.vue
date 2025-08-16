@@ -45,10 +45,49 @@
 <script>
 /* eslint-disable */
 import API from '../api';
+import { useToast } from 'vue-toast-notification';
+import 'vue-toast-notification/dist/theme-sugar.css';
 
 export default {
   props: {
     existingStudent: Object
+  },
+
+  setup() {
+    const toast = useToast();
+    
+    // Create wrapper methods instead
+    const showSuccess = (message, options = {}) => {
+      toast.success(message, {
+        position: 'top',
+        timeout: 3000,
+        closeOnClick: true,
+        pauseOnFocusLoss: true,
+        pauseOnHover: true,
+        draggable: true,
+        draggablePercent: 0.6,
+        showCloseButtonOnHover: false,
+        hideProgressBar: true,
+        closeButton: "button",
+        icon: true,
+        rtl: false,
+        style: {                               // object - inline styles
+          backgroundColor: '#8725d3',
+          color: '#fff',
+          borderRadius: '8px'
+        },       
+        ...options
+      });
+    };
+    
+    const showError = (message) => {
+      toast.error(message);
+    };
+    
+    return {
+      showSuccess,
+      showError
+    };
   },
   data() {
     return {
@@ -172,10 +211,11 @@ export default {
           };
         }
 
+        this.showSuccess(this.isEdit ? 'Student updated successfully!' : 'Student added successfully!');
         this.$emit('updated');
         this.$emit('close');
       } catch (err) {
-        alert('Error: ' + (err.response?.data?.detail || err.message));
+        this.showError('Error: ' + (err.response?.data?.detail || err.message));
       } finally {
           this.loading = false;
     }
