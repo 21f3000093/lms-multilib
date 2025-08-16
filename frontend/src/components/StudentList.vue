@@ -88,6 +88,9 @@
 <script>
 import API from '../api';
 import StudentForm from './StudentForm.vue';
+import { useToast } from 'vue-toast-notification';
+import 'vue-toast-notification/dist/theme-sugar.css';
+
 
 export default {
   components: { StudentForm },
@@ -100,23 +103,60 @@ export default {
       statusFilter: ''
     };
   },
+  setup() {
+    const toast = useToast();
+    
+    // Create wrapper methods instead
+    const showSuccess = (message, options = {}) => {
+      toast.success(message, {
+        position: 'top',
+        timeout: 3000,
+        closeOnClick: true,
+        pauseOnFocusLoss: true,
+        pauseOnHover: true,
+        draggable: true,
+        draggablePercent: 0.6,
+        showCloseButtonOnHover: false,
+        hideProgressBar: true,
+        closeButton: "button",
+        icon: true,
+        rtl: false,
+        style: {                               // object - inline styles
+          backgroundColor: '#8725d3',
+          color: '#fff',
+          borderRadius: '8px'
+        },       
+        ...options
+      });
+    };
+    
+    const showError = (message) => {
+      toast.error(message);
+    };
+    
+    return {
+      showSuccess,
+      showError
+    };
+  },
+
   methods: {
     async fetchStudents() {
       try {
         const res = await API.get('/students/');
         this.students = res.data;
       } catch (err) {
-        alert('Failed to fetch students: ' + (err.response?.data?.detail || err.message));
+        this.showError('Failed to fetch students: ' + (err.response?.data?.detail || err.message));
       }
     },
     async markLeft(id) {
       if (confirm("Are you sure you want to mark this student as left?")) {
         try {
           await API.put(`/students/${id}/mark-left`);
-          alert("Student marked as left!");
+          this.showSuccess("Student marked as left!");
           this.fetchStudents(); // reload data
         } catch (err) {
-          alert("Error: " + (err.response?.data?.detail || err.message));
+          this.showError("Error: " + (err.response?.data?.detail || err.message));
         }
       }
     },

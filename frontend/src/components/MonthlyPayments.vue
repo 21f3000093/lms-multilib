@@ -161,7 +161,7 @@ export default {
         const res = await API.get(`/monthly-payments/${this.selectedMonth}`);
         this.payments = res.data;
       } catch (err) {
-        alert('Error fetching monthly payments');
+        this.showError('Error fetching monthly payments');
       }
     },
     // async togglePaid(payment) {
@@ -249,17 +249,20 @@ export default {
         try {
         await API.delete(`/monthly-payments/${payment.id}`);
         this.payments = this.payments.filter(p => p.id !== payment.id);
+        this.showSuccess('Payment deleted successfully');
         } catch (err) {
-        alert('Error deleting payment');
+        this.showError('Error deleting payment');
         }
     },
     async generatePayments() {
       try {
+        const monthDate = new Date(this.selectedMonth + '-01');
+        const monthName = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
         await API.post(`/generate-monthly-payments/${this.selectedMonth}`);
-        alert(`Records generated for ${this.selectedMonth}`);
+        this.showSuccess(`Records generated for ${monthName}`);
         this.fetchPayments(); // refresh the list
       } catch (err) {
-        alert('Error generating monthly records');
+        this.showError('Error generating monthly records');
       }
     },
 
@@ -277,7 +280,7 @@ export default {
         link.click();
         document.body.removeChild(link);
       } catch (err) {
-        alert('Failed to export CSV');
+        this.showError('Failed to export CSV');
       }
     },
 
