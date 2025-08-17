@@ -47,6 +47,42 @@ import 'vue-toast-notification/dist/theme-sugar.css';
 
 export default {
 
+  setup() {
+    const toast = useToast();
+    
+    const showSuccess = (message, options = {}) => {
+      toast.success(message, {
+        position: 'top',
+        timeout: 3000,
+        closeOnClick: true,
+        pauseOnFocusLoss: true,
+        pauseOnHover: true,
+        draggable: true,
+        draggablePercent: 0.6,
+        showCloseButtonOnHover: false,
+        hideProgressBar: true,
+        closeButton: "button",
+        icon: true,
+        rtl: false,
+        style: {
+          backgroundColor: '#8725d3',
+          color: '#fff',
+          borderRadius: '8px'
+        },       
+        ...options
+      });
+    };
+    
+    const showError = (message) => {
+      toast.error(message);
+    };
+    
+    return {
+      showSuccess,
+      showError
+    };
+  },
+
   components: {
     SeatDetailsModal
   },
@@ -68,7 +104,7 @@ export default {
   methods: {
     async fetchSeats() {
       if (this.selectedShifts.length === 0) {
-        alert("Select at least one shift");
+        this.showError("Select at least one shift");
         return;
       }
 
@@ -98,7 +134,7 @@ export default {
         this.selectedSeatData = response.data;
       } catch (err) {
         console.error("Failed to fetch seat details:", err);
-        alert("Failed to load seat details");
+        this.showError("Failed to load seat details");
         this.closeSeatModal();
       } finally {
         this.loadingSeatDetails = false;
