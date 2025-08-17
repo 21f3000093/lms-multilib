@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, Query , HTTPException
+from sqlalchemy.orm import Session 
 from typing import List
 from app.dependencies import get_db , get_current_admin
 from app.models import Seat
@@ -41,3 +41,43 @@ def get_seat_map(
     result.sort(key=lambda s: s["seat_number"])
 
     return result
+
+
+@router.get("/seats/{seat_number}/details")
+def get_seat_details(
+    seat_number: int,
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin)
+):
+    from app.models import Student
+    
+    seat = db.query(Seat).filter(
+        Seat.seat_number == seat_number,
+        Seat.library_id == admin.library_id
+    ).first()
+    
+    if not seat:
+        raise HTTPException(status_code=404, detail="Seat not found")
+    
+    # Get student details for each shift
+    shift_details = []
+    for shift_num in [1, 2, 3]:
+        student_id = getattr(seat, f"shift{shift_num}_student_id")
+        student_name = "-"
+        
+        if student_id:
+            student = db.query(Student).filter(Student.id == student_id).first()
+            if student:
+                student_name = student.name
+        
+        shift_details.append({
+            "shift": shift_num,
+            "shift_name": ["Morning", "Afternoon", "Evening"][shift_num - 1],
+            "student_name": student_name,
+            "is_occupied": bool(student_id)
+        })
+    
+    return {
+        "seat_number": seat.seat_number,
+        "shifts": shift_details
+    }

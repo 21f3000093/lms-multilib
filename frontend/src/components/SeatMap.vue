@@ -17,7 +17,7 @@
     </div>
 
     <div class="seat-grid">
-      <div v-for="seat in seats" :key="seat.seat_number" class="seat-box">
+      <div v-for="seat in seats" :key="seat.seat_number" class="seat-box clickable" @click="openSeatDetails(seat.seat_number)" >
         <div><strong>Seat {{ seat.seat_number }}</strong></div>
         <div class="shift-status">
           <span v-for="(status, index) in seat.shifts" :key="index">
@@ -26,19 +26,39 @@
         </div>
       </div>
     </div>
+
+    <!-- Seat Details Modal -->
+    <SeatDetailsModal
+      :show="showSeatModal"
+      :seatData="selectedSeatData"
+      @close="closeSeatModal" />
+
   </div>
 </template>
 
 <script>
 // import axios from 'axios';
 import API from '../api';
+import SeatDetailsModal from './SeatDetailsModal.vue';
+import { useToast } from 'vue-toast-notification';
+import 'vue-toast-notification/dist/theme-sugar.css';
+
+
+
 export default {
+
+  components: {
+    SeatDetailsModal
+  },
     
   data() {
     return {
       selectedShifts: [1,2,3],
       onlyEmpty: false,
-      seats: []
+      seats: [],
+      showSeatModal: false,
+      selectedSeatData: null,
+      loadingSeatDetails: false
     };
   },
   mounted() {
@@ -66,7 +86,31 @@ export default {
       } catch (err) {
         console.error("Failed to fetch seats:", err);
       }
-    }
+    },
+
+    async openSeatDetails(seatNumber) {
+      this.loadingSeatDetails = true;
+      this.showSeatModal = true;
+      this.selectedSeatData = null; // Show loading state
+
+      try {
+        const response = await API.get(`/seats/${seatNumber}/details`);
+        this.selectedSeatData = response.data;
+      } catch (err) {
+        console.error("Failed to fetch seat details:", err);
+        alert("Failed to load seat details");
+        this.closeSeatModal();
+      } finally {
+        this.loadingSeatDetails = false;
+      }
+    },
+
+    closeSeatModal() {
+      this.showSeatModal = false;
+      this.selectedSeatData = null;
+    },
+
+
   }
 };
 </script>
@@ -158,6 +202,16 @@ export default {
 .shift-status {
   margin-top: 8px;
   font-size: 1.3rem;
+}
+
+.seat-box.clickable {
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.seat-box.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 @media (max-width: 768px) {
