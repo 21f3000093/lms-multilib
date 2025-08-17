@@ -15,6 +15,9 @@ import calendar
 
 
 
+##### ======================================================================================================
+###                                 Student Registration CRUD OPERATIONS
+##### ======================================================================================================
 
 
 def get_available_seats(db: Session, shift1: bool, shift2: bool, shift3: bool, library_id: int, student_id: int | None = None):
@@ -91,6 +94,12 @@ def create_student(db: Session, student: schemas.StudentCreate):
 
     return db_student
 
+
+##### ======================================================================================================
+###                                              Students List Page CRUD
+##### ======================================================================================================
+
+
 # To get all active students of a library
 def get_students(db: Session, library_id: int):
     
@@ -111,14 +120,6 @@ def get_students(db: Session, library_id: int):
 
     
     
-# def get_students(db: Session, library_id: int):
-    
-#     start_time = time.time()
-#     result = db.query(Student).filter(Student.status == "active", Student.library_id == library_id).order_by(Student.seat_id).all()
-
-#     end_time = time.time()
-#     print(f"Query time: {end_time - start_time} seconds, returned {len(result)} students records")
-#     return result
 
 
 # To get a single student
@@ -194,6 +195,11 @@ def mark_student_as_left(db: Session, student_id: int):
     return student
 
 
+##### ======================================================================================================
+###                                            DASHBOARD DATA                                                    
+##### ======================================================================================================
+
+
 # To get dashboard data for a library
 def get_dashboard_data(db: Session, library_id: int):
     shift1_count = db.query(models.Student).filter(models.Student.shift1 == True, models.Student.status == "active", models.Student.library_id == library_id).count()
@@ -223,15 +229,13 @@ def get_dashboard_data(db: Session, library_id: int):
         "max_seats": max_seats
     }
     
-# To create monthly payments for all active students
-# def create_monthly_payments_for_all(db: Session, month: str, library_id: int):
-#     students = db.query(models.Student).filter(models.Student.status == "active", models.Student.library_id == library_id).all()
-#     for student in students:
-#         exists = db.query(models.MonthlyPayment).filter_by(student_id=student.id, month=month).first()
-#         if not exists:
-#             db.add(models.MonthlyPayment(student_id=student.id, month=month, paid=False, amount=student.custom_fees, library_id=library_id))
-#     db.commit()
 
+
+
+
+##### ======================================================================================================
+###                             MONTHLY FEE PAYMENTS
+##### ======================================================================================================
 
 
 def create_monthly_payments_for_all(db: Session, month: str, library_id: int):
@@ -272,9 +276,6 @@ def mark_monthly_payment_as_paid(db: Session, payment_id: int):
         db.commit()
         db.refresh(payment)
     return payment
-
-# def get_monthly_payments(db: Session, month: str, library_id: int):
-#     return db.query(models.MonthlyPayment).filter_by(month=month, library_id=library_id).all()
 
     
 
@@ -411,6 +412,10 @@ def export_monthly_payments_csv(db: Session, month: str, library_id: int):
         headers={"Content-Disposition": f"attachment; filename=monthly_payments_{month}.csv"}
     )
 
+##### ======================================================================================================
+###         INITIALIZE DATABASE WITH DEFAULT ADMIN ACCOUNT 
+##### ======================================================================================================
+
 
 from .models import Admin
 from sqlalchemy.orm import Session
@@ -457,7 +462,11 @@ def init_library(db: Session , name: str, address: str, contact_email: str, cont
     return new_library
 
 
-# To change admin password
+
+##### ======================================================================================================
+###         Change password function
+##### ======================================================================================================
+
 def change_admin_password(db: Session, admin_id: int, current_password: str, new_password: str):
     """
     Change admin password after verifying current password
@@ -479,6 +488,11 @@ def change_admin_password(db: Session, admin_id: int, current_password: str, new
     db.refresh(admin)
     
     return admin
+
+##### ======================================================================================================
+###         Monthly expense functions
+##### ======================================================================================================
+
 
 def add_monthly_expense(db: Session, library_id: int, expense: schemas.MonthlyExpenseCreate):
     month = expense.date.strftime('%Y-%m')
