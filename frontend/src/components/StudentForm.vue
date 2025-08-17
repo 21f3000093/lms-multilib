@@ -7,7 +7,6 @@
       <input v-model="student.contact" placeholder="Contact (10 digits)" required maxlength="10" @input="onContactInput" @blur="onContactBlur" />
       <div v-if="contactError" style="color: red; font-size: 0.95rem;">{{ contactError }}</div>
 
-
       <div class="checkbox-group">
         <label><input type="checkbox" v-model="student.shift1" /> Shift 1</label>
         <label><input type="checkbox" v-model="student.shift2" /> Shift 2</label>
@@ -32,31 +31,45 @@
       <input v-model.number="student.custom_fees" type="number" placeholder="Monthly Fees (Rs)" />
 
       <div class="button-group">
-        <!-- <button type="submit">{{ isEdit ? 'Update' : 'Submit' }}</button> -->
         <button type="submit" :disabled="loading">
             {{ loading ? 'Please wait...' : (isEdit ? 'Update' : 'Submit') }}
         </button>
         <button type="button" @click="$emit('close')">Cancel</button>
       </div>
     </form>
+
+    <!-- Welcome Message Modal - Using your existing ConfirmationModal -->
+    <ConfirmationModal
+      :show="showWelcomeModal"
+      title="Student Registered Successfully! 🎉"
+      :message="welcomeModalMessage"
+      @whatsapp="sendWelcomeWhatsApp"
+      @sms="sendWelcomeSMS"
+      @cancel="closeWelcomeModal"
+    />
   </div>
 </template>
 
 <script>
+
 /* eslint-disable */
 import API from '../api';
 import { useToast } from 'vue-toast-notification';
 import 'vue-toast-notification/dist/theme-sugar.css';
+import ConfirmationModal from './ConfirmationModal.vue';
 
 export default {
   props: {
     existingStudent: Object
   },
 
+  components: {
+    ConfirmationModal
+  },
+
   setup() {
     const toast = useToast();
     
-    // Create wrapper methods instead
     const showSuccess = (message, options = {}) => {
       toast.success(message, {
         position: 'top',
@@ -71,7 +84,7 @@ export default {
         closeButton: "button",
         icon: true,
         rtl: false,
-        style: {                               // object - inline styles
+        style: {
           backgroundColor: '#8725d3',
           color: '#fff',
           borderRadius: '8px'
@@ -89,6 +102,7 @@ export default {
       showError
     };
   },
+
   data() {
     return {
       student: {
@@ -102,13 +116,16 @@ export default {
         paid: false,
         date_of_joining: null,
         library_id: localStorage.getItem('library_id'),
-
       },
       availableSeats: [],
       loading: false,
-      contactError: ''
+      contactError: '',
+      // Welcome modal data
+      showWelcomeModal: false,
+      newStudentData: null
     };
   },
+
   computed: {
     isEdit() {
       return !!this.existingStudent;
@@ -116,19 +133,27 @@ export default {
 
     isContactValid() {
       return /^\d{10}$/.test(this.student.contact);
+    },
+
+    welcomeModalMessage() {
+      if (!this.newStudentData) return '';
+      return `Send welcome message to ${this.newStudentData.name.toUpperCase()}?`;
     }
   },
+
   watch: {
     'student.shift1': 'fetchAvailableSeats',
     'student.shift2': 'fetchAvailableSeats',
     'student.shift3': 'fetchAvailableSeats'
   },
+
   mounted() {
     if (this.isEdit) {
       this.student = { ...this.existingStudent };
     }
     this.fetchAvailableSeats();
   },
+
   methods: {
     async fetchAvailableSeats() {
       try {
@@ -152,7 +177,6 @@ export default {
     },
 
     onContactInput(event) {
-      // Remove any non-digit characters
       this.student.contact = this.student.contact.replace(/\D/g, '');
       if (!this.isContactValid && this.student.contact.length > 0) {
         this.contactError = 'Contact number must be exactly 10 digits';
@@ -162,67 +186,136 @@ export default {
     },
 
     capitalizeName(name) {
-      // Capitalize each word
       return name.replace(/\b\w/g, l => l.toUpperCase()).replace(/\s+/g, ' ').trim();
     },
 
     onNameBlur() {
-      // Trim whitespace and collapse multiple spaces
       this.student.name = this.student.name.trim().replace(/\s+/g, ' ');
     },
+
     onContactBlur() {
-      // Remove all whitespace
       this.student.contact = this.student.contact.replace(/\s+/g, '');
     },
 
-
-
     async submitForm() {
-
-      if (this.loading) return; // 🔒 Prevent double-clicking
+      if (this.loading) return;
 
       if (!this.isContactValid) {
         this.contactError = 'Contact number must be exactly 10 digits';
         return;
       }
-      // Capitalize name before sending
-      this.student.name = this.capitalizeName(this.student.name);
 
+      this.student.name = this.capitalizeName(this.student.name);
       this.loading = true;
 
       try {
         if (this.isEdit) {
           await API.put(`/students/${this.student.id}`, this.student);
-          // alert('Student updated!');
+          this.showSuccess('Student updated successfully!');
         } else {
-          await API.post('/students/', this.student);
-          // alert('Student added!');
-          this.student = {
-            name: '',
-            contact: '',
-            shift1: false,
-            shift2: false,
-            shift3: false,
-            seat_id: '',
-            custom_fees: null,
-            paid: false,
-            date_of_joining: null,
-            library_id: localStorage.getItem('library_id')
-          };
+          // Create new student
+          const response = await API.post('/students/', this.student);
+          this.newStudentData = response.data;
+          
+          this.showSuccess('Student registered successfully!');
+          
+          // Show welcome modal for new students only
+          this.showWelcomeModal = true;
+          
+          // Reset form
+          this.resetForm();
         }
 
-        this.showSuccess(this.isEdit ? 'Student updated successfully!' : 'Student added successfully!');
         this.$emit('updated');
-        this.$emit('close');
+        
+        // Only close immediately if it's an edit, for new students close after modal
+        if (this.isEdit) {
+          this.$emit('close');
+        }
       } catch (err) {
         this.showError('Error: ' + (err.response?.data?.detail || err.message));
       } finally {
-          this.loading = false;
-    }
+        this.loading = false;
+      }
+    },
+
+    resetForm() {
+      this.student = {
+        name: '',
+        contact: '',
+        shift1: false,
+        shift2: false,
+        shift3: false,
+        seat_id: '',
+        custom_fees: null,
+        paid: false,
+        date_of_joining: null,
+        library_id: localStorage.getItem('library_id')
+      };
+    },
+
+    // Welcome message methods
+    sendWelcomeWhatsApp() {
+      const message = this.generateWelcomeMessage();
+      const phone = "91" + this.newStudentData.contact.replace(/^0+/, "");
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+      window.open(url, "_blank");
+      this.closeWelcomeModal();
+      this.showSuccess('Welcome message sent via WhatsApp!');
+    },
+
+    sendWelcomeSMS() {
+      const message = this.generateWelcomeMessage();
+      const phone = this.newStudentData.contact.replace(/^(\+91|91)/, "");
+      const url = `sms:${phone}?body=${encodeURIComponent(message)}`;
+      window.open(url, "_blank");
+      this.closeWelcomeModal();
+      this.showSuccess('Welcome message sent via SMS!');
+    },
+
+    closeWelcomeModal() {
+      this.showWelcomeModal = false;
+      this.newStudentData = null;
+      this.$emit('close'); // Close the form after welcome modal
+    },
+
+    generateWelcomeMessage() {
+      const libraryName = localStorage.getItem('library_name') || "Your Library";
+      const seatNumber = this.newStudentData.seat?.seat_number || 'Will be assigned soon';
+      const joiningDate = this.formatDate(this.newStudentData.date_of_joining);
+      const monthlyFees = this.newStudentData.custom_fees || 0;
+      
+      // Get selected shifts
+      const shifts = [];
+      if (this.newStudentData.shift1) shifts.push('Morning (Shift 1)');
+      if (this.newStudentData.shift2) shifts.push('Afternoon (Shift 2)');
+      if (this.newStudentData.shift3) shifts.push('Evening (Shift 3)');
+      const shiftsText = shifts.join(', ');
+      
+      return `Welcome to ${libraryName}! \n\n` +
+             `Dear ${this.newStudentData.name},\n` +
+             `Thank you for joining our library!\n\n` +
+             `Your Registration Details:\n` +
+             `* Joining Date: ${joiningDate}\n` +
+             `* Seat Number: ${seatNumber}\n` +
+             `* Shifts: ${shiftsText}\n` +
+             `* Monthly Fee: ₹${monthlyFees}\n\n` +
+             `We're excited to have you with us!\n\n` +
+             `Best regards,\n${libraryName}`;
+    },
+
+    formatDate(dateString) {
+      if (!dateString) return new Date().toLocaleDateString('en-GB');
+      const date = new Date(dateString);
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}-${month}-${year}`;
     }
   }
 };
 </script>
+
 
 <style scoped>
 .student-form {
