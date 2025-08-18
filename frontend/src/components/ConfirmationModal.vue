@@ -71,11 +71,12 @@ export default {
 }
 
 .btn {
-  padding: 8px 16px;
+  padding: 10px 16px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
+  font-size: 1rem;
   width: 30%;
   
 }

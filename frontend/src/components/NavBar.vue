@@ -56,7 +56,7 @@
         <!-- Mobile logo (hidden on desktop when logged in) -->
         <router-link v-if="!isLoggedIn || role === 'admin'" to="/dashboard" 
                      style="text-decoration: none; background-color: unset; margin: auto; " 
-                     class="mobile-logo">
+                     class="mobile-logo" @click="closeMenu">
           <div class="logo">Smart Library App</div>
           <!-- <div class="logo">{{ this.library_name }}</div> -->
         </router-link>
