@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h2>Monthly Fee Management</h2>
+    <h2>Monthly Payment Management</h2>
 
     <!-- Month Selector and Generate Button -->
     <div class="month-controls">
@@ -13,7 +13,7 @@
       
       
     <router-link to="/reminders" class="reminder-btn">
-      <button >📩 WhatsApp Reminders</button>
+      <button >🔔 Send Fee Reminders</button>
     </router-link>
     </div>
 
