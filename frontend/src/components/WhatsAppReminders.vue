@@ -1,10 +1,10 @@
 <template>
   <div class="booking-container">
-    <h2>📩 WhatsApp Fee Reminders</h2>
+    <h2>💰 Pending Fee Reminders</h2>
 
     <div class="filters">
-      <button @click="$router.back()" class="action-button back">🔙 Back</button>
-      <button @click="fetchReminders" class="action-button edit">🔄 Refresh</button>
+      <button @click="$router.back()" class="action-button back">Back</button>
+      <button @click="fetchReminders" class="action-button edit">Refresh</button>
     </div>
 
     <table v-if="pendingList.length > 0" class="student-table">
@@ -27,13 +27,24 @@
           <td>{{ student.month }}</td>
           <td>{{ student.due_date }}</td>
           <td>
-            <button class="action-button edit" @click="sendWhatsApp(student)">📩 WhatsApp</button>
+            <!-- <button class="action-button edit" @click="sendWhatsApp(student)">📩 WhatsApp</button> -->
+            <button class="action-button edit" @click="openReminderModal(student)">Send Reminder</button>
           </td>
         </tr>
       </tbody>
     </table>
 
     <p v-else class="no-data">✅ No pending reminders</p>
+
+    <!-- Fee Reminder Modal -->
+    <ConfirmationModal
+      :show="showReminderModal"
+      title="Send Fee Reminder 💰"
+      :message="`Send payment reminder to ${selectedStudent?.student_name?.toUpperCase()}?`"
+      @whatsapp="sendReminderWhatsApp"
+      @sms="sendReminderSMS"
+      @cancel="closeReminderModal" />
+
   </div>
 </template>
 
@@ -41,37 +52,119 @@
 
 <script>
 import API from '../api';
+import ConfirmationModal from './ConfirmationModal.vue';
+import { useToast } from 'vue-toast-notification';
+import 'vue-toast-notification/dist/theme-sugar.css';
 
 export default {
+
+  setup() {
+    const toast = useToast();
+    
+    const showSuccess = (message, options = {}) => {
+      toast.success(message, {
+        position: 'top',
+        timeout: 3000,
+        closeOnClick: true,
+        pauseOnFocusLoss: true,
+        pauseOnHover: true,
+        draggable: true,
+        draggablePercent: 0.6,
+        showCloseButtonOnHover: false,
+        hideProgressBar: true,
+        closeButton: "button",
+        icon: true,
+        rtl: false,
+        style: {
+          backgroundColor: '#8725d3',
+          color: '#fff',
+          borderRadius: '8px'
+        },       
+        ...options
+      });
+    };
+    
+    const showError = (message) => {
+      toast.error(message);
+    };
+    
+    return {
+      showSuccess,
+      showError
+    };
+  },
+
+  components: {
+    ConfirmationModal
+  },
+
   data() {
     return {
       pendingList: [],
+      showReminderModal: false,
+      selectedStudent: null
     };
   },
+  
   methods: {
     async fetchReminders() {
       try {
         const res = await API.get("/reminders/pending-fees");
         this.pendingList = res.data;
       } catch (err) {
-        alert("Failed to fetch reminders: " + (err.response?.data?.detail || err.message));
+        this.showError("Failed to fetch reminders: " + (err.response?.data?.detail || err.message));
       }
     },
-    sendWhatsApp(student) {
-      // const msg = `Dear ${student.student_name}, your library fee of ₹${student.amount} for ${student.month} was due on ${student.due_date}. Please pay it soon.`;
-
-
-      const libraryName = localStorage.getItem('library_name') || "Your Library";
-
-      const msg = `Dear ${student.student_name},\n` +
-                  `Your library fee of ₹${student.amount} for ${student.month} was due on ${student.due_date}.\n` +
-                  `Please pay it as soon as possible to avoid disruption.\n\n` +
-                  `Thanks,\n${libraryName}`;
-      
-      const phone = "91" + student.phone.replace(/^0+/, "");
-      const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
-      window.open(url, "_blank");
+    // Open the confirmation modal
+    openReminderModal(student) {
+      this.selectedStudent = student;
+      this.showReminderModal = true;
     },
+
+    // Close the modal
+    closeReminderModal() {
+      this.showReminderModal = false;
+      this.selectedStudent = null;
+    },
+
+    // Send reminder via WhatsApp
+    sendReminderWhatsApp() {
+      const message = this.generateReminderMessage();
+      const phone = "91" + this.selectedStudent.phone.replace(/^0+/, "");
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+      window.open(url, "_blank");
+      this.closeReminderModal();
+      
+      // Optional: Show success message
+      // You can add toast notification here if you want
+    },
+
+    // Send reminder via SMS
+    sendReminderSMS() {
+      const message = this.generateReminderMessage();
+      const phone = this.selectedStudent.phone.replace(/^(\+91|91)/, "");
+      const url = `sms:${phone}?body=${encodeURIComponent(message)}`;
+      window.open(url, "_blank");
+      this.closeReminderModal();
+      
+      // Optional: Show success message
+      // You can add toast notification here if you want
+    },
+
+    // Generate the reminder message
+    generateReminderMessage() {
+      const libraryName = localStorage.getItem('library_name') || "Your Library";
+      
+      return `Dear ${this.selectedStudent.student_name},\n` +
+             `Your library fee of Rs.${this.selectedStudent.amount} for ${this.selectedStudent.month} was due on ${this.selectedStudent.due_date}.\n` +
+             `Please pay it as soon as possible to avoid disruption.\n\n` +
+             `Thanks,\n${libraryName}`;
+    },
+
+    // Keep the old method for backward compatibility (optional)
+    sendWhatsApp(student) {
+      this.openReminderModal(student);
+    }
   },
   created() {
     this.fetchReminders();
@@ -267,6 +360,7 @@ h2 {
     width: 90%;
     margin-top: 0.6rem;
     font-size: 1rem;
+    font-weight: 600;
   }
 
   .filters button {
