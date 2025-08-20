@@ -8,7 +8,7 @@ import 'vue-toast-notification/dist/theme-sugar.css';
 const toast = useToast();
 
 // Helper functions for different toast types
-const showErrorToast = (message, timeout = 4000) => {
+const showErrorToast = (message, timeout = 5000) => {
   toast.error(message, {
     position: 'top',
     timeout,
@@ -24,7 +24,8 @@ const showErrorToast = (message, timeout = 4000) => {
     style: {
       backgroundColor: '#dc3545',
       color: '#fff',
-      borderRadius: '8px'
+      borderRadius: '8px',
+      margin: '10px'
     }
   });
 };
@@ -45,7 +46,8 @@ const showWarningToast = (message, timeout = 4000) => {
     style: {
       backgroundColor: '#ffc107',
       color: '#212529',
-      borderRadius: '8px'
+      borderRadius: '8px',
+      margin: '10px'
     }
   });
 };
@@ -67,11 +69,11 @@ API.interceptors.response.use(
       const detail = error.response.data?.detail;
 
       if (status === 403) {
-        showErrorToast('❌ Your account is inactive.Please contact the Admin for more details.', 5000);
+        showErrorToast('⛌ Your account is inactive.Please contact the Admin for more details.', 5000);
       } 
       else if (status === 401) {
         if (detail === 'invalid_credentials') {
-          showErrorToast('❌ Invalid username or password.');
+          showErrorToast('⛌ Invalid username or password.');
         } else if (detail === 'token_expired_or_invalid') {
           showWarningToast('🔐 Your session has expired. Please log in again.');
         } else {
@@ -89,7 +91,7 @@ API.interceptors.response.use(
         // window.location.href = '/login';
         setTimeout(() => {
           window.location.href = '/login';
-        }, 1500);
+        }, 9000);
       }
     }
 
