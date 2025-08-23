@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard">
-    <h1>🛠️ Superadmin Dashboard</h1>
+    <h1>Superadmin Dashboard</h1>
 
     <!-- Create Library Form -->
     <section class="create-form">
@@ -16,7 +16,7 @@
     </section>
 
     <!-- Libraries Table -->
-    <section>
+    <section class="library-table">
       <h2>📚 Libraries</h2>
       <button @click="loadLibraries">🔁 Refresh</button>
       <table>
@@ -68,8 +68,8 @@
 
 
     <!-- Admins Table -->
-    <section>
-      <h2>🧑‍💼 Admins</h2>
+    <section class="admin-table" >
+      <h2>Admins</h2>
       <button @click="loadAdmins">🔁 Refresh</button>
       <table>
         <thead>
@@ -235,7 +235,7 @@ h1 {
 }
 
 h2 {
-  margin-top: 2rem;
+  margin-top: 1rem;
   font-size: 1.5rem;
   color: #34495e;
   border-bottom: 2px solid #ddd;
@@ -268,7 +268,7 @@ h2 {
 
 .create-form button {
   padding: 0.75rem 1.5rem;
-  background-color: #2ecc71;
+  background-color: #8725d3;
   color: white;
   border: none;
   border-radius: 6px;
@@ -278,7 +278,7 @@ h2 {
 }
 
 .create-form button:hover {
-  background-color: #27ae60;
+  background-color: #8725d3;
 }
 
 section {
@@ -343,5 +343,35 @@ td button {
 
 td button:hover {
   background-color: #1c6ea4;
+}
+
+@media(max-width: 768px) {
+  .library-table table {
+    overflow-x: auto;
+    display: block;
+    margin: 30px 0px 30px 0px;
+  }
+
+  .admin-table table {
+    overflow-x: auto;
+    display: block;
+  }
+
+  td button {
+    margin-left: 0;
+    margin-top: 0.5rem;
+    display: block;
+    width: 100%;
+  }
+
+  .create-form form{
+    display: flex;
+    flex-direction: row;
+
+  }
+  form button {
+    width: 100%;
+    font-size: 1rem;
+  }
 }
 </style>
