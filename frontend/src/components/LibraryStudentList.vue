@@ -1,6 +1,7 @@
 <template>
   <div class="library-students-page">
     <h2>👨‍🎓 Students of {{ libraryName || `Library ID ${libraryId}` }}</h2>
+    <h3>Total Students: {{ students.length }}</h3>
 
     <button @click="$router.back()">🔙 Back</button>
 
@@ -18,7 +19,7 @@
         <tr v-for="s in students" :key="s.id">
           <td>{{ s.name }}</td>
           <td>{{ s.contact }}</td>
-          <td>{{ s.seat_id || '—' }}</td>
+          <td>{{ s.seat?.seat_number || '—' }}</td>
           <td>
             <span v-if="s.shift1">1 </span>
             <span v-if="s.shift2">2 </span>
@@ -64,7 +65,9 @@ export default {
 
 <style scoped>
 .library-students-page {
-  padding: 2rem;
+  padding-top: 5rem;
+  height: 90vh;
+  overflow-y: auto;
 }
 table {
   width: 100%;
@@ -79,6 +82,13 @@ th {
   background-color: #f9f9f9;
 }
 button {
-  margin-bottom: 1rem;
+  /* margin-bottom: 1rem; */
+  padding: 0.5rem 1rem;
+  background-color: #8725d3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 30%;
 }
 </style>
