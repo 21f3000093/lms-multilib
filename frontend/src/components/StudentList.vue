@@ -426,7 +426,7 @@ h2 {
 }
 
 .modal-content {
-  background: white;
+  background: rgba(255, 255, 255, 0);
   border-radius: 8px;
   padding: 1.5rem;
   max-width: 600px;

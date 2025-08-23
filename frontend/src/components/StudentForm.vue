@@ -328,7 +328,7 @@ export default {
 }
 
 .form-box {
-  background-color: #ffffff4f;
+  background-color: #ffffffee;
   padding: 1.5rem;
   border-radius: 12px;
   max-width: 450px;
@@ -390,7 +390,7 @@ export default {
 }
 
 .button-group button[type="submit"] {
-  background-color: #007bff;
+  background-color: #8725d3;
   color: white;
 }
 
@@ -399,7 +399,7 @@ export default {
 }
 
 .button-group button[type="button"] {
-  background-color: #eee;
+  background-color: #d7cbcb;
 }
 
 .button-group button[type="button"]:hover {
