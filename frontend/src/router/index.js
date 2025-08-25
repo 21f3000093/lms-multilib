@@ -15,6 +15,7 @@ import LibraryStudentList from '@/components/LibraryStudentList.vue'
 import WhatsAppReminders from '@/components/WhatsAppReminders.vue';
 import ChangePassword from '@/components/ChangePassword.vue'
 import MonthlyExpenses from '@/components/MonthlyExpenses.vue'
+import PricingPlans from '@/components/PricingPlans.vue'
 
 
 
@@ -50,6 +51,12 @@ const routes = [
     name: 'ChangePassword',
     component: ChangePassword,
     meta: { requiresAuth: true } // If you have auth guards
+  },
+  {
+    path: '/pricing-plans',
+    name: 'PricingPlans',
+    component: PricingPlans,
+    meta: { requiresAuth: false } // If you have auth guards
   },
 
 ]

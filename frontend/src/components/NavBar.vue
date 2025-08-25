@@ -44,7 +44,8 @@
       <div class="navbar-top">
 
         <!-- <button v-if="isLoggedIn" class="hamburger mobile-only" @click="toggleMenu">☰</button> -->
-        <button v-if="isLoggedIn" class="hamburger mobile-only" :class="{ 'menu-open': menuOpen }" @click="toggleMenu"> {{ menuOpen ? '⛌' : '☰' }} </button>
+        <button  class="hamburger mobile-only" :class="{ 'menu-open': menuOpen }" @click="toggleMenu"> {{ menuOpen ? '⛌' : '☰' }} </button>
+        <!-- <button v-if="isLoggedIn" class="hamburger mobile-only" :class="{ 'menu-open': menuOpen }" @click="toggleMenu"> {{ menuOpen ? '⛌' : '☰' }} </button> -->
         
         <!-- Add this NEW desktop logo for when not logged in -->
         <router-link v-if="!isLoggedIn" to="/login" 
@@ -105,6 +106,29 @@
               Change Password
             </a>
             
+            <!-- <a href="#" class="dropdown-item" @click.prevent="PricingPlans">
+              <svg class="dropdown-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12,22c1.1,0,2-0.9,2-2h-4C10,21.1,10.9,22,12,22z M18,16v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-0.83-0.67-1.5-1.5-1.5 s-1.5,0.67-1.5,1.5v0.68C7.63,5.36,6,7.92,6,11v5l-2,2v1h16v-1L18,16z"/>
+              </svg>
+              Pricing & Plans
+            </a> -->
+            <a href="#" class="dropdown-item" @click.prevent="PricingPlans">
+  <svg class="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <!-- S-curve with extended lower tail -->
+    <path d="M15 5.5
+             C13.4 4.3, 11 4.3, 9.4 5.5
+             C7.8 6.7, 7.8 9.1, 9.4 10.3
+             C11 11.5, 13.4 11.0, 15 12.8
+             C16.6 14.6, 16.6 17.0, 15 18.2
+             C13.4 19.4, 11 19.4, 9.0 18.4" />
+    <!-- vertical bar -->
+    <path d="M12 3v18" />
+  </svg>
+  Pricing & Plans
+</a>
+
+
             <a href="#" class="dropdown-item" @click.prevent="notifications">
               <svg class="dropdown-icon" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12,22c1.1,0,2-0.9,2-2h-4C10,21.1,10.9,22,12,22z M18,16v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-0.83-0.67-1.5-1.5-1.5 s-1.5,0.67-1.5,1.5v0.68C7.63,5.36,6,7.92,6,11v5l-2,2v1h16v-1L18,16z"/>
@@ -140,6 +164,8 @@
         <router-link v-if="isLoggedIn && role === 'admin'" to="/monthly-payments" @click="closeMenu">💰 Monthly Fees</router-link>
         <router-link v-if="isLoggedIn && role === 'admin'" to="/seat-map" @click="closeMenu">🪑 Seat Map</router-link>
         <router-link v-if="isLoggedIn && role === 'admin'" to="/monthly-expenses" @click="closeMenu">💰 Expenses</router-link>
+        <router-link v-if="(!isLoggedIn) && role === ''" to="/login" @click="closeMenu">🔑 Login</router-link>
+        <router-link v-if="(!isLoggedIn) && role === ''" to="/pricing-plans" @click="closeMenu">💰 Pricing & Plans</router-link>
         <!-- <button v-if="isLoggedIn" class="logout-btn mobile-logout" @click="logout">🚪 Logout</button> -->
       </div>
     </nav>
@@ -148,6 +174,7 @@
 
 <script>
 import API from '../api'
+// import PricingPlans from './PricingPlans.vue'
 // import ChangePassword from './ChangePassword.vue'
 
 export default {
@@ -206,6 +233,12 @@ export default {
       console.log('Help Center clicked')
       this.dropdownOpen = false
       // Add your help center logic here
+    },
+    PricingPlans() {
+      console.log('Pricing Plans clicked')
+      this.dropdownOpen = false
+      // Add your pricing plans logic here
+      this.$router.push('/pricing-plans')
     },
     checkLoginStatus() {
       this.isLoggedIn = !!localStorage.getItem('role')
