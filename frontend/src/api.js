@@ -91,7 +91,7 @@ API.interceptors.response.use(
         // window.location.href = '/login';
         setTimeout(() => {
           window.location.href = '/login';
-        }, 5000);
+        }, 3000);
       }
     }
 
