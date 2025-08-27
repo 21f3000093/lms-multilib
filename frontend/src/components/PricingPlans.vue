@@ -13,7 +13,7 @@
           id="seat-input"
           v-model.number="seatCount"
           type="number"
-          min="1"
+          min="0"
           placeholder="e.g. 100"
           @input="validateInput"
         />
@@ -115,9 +115,9 @@
         </div>
 
         <div class="card-footer">
-          <button class="cta-button" :class="{ 'primary': plan.featured }">
+          <!-- <button class="cta-button" :class="{ 'primary': plan.featured }">
             {{ plan.featured ? 'Start Free Trial' : 'Choose Plan' }}
-          </button>
+          </button> -->
           
           <div v-if="plan.featured" class="popular-choice">
             <span class="fire">🔥</span> Most Popular Choice
@@ -182,7 +182,7 @@
 import { ref, computed } from "vue"
 
 const seatCount = ref(100)
-const presetSeats = [25, 50, 100, 250, 500]
+const presetSeats = [35, 50, 70, 100, 120]
 
 const plans = [
   {
@@ -199,7 +199,7 @@ const plans = [
     bestValue: false,
     features: [
       "₹9 × Seats",
-      "Flexible cancellation",
+      // "Flexible cancellation",
       "Full feature access",
       "Email support"
     ],
@@ -220,7 +220,7 @@ const plans = [
       "₹8.55 × Seats × 3",
       "Save 5% vs monthly",
       "Priority support",
-      "Advanced analytics"
+      // "Advanced analytics"
     ],
   },
   {
@@ -238,7 +238,8 @@ const plans = [
     features: [
       "₹8.10 × Seats × 6",
       "Save 10% vs monthly",
-      "Custom integrations",
+      // "Custom integrations",
+      // "Advanced analytics",
       "Dedicated support"
     ],
   },
@@ -257,8 +258,10 @@ const plans = [
     features: [
       "₹7.65 × Seats × 12",
       "Save 15% vs monthly",
-      "Custom training",
-      "Account manager"
+      // "Advanced analytics",
+      "Dedicated support",
+      // "Custom training",
+      // "Account manager"
     ],
   },
   {
@@ -276,7 +279,7 @@ const plans = [
     features: [
       "₹7.20 × Seats × 24",
       "Save 20% vs monthly",
-      "Enterprise features",
+      // "Enterprise features",
       "Custom development"
     ],
   },
@@ -297,8 +300,8 @@ function calculateSavings(plan) {
 }
 
 function validateInput() {
-  if (seatCount.value < 1) seatCount.value = 1
-  if (seatCount.value > 10000) seatCount.value = 10000
+  if (seatCount.value < 1) seatCount.value = 0
+  if (seatCount.value > 300) seatCount.value = 300
 }
 </script>
 
