@@ -2,7 +2,7 @@
   <div class="payments-container">
     <!-- Header -->
     <div class="header-section">
-      <h2 class="page-title">💳 Monthly Payment Management</h2>
+      <h2 class="page-title">Monthly Payment Management</h2>
       <p class="page-subtitle">Track and manage student fee payments</p>
     </div>
 
@@ -10,7 +10,7 @@
     <div class="controls-section">
       <div class="month-controls">
         <div class="month-selector">
-          <label for="month-input">📅 Select Month</label>
+          <label for="month-input">Select Month</label>
           <input 
             id="month-input"
             type="month" 
@@ -21,7 +21,7 @@
         
         <button @click="generatePayments" :disabled="loading" class="generate-btn">
           <span v-if="loading" class="btn-icon spinner">⏳</span>
-          <span v-else class="btn-icon">➕</span>
+          <!-- <span v-else class="btn-icon">➕</span> -->
           <span class="btn-text">{{ loading ? 'Generating...' : 'Generate Records' }}</span>
         </button>
 
@@ -110,7 +110,6 @@
                 </div>
                 <div class="student-details">
                   <span class="student-name">{{ payment.student.name }}</span>
-                  <span class="student-id">ID: {{ payment.student.id }}</span>
                 </div>
               </router-link>
             </td>
@@ -144,12 +143,12 @@
                   class="action-btn toggle-btn"
                   :class="{ paid: payment.paid, unpaid: !payment.paid }"
                 >
-                  <span class="btn-icon">{{ payment.paid ? '↩️' : '✅' }}</span>
+                  <!-- <span class="btn-icon">{{ payment.paid ? '↩️' : '✅' }}</span> -->
                   <span class="btn-text">{{ payment.paid ? 'Mark Unpaid' : 'Mark Paid' }}</span>
                 </button>
                 
                 <button @click="deletePayment(payment)" class="action-btn delete-btn">
-                  <span class="btn-icon">🗑️</span>
+                  <!-- <span class="btn-icon">🗑️</span> -->
                   <span class="btn-text">Delete</span>
                 </button>
               </div>
@@ -205,11 +204,11 @@
               class="action-btn toggle-btn mobile"
               :class="{ paid: payment.paid, unpaid: !payment.paid }"
             >
-              <span class="btn-icon">{{ payment.paid ? '↩️' : '✅' }}</span>
+              <!-- <span class="btn-icon">{{ payment.paid ? '↩️' : '✅' }}</span> -->
               <span class="btn-text">{{ payment.paid ? 'Mark Unpaid' : 'Mark Paid' }}</span>
             </button>
             <button @click="deletePayment(payment)" class="action-btn delete-btn mobile">
-              <span class="btn-icon">🗑️</span>
+              <!-- <span class="btn-icon">🗑️</span> -->
               <span class="btn-text">Delete</span>
             </button>
           </div>
@@ -494,6 +493,7 @@ export default {
   font-weight: 700;
   margin-bottom: 0.5rem;
   text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding-top: 2rem;
 }
 
 .page-subtitle {
@@ -522,6 +522,7 @@ export default {
 
 .month-selector {
   flex: 1;
+  width:-webkit-fill-available;
 }
 
 .month-selector label {
@@ -683,9 +684,9 @@ export default {
 }
 
 .card-icon {
-  font-size: 2rem;
-  width: 50px;
-  height: 50px;
+  font-size: 1.5rem;
+  /* width: 50px; */
+  /* height: 50px; */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -717,7 +718,7 @@ export default {
 }
 
 .card-number {
-  font-size: 1.8rem;
+  font-size: 1.3rem;
   font-weight: 800;
   color: #1f2937;
   line-height: 1;
@@ -863,6 +864,7 @@ thead{
   border-radius: 20px;
   font-size: 0.85rem;
   font-weight: 600;
+  justify-content: center;
 }
 
 .status-badge.paid {
@@ -974,7 +976,7 @@ thead{
 
 .student-details-mobile {
   margin: 0;
-  color: #6b7280;
+  color: #2b2c30;
   font-size: 0.9rem;
 }
 
@@ -1089,6 +1091,16 @@ thead{
   .desktop-view {
     display: none;
   }
+
+  .payments-container {
+    padding: 16px;
+    padding-top: 1rem;
+  }
+
+  .page-title {
+    font-size: 2rem;
+    padding-top: 3rem;
+  }
   
   .mobile-view {
     display: flex;
@@ -1104,6 +1116,7 @@ thead{
   
   .page-title {
     font-size: 2rem;
+    padding-top: 3rem;
   }
   
   .controls-section {
@@ -1114,6 +1127,11 @@ thead{
     flex-direction: column;
     gap: 12px;
   }
+
+  .reminder-link[data-v-1678335a] {
+    text-decoration: none;
+    width: -webkit-fill-available;
+}
   
   .generate-btn,
   .reminder-btn {
@@ -1142,11 +1160,11 @@ thead{
 
 @media (max-width: 480px) {
   .summary-cards {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
   
   .card-header {
-    flex-direction: column;
+    flex-direction: row;
     gap: 12px;
     text-align: center;
   }
@@ -1157,9 +1175,15 @@ thead{
   }
   
   .detail-row {
-    flex-direction: column;
+    flex-direction: row;
     gap: 4px;
     text-align: center;
+  }
+
+  .card-icon {
+    /* display: none; */
+    font-size: 1.5rem;
+    width: fit-content;
   }
 }
 </style>
