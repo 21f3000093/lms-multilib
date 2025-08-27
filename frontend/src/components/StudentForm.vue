@@ -8,7 +8,7 @@
     <form @submit.prevent="submitForm" class="form-container">
       <!-- Personal Information -->
       <div class="section">
-        <h3>👤 Add Student</h3>
+        <h3>👤 Student Details</h3>
         
         <div class="form-group">
           <!-- <label>Full Name</label> -->
@@ -302,20 +302,20 @@ export default {
       try {
         if (this.isEdit) {
           await API.put(`/students/${this.student.id}`, this.student);
-          this.showSuccess('✅ Student updated successfully!');
+          this.showSuccess('Student updated successfully!');
           this.$emit('close');
         } else {
           const response = await API.post('/students/', this.student);
           this.newStudentData = response.data;
           
-          this.showSuccess('🎉 Student registered successfully!');
+          this.showSuccess('Student registered successfully!');
           this.showWelcomeModal = true;
           this.resetForm();
         }
 
         this.$emit('updated');
       } catch (err) {
-        this.showError('❌ Error: ' + (err.response?.data?.detail || err.message));
+        this.showError('Error: ' + (err.response?.data?.detail || err.message));
       } finally {
         this.loading = false;
       }
@@ -398,11 +398,13 @@ export default {
 
 <style scoped>
 .student-form {
-  min-height: 90vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  height: 80vh;
+  /* background: linear-gradient(90deg, #7e00d0 0%, #007bff 100%); */
   padding: 16px;
-  padding-top: 4rem;
+  padding-top: 3rem;
   font-family: "Inter", sans-serif;
+  backdrop-filter: blur(4px);
+  
 }
 
 .form-header {
@@ -622,8 +624,10 @@ export default {
 @media (max-width: 480px) {
   .student-form {
     padding: 12px;
-    padding-top: 6rem;
+    padding-top: 5rem;
+    /* margin-top: 3rem; */
     /* height: fit-content; */
+    height: 80vh;
   }
 
   .form-container {

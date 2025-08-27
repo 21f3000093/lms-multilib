@@ -191,7 +191,7 @@ export default {
 h2 {
   text-align: center;
   margin-bottom: 1rem;
-  color: #333;
+  color: #f8f5f5;
   font-size: 1.6rem; /* 👈 Better visual hierarchy */
   font-weight: 600;
 }
@@ -247,7 +247,7 @@ h2 {
 .student-table {
   width: 100%;
   border-collapse: collapse;
-  background: rgba(255, 255, 255, 0.211); /* 👈 Light card background */
+  background: rgba(255, 255, 255, 0.144); /* 👈 Light card background */
   border-radius: 10px;
   overflow: hidden; /* 👈 Rounded corners applied */
 }
@@ -268,8 +268,10 @@ h2 {
 }
 
 .student-table tbody tr:nth-child(even) {
-  background-color: #fafafa4e;
+  background-color: #fafafaee;
 }
+
+
 
 .no-data {
   margin-top: 2rem;
@@ -327,7 +329,7 @@ h2 {
     border: 1px solid #dcdcdc;
     border-radius: 10px;
     padding: 1rem;
-    background-color: #ffffff57;
+    background-color: #fffffff4;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); /* 👈 Card shadow on mobile */
   }
 

@@ -325,7 +325,7 @@ export default {
     handleUpdate() {
       this.editingStudent = null;
       this.fetchStudents();
-      this.showSuccess("✅ Student updated successfully!");
+      // this.showSuccess("✅ Student updated successfully!");
     },
     
     formatAmount(amount) {
@@ -879,10 +879,10 @@ export default {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 9999;
+  /* z-index: 9999; */
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -890,18 +890,21 @@ export default {
 }
 
 .modal-content {
-  background: white;
+  background: rgba(255, 255, 255, 0);
   border-radius: 20px;
   max-width: 600px;
   width: 90%;
   max-height: 90vh;
-  overflow: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  /* overflow: auto; */
+  /* box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); */
   animation: modalSlideIn 0.3s ease-out;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  margin-bottom: 4rem;
 }
 
 .modal-header {
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: space-between;
   padding: 24px 24px 16px 24px;
@@ -935,7 +938,7 @@ export default {
 }
 
 .modal-body {
-  padding: 0 24px 24px 24px;
+  padding: 0px;
 }
 
 /* Animations */
