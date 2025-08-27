@@ -361,7 +361,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.232);
   padding: 1rem 1.5rem;
   border-radius: 12px;
   backdrop-filter: blur(10px);
@@ -688,7 +688,7 @@ export default {
 .insight-content p {
   margin: 0;
   font-size: 0.9rem;
-  opacity: 0.9;
+  opacity: 1;
   line-height: 1.4;
 }
 

@@ -53,8 +53,8 @@ const showWarningToast = (message, timeout = 4000) => {
 };
 
 const API = axios.create({
-  baseURL: 'https://lms-multilib-production.up.railway.app',
-  // baseURL: 'http://localhost:8000',
+  // baseURL: 'https://lms-multilib-production.up.railway.app',
+  baseURL: 'http://localhost:8000',
   withCredentials: true,  // 🔒 Send secure HttpOnly cookie with every request
 });
 
@@ -91,7 +91,7 @@ API.interceptors.response.use(
         // window.location.href = '/login';
         setTimeout(() => {
           window.location.href = '/login';
-        }, 5000);
+        }, 3000);
       }
     }
 

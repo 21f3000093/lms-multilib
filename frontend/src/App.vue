@@ -50,6 +50,7 @@ body, html, #app {
   min-height: 100vh;
   width: 100%;
   overflow: hidden;
+  padding-top: 5rem;
 }
 
 /* Background gradient */
@@ -57,7 +58,10 @@ body, html, #app {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: radial-gradient(125% 125% at 50% 90%, #fff 40%, #6366f1 100%);
+  /* background: radial-gradient(125% 125% at 50% 90%, #fff 40%, #6366f1 100%); */
+  background: linear-gradient(90deg, #7e00d0 0%, #007bff 100%);
+  
+
 }
 
 /* Content on top of the gradient */
