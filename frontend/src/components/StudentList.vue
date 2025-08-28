@@ -182,7 +182,7 @@
         <div class="card-footer">
           <div class="action-buttons mobile">
             <button class="action-btn edit-btn mobile" @click="editStudent(student)">
-              <span class="btn-icon">✏️</span>
+              <!-- <span class="btn-icon">✏️</span> -->
               <span class="btn-text">Edit</span>
             </button>
             <button
@@ -190,11 +190,11 @@
               class="action-btn delete-btn mobile"
               @click="markLeft(student.id)"
             >
-              <span class="btn-icon">🗑️</span>
+              <!-- <span class="btn-icon">🗑️</span> -->
               <span class="btn-text">Delete</span>
             </button>
             <span v-else class="status-left mobile">
-              <span class="left-icon">👋</span>
+              <!-- <span class="left-icon">👋</span> -->
               Left
             </span>
           </div>

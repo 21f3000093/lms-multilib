@@ -45,6 +45,12 @@
         </tr>
       </thead>
       <tbody>
+        <!-- Monthly Total Row -->
+        <tr style="font-weight: bold; background: #ffffff">
+          <td colspan="1">Total</td>
+          <td colspan="1">₹{{ totalExpenses }}</td>
+          <!-- <td colspan="3"></td> -->
+        </tr>
         <tr v-for="expense in expenses" :key="expense.id" >
           <td>{{ expense.name }}</td>
           <td>₹{{ expense.amount }}</td>
@@ -54,12 +60,6 @@
           <td>
             <button class="action-button mark-left" @click="deleteExpense(expense)">Delete</button>
           </td>
-        </tr>
-        <!-- Monthly Total Row -->
-        <tr style="font-weight: bold; background: #E8E8EE">
-          <td colspan="1">Total</td>
-          <td colspan="1">₹{{ totalExpenses }}</td>
-          <!-- <td colspan="3"></td> -->
         </tr>
       </tbody>
     </table>
@@ -231,7 +231,7 @@ thead {
   background-color: #f3f3f3;
 }
 tbody tr:nth-child(even) {
-  background-color: #fafafaa6;
+  background-color: #fafafafe;
 }
 .no-data {
   text-align: center;
@@ -410,7 +410,7 @@ tbody tr:nth-child(even) {
   }
   tr {
     margin-bottom: 1rem;
-    background-color: #ffffff3f;
+    background-color: #fffffffd;
     border: 1px solid #ddd;
     border-radius: 10px;
     padding: 1rem;
