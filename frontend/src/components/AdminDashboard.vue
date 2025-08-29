@@ -25,7 +25,10 @@
       <!-- Shift Cards -->
       <div class="dashboard-card shift-card">
         <div class="card-header">
-          <div class="card-icon shift-icon">🌅</div>
+          <!-- <div class="card-icon shift-icon">🌅</div> -->
+           <div class=" shift-icon card-icon">
+             <img src="../assets/svg/sunrise-svgrepo-com1.svg" class="svg" alt="">
+           </div>
           <h3>Shift 1</h3>
           <span class="shift-time">Morning</span>
         </div>
@@ -33,7 +36,7 @@
           <div class="occupancy-numbers">
             <span class="current">{{ data.shift1_count || 0 }}</span>
             <span class="separator">/</span>
-            <span class="total">{{ data.max_seats || 73 }}</span>
+            <span class="total">{{ data.max_seats || 0 }}</span>
           </div>
           <div class="occupancy-percentage">{{ getShiftPercentage(1) }}% occupied</div>
         </div>
@@ -52,7 +55,10 @@
 
       <div class="dashboard-card shift-card">
         <div class="card-header">
-          <div class="card-icon shift-icon">☀️</div>
+          <!-- <div class="card-icon shift-icon">☀️</div> -->
+           <div class=" shift-icon card-icon">
+             <img src="../assets/svg/afternoonsun.svg" class="svg" alt="">
+           </div>
           <h3>Shift 2</h3>
           <span class="shift-time">Afternoon</span>
         </div>
@@ -60,7 +66,7 @@
           <div class="occupancy-numbers">
             <span class="current">{{ data.shift2_count || 0 }}</span>
             <span class="separator">/</span>
-            <span class="total">{{ data.max_seats || 73 }}</span>
+            <span class="total">{{ data.max_seats || 0 }}</span>
           </div>
           <div class="occupancy-percentage">{{ getShiftPercentage(2) }}% occupied</div>
         </div>
@@ -79,7 +85,10 @@
 
       <div class="dashboard-card shift-card">
         <div class="card-header">
-          <div class="card-icon shift-icon">🌙</div>
+          <!-- <div class="card-icon shift-icon">🌙</div> -->
+           <div class="shift-icon card-icon ">
+             <img src="../assets/svg/night-svgrepo-com.svg" class="svg" alt="">
+           </div>
           <h3>Shift 3</h3>
           <span class="shift-time">Evening</span>
         </div>
@@ -87,7 +96,7 @@
           <div class="occupancy-numbers">
             <span class="current">{{ data.shift3_count || 0 }}</span>
             <span class="separator">/</span>
-            <span class="total">{{ data.max_seats || 73 }}</span>
+            <span class="total">{{ data.max_seats || 0 }}</span>
           </div>
           <div class="occupancy-percentage">{{ getShiftPercentage(3) }}% occupied</div>
         </div>
@@ -107,7 +116,11 @@
       <!-- Total Students Card -->
       <div class="dashboard-card students-card">
         <div class="card-header">
-          <div class="card-icon students-icon">👥</div>
+          <div class="card-icon students-icon">
+            <!-- 👥 -->
+            <img src="../assets/svg/student-white.svg" class="svg" alt="">
+          </div>
+
           <h3>Total Students</h3>
         </div>
         <div class="metric-display">
@@ -133,7 +146,10 @@
       <!-- Revenue Cards -->
       <div class="dashboard-card revenue-card">
         <div class="card-header">
-          <div class="card-icon revenue-icon">💰</div>
+          <div class="card-icon revenue-icon">
+            <!-- 💰 -->
+            <img src="../assets/svg/money-dollar.svg" class="svg" alt="">
+          </div>
           <h3>Monthly Revenue</h3>
         </div>
         <div class="metric-display">
@@ -150,7 +166,10 @@
 
       <div class="dashboard-card collection-card">
         <div class="card-header">
-          <div class="card-icon collection-icon">💳</div>
+          <div class="card-icon collection-icon">
+            <!-- 💳 -->
+            <img src="../assets/svg/money-recive-white.svg" class="svg" alt="">
+          </div>
           <h3>Collected This Month</h3>
         </div>
         <div class="metric-display">
@@ -428,7 +447,16 @@ export default {
 
 .shift-icon {
   background: linear-gradient(45deg, #4f46e5, #7c3aed);
+
 }
+
+.svg{
+  width: 50px;
+  height: 50px;
+}
+
+
+
 
 .students-icon {
   background: linear-gradient(45deg, #059669, #0d9488);
@@ -741,9 +769,10 @@ export default {
   }
   
   .card-header {
-    flex-direction: column;
+    flex-direction: row;
     text-align: center;
     gap: 8px;
+    /* justify-content: space-between; */
   }
   
   .card-icon {
@@ -751,9 +780,12 @@ export default {
     height: 50px;
     font-size: 2rem;
   }
-  
+  .svg{
+  width: 40px;
+  height: 40px;
+}
   .shift-time {
-    margin-left: 0;
+    margin-left: auto;
   }
   
   .students-breakdown {
