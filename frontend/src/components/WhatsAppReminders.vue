@@ -246,9 +246,9 @@ export default {
       try {
         const res = await API.get(`/reminders/pending-fees/${this.selectedMonth}`);
         this.pendingList = res.data;
-        if (this.pendingList.length > 0) {
-          this.showSuccess(`📋 Found ${this.pendingList.length} pending reminders`);
-        }
+        // if (this.pendingList.length > 0) {
+        //   this.showSuccess(`📋 Found ${this.pendingList.length} pending reminders`);
+        // }
       } catch (err) {
         this.showError("❌ Failed to fetch reminders: " + (err.response?.data?.detail || err.message));
       } finally {
@@ -345,7 +345,7 @@ export default {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 20px;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  padding-top: 80px;
+  padding-top: 3rem;
 }
 
 .header-section {
@@ -858,7 +858,7 @@ export default {
 @media (max-width: 768px) {
   .reminders-container {
     padding: 12px;
-    padding-top: 70px;
+    padding-top: 3.5rem;
   }
   
   .page-title {
@@ -914,7 +914,7 @@ export default {
 @media (max-width: 480px) {
   .reminders-container {
     padding: 10px;
-    padding-top: 70px;
+    padding-top: 3.5rem;
   }
 
   .card-header {
