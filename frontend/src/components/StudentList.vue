@@ -142,7 +142,7 @@
             </div>
             <div class="student-info-mobile">
               <h3 class="student-name-mobile">{{ student.name }}</h3>
-              <p class="student-contact">📞 {{ student.contact }}</p>
+              <p class="student-contact">{{ student.contact }}</p>
             </div>
           </router-link>
           
@@ -687,7 +687,7 @@ export default {
   font-size: 0.85rem;
   font-weight: 600;
   transition: all 0.3s ease;
-  min-width: 70%;
+  min-width: 80%;
   justify-content: center;
 }
 
@@ -816,7 +816,7 @@ export default {
 }
 
 .card-body {
-  margin-bottom: 16px;
+  margin-bottom: 0px;
 }
 
 .shifts-section-mobile h4 {
@@ -1045,7 +1045,7 @@ export default {
   }
   
   .action-buttons.mobile {
-    flex-direction: column;
+    flex-direction: row;
     gap: 8px;
   }
 }

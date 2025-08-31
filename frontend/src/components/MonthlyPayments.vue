@@ -886,7 +886,7 @@ thead{
 .action-buttons {
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
+  /* flex-wrap: wrap; */
 }
 
 .action-btn {
@@ -1025,7 +1025,7 @@ thead{
 }
 
 .action-buttons.mobile {
-  flex-direction: column;
+  flex-direction: row;
   gap: 8px;
 }
 

@@ -117,7 +117,7 @@
             <div class="student-info-mobile">
               <h3 class="student-name-mobile">{{ student.student_name }}</h3>
               <p class="student-details-mobile">
-                📞 {{ student.phone }} | ₹{{ formatAmount(student.amount) }}
+                {{ student.phone }} | ₹{{ formatAmount(student.amount) }}
               </p>
             </div>
           </router-link>
