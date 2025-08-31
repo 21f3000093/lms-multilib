@@ -1,8 +1,8 @@
 <template>
   <div class="dashboard-container">
     <div class="header-section">
-      <!-- <h2 class="dashboard-title">Admin Dashboard</h2> -->
-      <!-- <p class="dashboard-subtitle">Library Management Overview</p> -->
+      <h2 class="dashboard-title">Admin Dashboard</h2>
+      <p class="dashboard-subtitle">Library Management Overview</p>
     </div>
 
     <!-- Quick Stats Summary -->
@@ -194,24 +194,36 @@
 
     <!-- Additional Insights -->
     <div class="insights-section">
-      <h3>📈 Quick Insights</h3>
+
+      <div class="insights-header">
+        <img src="../assets/svg/chart1.svg" class="svg" alt="">
+        <h3>Quick Insights</h3>
+      </div>
+
       <div class="insights-grid">
         <div class="insight-card">
-          <div class="insight-icon">🎯</div>
+          <div class="insight-icon">
+            <img src="../assets/svg/star.svg" class="svg" alt="">
+          </div>
           <div class="insight-content">
             <h4>Best Performing Shift</h4>
             <p>{{ getBestShift() }}</p>
           </div>
         </div>
         <div class="insight-card">
-          <div class="insight-icon">📊</div>
+          <div class="insight-icon">
+            <!-- 📊 -->
+            <img src="../assets/svg/chart-2.svg" class="svg" alt="">
+          </div>
           <div class="insight-content">
             <h4>Occupancy Rate</h4>
             <p>{{ overallOccupancy }}% average across all shifts</p>
           </div>
         </div>
         <div class="insight-card">
-          <div class="insight-icon">💡</div>
+          <div class="insight-icon">
+            <img src="../assets/svg/empty.svg" class="svg" alt="">  
+          </div>
           <div class="insight-content">
             <h4>Available Seats</h4>
             <p>{{ availableSeats }} seats can be filled</p>
@@ -670,12 +682,22 @@ export default {
   color: white;
 }
 
+.insights-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
 .insights-section h3 {
   text-align: center;
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 2rem;
   text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-left: 1rem;
 }
 
 .insights-grid {
@@ -688,7 +710,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 16px;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.2);
   padding: 20px;
   border-radius: 16px;
   backdrop-filter: blur(10px);
@@ -696,7 +718,7 @@ export default {
 }
 
 .insight-card:hover {
-  background: rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.3);
   transform: translateY(-2px);
 }
 
