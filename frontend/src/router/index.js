@@ -16,6 +16,7 @@ import WhatsAppReminders from '@/components/WhatsAppReminders.vue';
 import ChangePassword from '@/components/ChangePassword.vue'
 import MonthlyExpenses from '@/components/MonthlyExpenses.vue'
 import PricingPlans from '@/components/PricingPlans.vue'
+import AboutView from '@/views/AboutView.vue'
 
 
 
@@ -24,6 +25,8 @@ import PricingPlans from '@/components/PricingPlans.vue'
 const routes = [
   { path: '/login', name: 'AdminLogin', component: AdminLogin },
   { path: '/', redirect: '/dashboard',meta: { requiresAuth: true } },
+
+  { path: '/about', name: 'AboutView', component: AboutView },
   
   { path: '/dashboard', name: 'AdminDashboard', component: AdminDashboard , meta: { requiresAuth: true } },
 

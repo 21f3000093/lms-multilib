@@ -2,38 +2,57 @@
   <div class="layout-wrapper">
     <!-- Desktop Sidebar -->
     <aside v-if="isLoggedIn" class="sidebar desktop-only">
-      <div class="sidebar-header ">
-        <router-link v-if="!isLoggedIn || role === 'admin'" to="/dashboard" class="sidebar-logo" style="background-color: transparent;">
-          {{ this.library_name }}
-        </router-link>
-        <router-link v-if="isLoggedIn && role === 'superadmin'" to="/superadmin" class="sidebar-logo" style="background-color: transparent;">
-          {{ this.library_name }}
+      <div class="sidebar-header">
+        <router-link 
+          :to="role === 'superadmin' ? '/superadmin' : '/dashboard'" 
+          class="sidebar-logo"
+        >
+          <!-- <div class="logo-icon">📚</div> -->
+          <div class="logo-text">{{ library_name }}</div>
         </router-link>
       </div>
       
       <nav class="sidebar-nav">
-        <router-link v-if="isLoggedIn && role === 'admin'" to="/dashboard" class="sidebar-link">
-          <span class="sidebar-icon">📊</span>
+        <router-link v-if="role === 'admin'" to="/dashboard" class="sidebar-link">
+          <span class="sidebar-icon">
+            <!-- 📊 -->
+            <img src="../assets/svg/chart-2.svg" class="sidebar-icon" alt="" loading="lazy">
+          </span>
           <span class="sidebar-text">Dashboard</span>
         </router-link>
-        <router-link v-if="isLoggedIn && role === 'admin'" to="/register" class="sidebar-link">
-          <span class="sidebar-icon">➕</span>
+        <router-link v-if="role === 'admin'" to="/register" class="sidebar-link">
+          <span class="sidebar-icon">
+            <!-- ➕ -->
+             <img src="../assets/svg/add-plus-w.svg" class="sidebar-icon" alt="" loading="lazy">
+          </span>
           <span class="sidebar-text">Register</span>
         </router-link>
-        <router-link v-if="isLoggedIn && role === 'admin'" to="/students" class="sidebar-link">
-          <span class="sidebar-icon">📋</span>
+        <router-link v-if="role === 'admin'" to="/students" class="sidebar-link">
+          <span class="sidebar-icon">
+            <!-- 📋 -->
+             <img src="../assets/svg/list-w.svg" class="sidebar-icon" alt="" loading="lazy">
+          </span>
           <span class="sidebar-text">Student List</span>
         </router-link>
-        <router-link v-if="isLoggedIn && role === 'admin'" to="/monthly-payments" class="sidebar-link">
-          <span class="sidebar-icon">💰</span>
+        <router-link v-if="role === 'admin'" to="/monthly-payments" class="sidebar-link">
+          <span class="sidebar-icon">
+            <!-- 💰 -->
+             <img src="../assets/svg/money-dollar.svg" class="sidebar-icon" alt="" loading="lazy">
+          </span>
           <span class="sidebar-text">Monthly Fees</span>
         </router-link>
-        <router-link v-if="isLoggedIn && role === 'admin'" to="/seat-map" class="sidebar-link">
-          <span class="sidebar-icon">🪑</span>
+        <router-link v-if="role === 'admin'" to="/seat-map" class="sidebar-link">
+          <span class="sidebar-icon">
+            <!-- 🪑 -->
+             <img src="../assets/svg/map-w.svg" class="sidebar-icon" alt="" loading="lazy">
+          </span>
           <span class="sidebar-text">Seat Map</span>
         </router-link>
-        <router-link v-if="isLoggedIn && role === 'admin'" to="/monthly-expenses" class="sidebar-link">
-          <span class="sidebar-icon">💰</span>
+        <router-link v-if="role === 'admin'" to="/monthly-expenses" class="sidebar-link">
+          <span class="sidebar-icon">
+            <!-- 💸 -->
+             <img src="../assets/svg/money-out-w.svg" class="sidebar-icon" alt="" loading="lazy">
+          </span>
           <span class="sidebar-text">Expenses</span>
         </router-link>
       </nav>
@@ -41,49 +60,66 @@
 
     <!-- Top Navbar -->
     <nav class="navbar" :class="{ 'with-sidebar': isLoggedIn }">
-      <div class="navbar-top">
+      <div class="navbar-content">
+        <!-- Mobile hamburger menu -->
+        <button 
+          v-if="isLoggedIn || !isLoggedIn" 
+          class="hamburger mobile-only" 
+          :class="{ 'menu-open': menuOpen }" 
+          @click="toggleMenu"
+        >
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+        
+        <!-- Desktop/Mobile logo when not logged in -->
+        <router-link 
+          v-if="!isLoggedIn" 
+          to="/login" 
+          class="navbar-logo"
+        >
+          <!-- <div class="logo-icon">📚</div> -->
+          <div class="logo-text">Smart Library App</div>
+        </router-link>
 
-        <!-- <button v-if="isLoggedIn" class="hamburger mobile-only" @click="toggleMenu">☰</button> -->
-        <button  class="hamburger mobile-only" :class="{ 'menu-open': menuOpen }" @click="toggleMenu"> {{ menuOpen ? '⛌' : '☰' }} </button>
-        <!-- <button v-if="isLoggedIn" class="hamburger mobile-only" :class="{ 'menu-open': menuOpen }" @click="toggleMenu"> {{ menuOpen ? '⛌' : '☰' }} </button> -->
-        
-        <!-- Add this NEW desktop logo for when not logged in -->
-        <router-link v-if="!isLoggedIn" to="/login" 
-                    style="text-decoration: none; background-color: unset;" 
-                    class="desktop-logo-when-not-logged-in desktop-only">
-          <!-- <div class="logo ">{{ this.library_name }}</div> -->
-           <div class="logo">Smart Library App</div>
+        <div v-if="!isLoggedIn" class="mobile-only">
+
+        </div>
+        <div v-if="isLoggedIn" class="desktop-only">
+        </div>
+
+        <router-link 
+          v-if="isLoggedIn" 
+          :to="role === 'superadmin' ? '/superadmin' : '/dashboard'" 
+          class="navbar-logo desktop-only"
+          @click="closeMenu"
+        >
+          <!-- <div class="logo-icon">📚</div> -->
+          <div class="logo-text">Smart Library App</div>
         </router-link>
-        <!-- Mobile logo (hidden on desktop when logged in) -->
-        <router-link v-if="!isLoggedIn || role === 'admin'" to="/dashboard" 
-                     style="text-decoration: none; background-color: unset; margin: auto; " 
-                     class="mobile-logo" @click="closeMenu">
-          <div class="logo">Smart Library App</div>
-          <!-- <div class="logo">{{ this.library_name }}</div> -->
+
+        <!-- Mobile logo when logged in -->
+        <router-link 
+          v-if="isLoggedIn" 
+          :to="role === 'superadmin' ? '/superadmin' : '/dashboard'" 
+          class="navbar-logo mobile-only"
+          @click="closeMenu"
+        >
+          <!-- <div class="logo-icon">📚</div> -->
+          <div class="logo-text">Smart Library App</div>
         </router-link>
-        <router-link v-if="isLoggedIn && role === 'superadmin'" to="/superadmin" 
-                     style="text-decoration: none; background-color: unset;" 
-                     class="mobile-logo">
-          <!-- <div class="logo">{{ this.library_name }}</div> -->
-           <div class="logo">Smart Library App</div>
-        </router-link> 
         
-        
-        
-        <!-- Desktop User Dropdown -->
-        <div v-if="isLoggedIn" class="user-dropdown " @click.stop="toggleDropdown">
+        <!-- User Dropdown (Desktop & Mobile) -->
+        <div v-if="isLoggedIn" class="user-dropdown" @click.stop="toggleDropdown">
           <div class="user-avatar">
-            <img src="../assets/profile/account.png" alt="User Avatar" />
+            <img src="../assets/profile/account.png" alt="User Avatar" loading="lazy" />
           </div>
-          <!-- <span class="username">{{ username || 'User' }}</span>
-          <svg class="dropdown-arrow" :class="{ 'rotated': dropdownOpen }" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M7 10l5 5 5-5z"/>
-          </svg> -->
           
           <!-- Dropdown Menu -->
           <div class="dropdown-menu" :class="{ 'show': dropdownOpen }" @click.stop>
             <div class="dropdown-header">
-              <img src="../assets/profile/account.png" alt="User Avatar" />
+              <img src="../assets/profile/account.png" alt="User Avatar" loading="lazy" />
               <div class="user-info">
                 <div class="user-name">{{ library_name || 'User' }}</div>
                 <div class="user-email">{{ username }}</div>
@@ -105,29 +141,14 @@
               </svg>
               Change Password
             </a>
-            
-            <!-- <a href="#" class="dropdown-item" @click.prevent="PricingPlans">
-              <svg class="dropdown-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12,22c1.1,0,2-0.9,2-2h-4C10,21.1,10.9,22,12,22z M18,16v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-0.83-0.67-1.5-1.5-1.5 s-1.5,0.67-1.5,1.5v0.68C7.63,5.36,6,7.92,6,11v5l-2,2v1h16v-1L18,16z"/>
+
+            <a href="#" class="dropdown-item" @click.prevent="PricingPlans">
+              <svg class="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 5.5 C13.4 4.3, 11 4.3, 9.4 5.5 C7.8 6.7, 7.8 9.1, 9.4 10.3 C11 11.5, 13.4 11.0, 15 12.8 C16.6 14.6, 16.6 17.0, 15 18.2 C13.4 19.4, 11 19.4, 9.0 18.4" />
+                <path d="M12 3v18" />
               </svg>
               Pricing & Plans
-            </a> -->
-            <a href="#" class="dropdown-item" @click.prevent="PricingPlans">
-  <svg class="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-       stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <!-- S-curve with extended lower tail -->
-    <path d="M15 5.5
-             C13.4 4.3, 11 4.3, 9.4 5.5
-             C7.8 6.7, 7.8 9.1, 9.4 10.3
-             C11 11.5, 13.4 11.0, 15 12.8
-             C16.6 14.6, 16.6 17.0, 15 18.2
-             C13.4 19.4, 11 19.4, 9.0 18.4" />
-    <!-- vertical bar -->
-    <path d="M12 3v18" />
-  </svg>
-  Pricing & Plans
-</a>
-
+            </a>
 
             <a href="#" class="dropdown-item" @click.prevent="notifications">
               <svg class="dropdown-icon" viewBox="0 0 24 24" fill="currentColor">
@@ -153,29 +174,83 @@
             </a>
           </div>
         </div>
-        
       </div>
 
       <!-- Mobile Navigation Links -->
-      <div class="nav-links mobile-only" :class="{ open: menuOpen }" v-show="menuOpen">
-        <router-link v-if="isLoggedIn && role === 'admin'" to="/dashboard" @click="closeMenu">📊 Dashboard</router-link>
-        <router-link v-if="isLoggedIn && role === 'admin'" to="/register" @click="closeMenu">➕ Register</router-link>
-        <router-link v-if="isLoggedIn && role === 'admin'" to="/students" @click="closeMenu">📋 Student List</router-link>
-        <router-link v-if="isLoggedIn && role === 'admin'" to="/monthly-payments" @click="closeMenu">💰 Monthly Fees</router-link>
-        <router-link v-if="isLoggedIn && role === 'admin'" to="/seat-map" @click="closeMenu">🪑 Seat Map</router-link>
-        <router-link v-if="isLoggedIn && role === 'admin'" to="/monthly-expenses" @click="closeMenu">💰 Expenses</router-link>
-        <router-link v-if="(!isLoggedIn) && role === ''" to="/login" @click="closeMenu">🔑 Login</router-link>
-        <router-link v-if="(!isLoggedIn) && role === ''" to="/pricing-plans" @click="closeMenu">💰 Pricing & Plans</router-link>
-        <!-- <button v-if="isLoggedIn" class="logout-btn mobile-logout" @click="logout">🚪 Logout</button> -->
+      <div class="mobile-menu" :class="{ 'show': menuOpen }" v-if="isLoggedIn">
+        <router-link v-if="role === 'admin'" to="/dashboard" @click="closeMenu" class="mobile-link">
+          <span class="mobile-icon">
+            <!-- 📊 -->
+            <img src="../assets/svg/chart-2.svg" class="mobile-icon" alt="" loading="lazy">
+          </span>
+          <span class="mobile-text">Dashboard</span>
+        </router-link>
+        <router-link v-if="role === 'admin'" to="/register" @click="closeMenu" class="mobile-link">
+          <span class="mobile-icon">
+            <!-- ➕ -->
+             <img src="../assets/svg/add-plus-w.svg" class="mobile-icon" alt="" loading="lazy">
+          </span>
+          <span class="mobile-text">Register</span>
+        </router-link>
+        <router-link v-if="role === 'admin'" to="/students" @click="closeMenu" class="mobile-link">
+          <span class="mobile-icon">
+            <!-- 📋 -->
+             <img src="../assets/svg/list-w.svg" class="mobile-icon" alt="" loading="lazy">
+          </span>
+          <span class="mobile-text">Student List</span>
+        </router-link>
+        <router-link v-if="role === 'admin'" to="/monthly-payments" @click="closeMenu" class="mobile-link">
+          <span class="mobile-icon">
+            <!-- 💰 -->
+             <img src="../assets/svg/money-dollar.svg" class="mobile-icon" alt="" loading="lazy">
+          </span>
+          <span class="mobile-text">Monthly Fees</span>
+        </router-link>
+        <router-link v-if="role === 'admin'" to="/seat-map" @click="closeMenu" class="mobile-link">
+          <span class="mobile-icon">
+            <!-- 🪑 -->
+             <img src="../assets/svg/map-w.svg" class="mobile-icon" alt="" loading="lazy">
+          </span>
+          <span class="mobile-text">Seat Map</span>
+        </router-link>
+        <router-link v-if="role === 'admin'" to="/monthly-expenses" @click="closeMenu" class="mobile-link">
+          <span class="mobile-icon">
+            <!-- 💸 -->
+             <img src="../assets/svg/money-out-w.svg" class="mobile-icon" alt="" loading="lazy">
+          </span>
+          <span class="mobile-text">Expenses</span>
+        </router-link>
       </div>
+      <div class="mobile-menu" :class="{ 'show': menuOpen }" v-if="!isLoggedIn">
+        <router-link to="/login" @click="closeMenu" class="mobile-link">
+          <span class="mobile-icon">
+            <!-- 👤 -->
+             <img src="../assets/svg/login-w.svg" class="mobile-icon" alt="" loading="lazy">
+          </span>
+          <span class="mobile-text">Login</span>
+        </router-link>
+        <router-link to="/pricing-plans" @click="closeMenu" class="mobile-link">
+          <span class="mobile-icon">
+            <!-- 💰 -->
+             <img src="../assets/svg/price-tag1.svg" class="mobile-icon" alt="" loading="lazy" >
+          </span>
+          <span class="mobile-text">Plans & Pricing</span>
+        </router-link>
+        <router-link to="/about" @click="closeMenu" class="mobile-link">
+          <span class="mobile-icon">
+            <!-- 🤔 -->
+             <img src="../assets/svg/about.svg" class="mobile-icon" alt="" loading="lazy">
+          </span>
+          <span class="mobile-text">About</span>
+        </router-link>
+      </div>
+
     </nav>
   </div>
 </template>
 
 <script>
 import API from '../api'
-// import PricingPlans from './PricingPlans.vue'
-// import ChangePassword from './ChangePassword.vue'
 
 export default {
   data() {
@@ -184,72 +259,78 @@ export default {
       menuOpen: false,
       dropdownOpen: false,
       username: localStorage.getItem('username'),
-      library_name: localStorage.getItem('library_name')?.toUpperCase() || 'Library Management System',
-      role: localStorage.getItem('role') ?? '',
+      library_name: localStorage.getItem('library_name') || 'Smart Library',
+      role: localStorage.getItem('role') || '',
     }
   },
+  
   mounted() {
     this.checkLoginStatus()
-    // Close dropdown when clicking outside
     document.addEventListener('click', this.handleDocumentClick)
   },
+  
   beforeUnmount() {
     document.removeEventListener('click', this.handleDocumentClick)
   },
+  
   methods: {
     closeMenu() {
       this.menuOpen = false
     },
+    
     toggleMenu() {
       this.menuOpen = !this.menuOpen
     },
+    
     toggleDropdown(event) {
       event.stopPropagation()
       this.dropdownOpen = !this.dropdownOpen
     },
+    
     handleDocumentClick(event) {
-      // Close dropdown when clicking outside
       if (!this.$el.contains(event.target)) {
         this.dropdownOpen = false
+        this.menuOpen = false
       }
     },
+    
     viewProfile() {
       console.log('View Profile clicked')
       this.dropdownOpen = false
-      // Add your profile logic here
     },
+    
     ChangePassword() {
       console.log('Change Password clicked')
       this.dropdownOpen = false
-      // Add your settings logic here
       this.$router.push('/change-password')
     },
+    
     notifications() {
       console.log('Notifications clicked')
       this.dropdownOpen = false
-      // Add your notifications logic here
     },
+    
     helpCenter() {
       console.log('Help Center clicked')
       this.dropdownOpen = false
-      // Add your help center logic here
     },
+    
     PricingPlans() {
       console.log('Pricing Plans clicked')
       this.dropdownOpen = false
-      // Add your pricing plans logic here
       this.$router.push('/pricing-plans')
     },
+    
     checkLoginStatus() {
       this.isLoggedIn = !!localStorage.getItem('role')
-      this.library_name = localStorage.getItem('library_name')?.toUpperCase() || 'Library Management System'
-      this.role = localStorage.getItem('role') ?? ''
+      this.library_name = localStorage.getItem('library_name') || 'Smart Library'
+      this.role = localStorage.getItem('role') || ''
       this.username = localStorage.getItem('username')
     },
+    
     async logout() {
       try {
         if (confirm('Are you sure you want to log out?')) {
-          // Only run logout logic if user confirms
           await API.post('/auth/logout')
           
           // Clear localStorage
@@ -262,20 +343,19 @@ export default {
           this.isLoggedIn = false
           this.menuOpen = false
           this.dropdownOpen = false
-          this.library_name = 'Library Management System'
+          this.library_name = 'Smart Library'
           this.username = ''
           
           // Redirect to login
           this.$router.push('/login')
         }
-        // If user clicks "Cancel", nothing happens - they stay logged in
       } catch (err) {
         console.error('Logout failed', err)
         alert('Logout failed. Try again.')
       }
-    },
-
+    }
   },
+  
   watch: {
     '$route': 'checkLoginStatus'
   }
@@ -284,190 +364,244 @@ export default {
 
 <style scoped>
 .layout-wrapper {
-  display: flex;
-  min-height: 0vh;
-  
+  position: relative;
 }
 
-/* Sidebar Styles */
+/* ========== SIDEBAR STYLES ========== */
 .sidebar {
   width: 260px;
-  background: linear-gradient(180deg, #6a11cb 0%, #2575fc 100%);
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
   color: white;
   position: fixed;
   top: 0;
   left: 0;
   height: 100vh;
   overflow-y: auto;
-  /* box-shadow: 2px 0 10px rgba(0,0,0,0.1); */
   z-index: 1000;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar-header {
-  padding: 24px 20px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding: 20px 16px;
+  /* border-bottom: 1px solid rgba(255,255,255,0.1); */
 }
 
 .sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   color: white;
   text-decoration: none;
-  font-size: 1.5rem;
-  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.sidebar-logo:hover {
+  opacity: 0.9;
+}
+
+.logo-icon {
+  font-size: 1.8rem;
+  width: 40px;
+  height: 40px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-text {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+  text-transform: uppercase;
 }
 
 .sidebar-nav {
-  padding: 20px 0;
+  flex: 1;
+  padding: 16px 0;
 }
 
 .sidebar-link {
   display: flex;
   align-items: center;
+  gap: 12px;
   padding: 12px 20px;
-  color: rgba(255, 255, 255, 0.94);
+  margin: 4px 12px;
+  color: rgba(255,255,255,0.85);
   text-decoration: none;
-  transition: all 0.3s ease;
-  margin: 10px 12px;
   border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
 }
 
 .sidebar-link:hover {
-  background-color: rgba(255, 255, 255, 0.141);
+  background: rgba(255,255,255,0.15);
   color: white;
+  transform: translateX(2px);
 }
 
 .sidebar-link.router-link-exact-active {
-  background-color: rgba(255, 255, 255, 0.211);
+  background: rgba(255,255,255,0.2);
   color: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .sidebar-icon {
-  font-size: 1.1rem;
-  margin-right: 12px;
-  width: 20px;
+  font-size: 1.2rem;
+  width: 24px;
+  text-align: center;
 }
 
 .sidebar-text {
-  font-weight: 700;
-  font-size: 1.2rem;
-  
+  font-size: 0.95rem;
 }
 
-/* Navbar Styles */
+/* ========== NAVBAR STYLES ========== */
 .navbar {
-  background: linear-gradient(to right, #6a11cb, #2575fc);
-  color: white;
-  font-weight: 600;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 100;
-  padding: 11px 24px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  
+  height: 64px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  z-index: 1100;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
 }
 
 .navbar.with-sidebar {
   left: 260px;
 }
 
-.navbar-top {
+.navbar-content {
+  height: 100%;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
 }
 
-.logo {
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   color: white;
-  font-size: 1.4rem;
-  font-weight: bold;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.navbar-logo .logo-icon {
+  font-size: 1.6rem;
+  width: 36px;
+  height: 36px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navbar-logo .logo-text {
+  font-size: 1.1rem;
+  letter-spacing: -0.3px;
 }
 
 .hamburger {
-  background: none;
-  color: white;
-  font-size: 1.5rem;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: transparent;
   border: none;
   cursor: pointer;
+  padding: 0;
+  margin-right: 12px;
 }
 
-.hamburger.menu-open {
-  /* border: 2px solid rgba(255, 255, 255, 0.8); */
-  border-radius: 10px;
-  padding: 3px 6px;
-  font-size: 1.8rem;
-  font-weight: bold;
-  
+.hamburger-line {
+  width: 24px;
+  height: 3px;
+  background: white;
+  margin: 2px 0;
+  border-radius: 2px;
+  transition: all 0.3s ease;
 }
 
+.hamburger.menu-open .hamburger-line:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
 
-/* User Dropdown */
+.hamburger.menu-open .hamburger-line:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger.menu-open .hamburger-line:nth-child(3) {
+  transform: rotate(-45deg) translate(5px, -5px);
+}
+
+/* ========== USER DROPDOWN ========== */
 .user-dropdown {
+  position: relative;
   display: flex;
   align-items: center;
   cursor: pointer;
-  padding: 0px 0px;
+  padding: 4px;
   border-radius: 8px;
-  transition: background-color 0.3s;
-  position: relative;
-  margin-left: auto;
-  
+  transition: all 0.3s ease;
 }
 
 .user-dropdown:hover {
-  background-color: rgba(255, 255, 255, 0);
+  background: rgba(255,255,255,0.1);
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(255,255,255,0.3);
 }
 
 .user-avatar img {
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  /* margin-right: 8px; */
-  
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.username {
-  margin-right: 8px;
-  font-weight: 500;
-}
-
-.dropdown-arrow {
-  width: 16px;
-  height: 16px;
-  transition: transform 0.3s;
-}
-
-.dropdown-arrow.rotated {
-  transform: rotate(180deg);
-}
-
-/* Dropdown Menu */
 .dropdown-menu {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
   min-width: 280px;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-10px);
+  transform: translateY(-10px) scale(0.95);
   transition: all 0.3s ease;
-  z-index: 1001;
+  z-index: 1200;
+  overflow: hidden;
 }
 
 .dropdown-menu.show {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
 }
 
 .dropdown-header {
   display: flex;
   align-items: center;
   padding: 16px 20px;
-  border-bottom: 1px solid #f0f0f0;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  color: white;
 }
 
 .dropdown-header img {
@@ -475,6 +609,7 @@ export default {
   height: 40px;
   border-radius: 50%;
   margin-right: 12px;
+  border: 2px solid rgba(255,255,255,0.3);
 }
 
 .user-info {
@@ -482,103 +617,104 @@ export default {
 }
 
 .user-name {
-  font-weight: 600;
-  color: #333;
+  font-weight: 700;
   font-size: 0.9rem;
+  margin-bottom: 2px;
 }
 
 .user-email {
-  color: #666;
   font-size: 0.8rem;
-  margin-top: 2px;
+  opacity: 0.9;
 }
 
 .dropdown-divider {
   height: 1px;
-  background-color: #f0f0f0;
+  background: #e5e7eb;
   margin: 8px 0;
 }
 
 .dropdown-item {
   display: flex;
   align-items: center;
+  gap: 12px;
   padding: 12px 20px;
-  color: #333;
+  color: #374151;
   text-decoration: none;
-  transition: background-color 0.2s;
+  font-weight: 500;
+  transition: all 0.2s ease;
   cursor: pointer;
 }
 
 .dropdown-item:hover {
-  background-color: #f8f9fa;
+  background: #f3f4f6;
 }
 
 .dropdown-item.logout-item {
-  color: #e74c3c;
+  color: #ef4444;
+  border-top: 1px solid #e5e7eb;
 }
 
 .dropdown-item.logout-item:hover {
-  background-color: #fdf2f2;
+  background: #fef2f2;
 }
 
 .dropdown-icon {
   width: 18px;
   height: 18px;
-  margin-right: 12px;
   opacity: 0.7;
 }
 
-/* Mobile Navigation */
-.nav-links {
-  flex-direction: column;
+/* ========== MOBILE MENU ========== */
+.mobile-menu {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  right: 0;
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  transform: translateX(-120%);
+  transition: transform 0.3s ease;
+  z-index: 1000;
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.mobile-menu.show {
+  transform: translateY(0);
+}
+
+.mobile-link {
+  display: flex;
   align-items: center;
   gap: 12px;
-  width: 100%;
-  margin-top: 12px;
-}
-
-.nav-links a {
-  color: #f5f6fa;
+  padding: 16px 20px;
+  color: white;
   text-decoration: none;
-  font-weight: bold;
-  padding: 8px 12px;
-  border-radius: 4px;
-  transition: background-color 0.3s;
-  width: 80%;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  transition: all 0.3s ease;
+}
+
+.mobile-link:hover {
+  background: rgba(255,255,255,0.15);
+  padding-left: 24px;
+}
+
+.mobile-link.router-link-exact-active {
+  background: rgba(255,255,255,0.2);
+}
+
+.mobile-icon {
+  font-size: 1.2rem;
+  width: 24px;
   text-align: center;
 }
 
-.nav-links a:hover {
-  background-color: #8181ffa8;
+.mobile-text {
+  font-size: 1rem;
 }
 
-.router-link-exact-active {
-  background-color: #8281ffbd;
-  color: white;
-}
-
-.logout-btn {
-  background-color: #e84118;
-  color: white;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 4px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.logout-btn:hover {
-  background-color: #c23616;
-}
-
-.mobile-logout {
-  width: 80%;
-  text-align: center;
-  margin-top: 10px;
-}
-
-/* Responsive Classes */
+/* ========== RESPONSIVE DESIGN ========== */
 .desktop-only {
   display: block;
 }
@@ -587,68 +723,73 @@ export default {
   display: none;
 }
 
-.mobile-logo {
-  display: none;
-}
-
-/* Mobile Responsive */
 @media (max-width: 1080px) {
-  .sidebar {
-    display: none;
-  }
-  
-  .navbar {
-    left: 0 !important;
-    flex-direction: column;
-    align-items: stretch;
-    padding: 12px 10px;
-    /* padding-bottom: 0%; */
-    /* height: 35px; */
-    
-  }
-
-  /* .navbar.nav-links.open {
-    display: flex;
-    flex-direction: column;
-  } */
-  
   .desktop-only {
     display: none !important;
   }
   
   .mobile-only {
-    display: flex;
-    flex-direction: column;
+    display: flex !important;
   }
   
-  .mobile-logo {
-    display: block;
+  .navbar {
+    left: 0 !important;
+    height: 64px;
+    padding: 0 16px;
+  }
+  
+  .navbar-content {
+    padding: 0;
   }
   
   .hamburger {
+    display: flex !important;
+  }
+  
+  .navbar-logo .logo-text {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-logo .logo-text {
     display: block;
   }
-
-  .user-avatar img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    /* margin-right: 8px; */
-    
+  
+  .dropdown-menu {
+    min-width: 250px;
+    right: -12px;
   }
-
-  /* User Dropdown */
-.user-dropdown {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  padding: 0px 0px;
-  border-radius: 8px;
-  transition: background-color 0.3s;
-  position: relative;
-  margin-left: 0vh;
   
+  .mobile-link {
+    padding: 14px 16px;
+  }
+  
+  .user-avatar {
+    width: 36px;
+    height: 36px;
+  }
 }
-  
+
+/* Scroll behavior */
+.sidebar::-webkit-scrollbar,
+.mobile-menu::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-track,
+.mobile-menu::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.1);
+}
+
+.sidebar::-webkit-scrollbar-thumb,
+.mobile-menu::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.3);
+  border-radius: 2px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover,
+.mobile-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.5);
 }
 </style>
