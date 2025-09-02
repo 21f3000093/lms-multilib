@@ -27,7 +27,7 @@
         <div class="card-header">
           <!-- <div class="card-icon shift-icon">🌅</div> -->
            <div class=" shift-icon card-icon">
-             <img src="../assets/svg/sunrise-svgrepo-com1.svg" class="svg" alt="">
+             <img src="../assets/svg/sunrise-svgrepo-com1.svg" class="svg" alt="" loading="lazy">
            </div>
           <h3>Shift 1</h3>
           <span class="shift-time">Morning</span>
@@ -57,7 +57,7 @@
         <div class="card-header">
           <!-- <div class="card-icon shift-icon">☀️</div> -->
            <div class=" shift-icon card-icon">
-             <img src="../assets/svg/afternoonsun.svg" class="svg" alt="">
+             <img src="../assets/svg/afternoonsun.svg" class="svg" alt="" loading="lazy">
            </div>
           <h3>Shift 2</h3>
           <span class="shift-time">Afternoon</span>
@@ -87,7 +87,7 @@
         <div class="card-header">
           <!-- <div class="card-icon shift-icon">🌙</div> -->
            <div class="shift-icon card-icon ">
-             <img src="../assets/svg/night-svgrepo-com.svg" class="svg" alt="">
+             <img src="../assets/svg/night-svgrepo-com.svg" class="svg" alt="" loading="lazy">
            </div>
           <h3>Shift 3</h3>
           <span class="shift-time">Evening</span>
@@ -118,7 +118,7 @@
         <div class="card-header">
           <div class="card-icon students-icon">
             <!-- 👥 -->
-            <img src="../assets/svg/student-white.svg" class="svg" alt="">
+            <img src="../assets/svg/student-white.svg" class="svg" alt="" loading="lazy">
           </div>
 
           <h3>Total Students</h3>
@@ -148,7 +148,7 @@
         <div class="card-header">
           <div class="card-icon revenue-icon">
             <!-- 💰 -->
-            <img src="../assets/svg/money-dollar.svg" class="svg" alt="">
+            <img src="../assets/svg/money-dollar.svg" class="svg" alt="" loading="lazy">
           </div>
           <h3>Monthly Revenue</h3>
         </div>
@@ -168,7 +168,7 @@
         <div class="card-header">
           <div class="card-icon collection-icon">
             <!-- 💳 -->
-            <img src="../assets/svg/money-recive-white.svg" class="svg" alt="">
+            <img src="../assets/svg/money-recive-white.svg" class="svg" alt="" loading="lazy">
           </div>
           <h3>Collected This Month</h3>
         </div>
@@ -196,14 +196,14 @@
     <div class="insights-section">
 
       <div class="insights-header">
-        <img src="../assets/svg/chart1.svg" class="svg" alt="">
+        <img src="../assets/svg/chart1.svg" class="svg" alt="" loading="lazy">
         <h3>Quick Insights</h3>
       </div>
 
       <div class="insights-grid">
         <div class="insight-card">
           <div class="insight-icon">
-            <img src="../assets/svg/star.svg" class="svg" alt="">
+            <img src="../assets/svg/star.svg" class="svg" alt="" loading="lazy">
           </div>
           <div class="insight-content">
             <h4>Best Performing Shift</h4>
@@ -213,7 +213,7 @@
         <div class="insight-card">
           <div class="insight-icon">
             <!-- 📊 -->
-            <img src="../assets/svg/chart-2.svg" class="svg" alt="">
+            <img src="../assets/svg/chart-2.svg" class="svg" alt="" loading="lazy">
           </div>
           <div class="insight-content">
             <h4>Occupancy Rate</h4>
@@ -222,7 +222,7 @@
         </div>
         <div class="insight-card">
           <div class="insight-icon">
-            <img src="../assets/svg/empty.svg" class="svg" alt="">  
+            <img src="../assets/svg/empty.svg" class="svg" alt="" loading="lazy">  
           </div>
           <div class="insight-content">
             <h4>Available Seats</h4>
@@ -782,7 +782,7 @@ export default {
   }
   
   .stat-item {
-    min-width: 100px;
+    min-width: 30vw;
     padding: 0.8rem 1rem;
   }
   
