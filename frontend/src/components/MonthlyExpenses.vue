@@ -132,7 +132,10 @@
 
     <!-- Empty State -->
     <div v-if="expenses.length === 0 && !loading" class="empty-state">
-      <div class="empty-icon">📊</div>
+      <div class="empty-icon">
+        <!-- 📊 -->
+         <img src="../assets/svg/money-out-w.svg" style="width: 100px; height: 100px;" class="empty-icon" alt="">
+      </div>
       <h3>No Expenses Found</h3>
       <p>No expenses recorded for {{ formatMonth(selectedMonth) }} yet.</p>
       <button @click="openExpenseModal" class="empty-action-btn">
@@ -157,7 +160,7 @@
         
         <form @submit.prevent="addExpense" class="expense-form">
           <div class="form-group">
-            <label for="expense-name">Expense Name</label>
+            <!-- <label for="expense-name">Expense Name</label> -->
             <input 
               id="expense-name"
               v-model="expenseForm.name" 
@@ -170,12 +173,12 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label for="expense-amount">Amount (₹)</label>
+              <!-- <label for="expense-amount">Amount (₹)</label> -->
               <input 
                 id="expense-amount"
                 v-model.number="expenseForm.amount" 
                 type="number" 
-                placeholder="Enter amount" 
+                placeholder="Enter amount (₹)" 
                 required 
                 min="1" 
                 class="form-input"
@@ -183,7 +186,7 @@
             </div>
 
             <div class="form-group">
-              <label for="expense-date">Date</label>
+              <!-- <label for="expense-date">Date</label> -->
               <input 
                 id="expense-date"
                 v-model="expenseForm.date" 
@@ -195,7 +198,7 @@
           </div>
 
           <div class="form-group">
-            <label for="expense-category">Category</label>
+            <!-- <label for="expense-category">Category</label> -->
             <select id="expense-category" v-model="expenseForm.category" class="form-select">
               <option value="">Select Category (optional)</option>
               <option value="Utilities">🔌 Utilities</option>
@@ -209,7 +212,7 @@
           </div>
 
           <div class="form-group">
-            <label for="expense-description">Description</label>
+            <!-- <label for="expense-description">Description</label> -->
             <textarea 
               id="expense-description"
               v-model="expenseForm.description" 
@@ -870,12 +873,13 @@ export default {
 }
 
 .modal-content {
-  background: white;
+  /* background: rgba(185, 146, 207, 0.934); */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 16px;
   padding: 0;
   max-width: 500px;
   width: 90%;
-  max-height: 90vh;
+  max-height: 95vh;
   overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0,0,0,0.3);
 }
@@ -892,7 +896,7 @@ export default {
   margin: 0;
   font-size: 1.3rem;
   font-weight: 700;
-  color: #1f2937;
+  color: #ecf0f6;
 }
 
 .modal-close {

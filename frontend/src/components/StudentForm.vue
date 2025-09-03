@@ -8,7 +8,7 @@
     <form @submit.prevent="submitForm" class="form-container">
       <!-- Personal Information -->
       <div class="section">
-        <h3>👤 Student Details</h3>
+        <h3>Student Details</h3>
         
         <div class="form-group">
           <!-- <label>Full Name</label> -->
@@ -128,7 +128,7 @@
           Cancel
         </button>
         <button type="submit" :disabled="loading || !formValid" class="btn-submit">
-          {{ loading ? '⏳ Please wait...' : (isEdit ? '✏️ Update Student' : 'Register Student') }}
+          {{ loading ? '⏳ Please wait...' : (isEdit ? 'Update' : 'Register') }}
         </button>
       </div>
     </form>
@@ -627,11 +627,13 @@ export default {
     padding-top: 5rem;
     /* margin-top: 3rem; */
     /* height: fit-content; */
-    height: 80vh;
+    height: 90vh;
+    overflow-y: auto;
   }
 
   .form-container {
     padding: 20px;
+    overflow-y: auto;
   }
 
   .form-header h2 {
@@ -640,10 +642,17 @@ export default {
 
   .shifts {
     gap: 10px;
+    /* overflow-x: auto; */
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    /* grid-template-columns: repeat(auto-fit, minmax(45%, 1fr)); */
+
+    /* place-items: center; */
+
   }
 
   .shift-card {
-    padding: 14px;
+    padding: 10px;
   }
 
   .shift-icon {
@@ -651,7 +660,7 @@ export default {
   }
 
   .buttons {
-    flex-direction: column;
+    flex-direction: row;
   }
 
   .form-group input,

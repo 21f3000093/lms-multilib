@@ -903,7 +903,7 @@ export default {
   
   .student-details {
     /* grid-template-columns: 1fr; */
-        display: grid
+    display: grid
 ;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 0px;

@@ -74,20 +74,24 @@
         </button>
         
         <!-- Desktop/Mobile logo when not logged in -->
+
+        <div v-if="!isLoggedIn" class="desktop-only"></div>
         <router-link 
           v-if="!isLoggedIn" 
           to="/login" 
           class="navbar-logo"
         >
           <!-- <div class="logo-icon">📚</div> -->
+          
           <div class="logo-text">Smart Library App</div>
+          
         </router-link>
+        <div v-if="!isLoggedIn" class="desktop-only"></div>
 
-        <div v-if="!isLoggedIn" class="mobile-only">
+        <div v-if="!isLoggedIn" class="mobile-only" style="width: 42px;">
 
         </div>
-        <div v-if="isLoggedIn" class="desktop-only">
-        </div>
+        <div v-if="isLoggedIn" class="desktop-only"></div>
 
         <router-link 
           v-if="isLoggedIn" 

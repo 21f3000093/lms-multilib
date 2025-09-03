@@ -1159,8 +1159,12 @@ thead{
 }
 
 @media (max-width: 480px) {
-  .summary-cards {
-    grid-template-columns: repeat(2, 1fr);
+  .summary-card {
+    /* grid-template-columns: repeat(2, 1fr); */
+    /* grid-template-columns: repeat(auto-fill, minmax(30%, 1fr)); */
+    /* overflow-x: auto; */
+    gap: 0px;
+    padding: 12px;
   }
   
   .card-header {
@@ -1182,7 +1186,7 @@ thead{
 
   .card-icon {
     /* display: none; */
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     width: fit-content;
   }
 }
