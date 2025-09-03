@@ -1130,7 +1130,7 @@ thead{
 
   .reminder-link[data-v-1678335a] {
     text-decoration: none;
-    width: -webkit-fill-available;
+    width: 100%;
 }
   
   .generate-btn,
