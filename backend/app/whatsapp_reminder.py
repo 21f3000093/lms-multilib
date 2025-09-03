@@ -49,16 +49,18 @@ def get_pending_reminders(
         else:
             # If no joining date, set due date to 1st of month
             due_date = date(year, month_num, 1)
-
-        results.append({
-            "student_name": payment.student.name,
-            "student_id": payment.student.id,
-            "phone": payment.student.contact,
-            "amount": payment.amount,
-            "month": payment.month,
-            "due_date": due_date.strftime("%Y-%m-%d"),
-            "due_date_sort": due_date,  # For sorting
-        })
+            
+        if due_date < date.today()+timedelta(days=2):
+            # Payment is overdue            
+            results.append({
+                "student_name": payment.student.name,
+                "student_id": payment.student.id,
+                "phone": payment.student.contact,
+                "amount": payment.amount,
+                "month": payment.month,
+                "due_date": due_date.strftime("%Y-%m-%d"),
+                "due_date_sort": due_date,  # For sorting
+            })
 
     # Sort by due date
     results.sort(key=lambda x: x["due_date_sort"])
