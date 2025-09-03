@@ -131,11 +131,18 @@
       <h3>What's Included in All Plans</h3>
       <div class="feature-grid">
         <div class="feature-item">
-          <span class="feature-icon">👥</span>
+          <span class="feature-icon">
+            <!-- 📊 -->
+             <img src="../assets/svg/student-white.svg" class="feature-icon" style="width: 25px;" alt="">
+          </span>
           <span>Student Management</span>
         </div>
         <div class="feature-item">
-          <span class="feature-icon">💺</span>
+          <!-- <span class="feature-icon">💺</span> -->
+           <span class="feature-icon">
+            <!-- 📊 -->
+             <img src="../assets/svg/map-w.svg" class="feature-icon" style="width: 25px;" alt="">
+          </span>
           <span>Seat Allocation</span>
         </div>
         <div class="feature-item">
@@ -147,7 +154,10 @@
           <span>WhatsApp Integration</span>
         </div>
         <div class="feature-item">
-          <span class="feature-icon">📊</span>
+          <span class="feature-icon">
+            <!-- 📊 -->
+             <img src="../assets/svg/chart-2.svg" class="feature-icon" style="width: 25px;" alt="">
+          </span>
           <span>Analytics & Reports</span>
         </div>
         <div class="feature-item">

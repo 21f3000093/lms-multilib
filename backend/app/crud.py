@@ -199,6 +199,7 @@ def mark_student_as_left(db: Session, student_id: int):
 ###                                            DASHBOARD DATA                                                    
 ##### ======================================================================================================
 
+from zoneinfo import ZoneInfo
 
 # To get dashboard data for a library
 def get_dashboard_data(db: Session, library_id: int):
@@ -209,7 +210,12 @@ def get_dashboard_data(db: Session, library_id: int):
 
 
     revenue = db.query(func.coalesce(func.sum(models.Student.custom_fees), 0)).filter(models.Student.status == "active", models.Student.library_id == library_id).scalar()
-    current_month = datetime.now().strftime('%Y-%m')
+
+    # current_month = datetime.now().strftime('%Y-%m')
+    
+    # Use Indian timezone (Asia/Kolkata)
+    india_tz = ZoneInfo("Asia/Kolkata")
+    current_month = datetime.now(india_tz).strftime('%Y-%m')
 
     monthly_collected = db.query(func.coalesce(func.sum(MonthlyPayment.amount), 0)).filter(
         MonthlyPayment.month == current_month,

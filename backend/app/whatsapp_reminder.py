@@ -1,55 +1,84 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from datetime import date, timedelta
-from app.dependencies import get_db , get_current_admin
+from app.dependencies import get_db, get_current_admin
 from app.models import MonthlyPayment, Student
+import calendar
 
 router = APIRouter()
 
-@router.get("/reminders/pending-fees")
+@router.get("/reminders/pending-fees/{month}")
 def get_pending_reminders(
+    month: str,
     db: Session = Depends(get_db),
     admin = Depends(get_current_admin)
 ):
-    today = date.today()
-    upcoming = today + timedelta(days=2)
-    current_month = today.strftime("%Y-%m")
+    """
+    Get pending fee reminders for a specific month
+    month format: YYYY-MM (e.g., "2025-08")
+    """
+    # Parse the month parameter
+    try:
+        year, month_num = map(int, month.split('-'))
+    except Exception:
+        # Fallback to current month if invalid format
+        today = date.today()
+        year, month_num = today.year, today.month
+        month = f"{year:04d}-{month_num:02d}"
 
     results = []
 
+    # Get all unpaid payments for the selected month
     payments = db.query(MonthlyPayment).join(Student).filter(
         MonthlyPayment.library_id == admin.library_id,
-        MonthlyPayment.month == current_month,
+        MonthlyPayment.month == month,
         MonthlyPayment.paid == False,
         Student.status == "active"
     ).all()
 
     for payment in payments:
         doj = payment.student.date_of_joining
-        due_day = doj.day
-        try:
-            due_date = date(today.year, today.month, due_day)
-        except:
-            due_date = date(today.year, today.month, 28)
-
-        if due_date <= upcoming:
+        if doj:
+            due_day = doj.day
+            try:
+                due_date = date(year, month_num, due_day)
+            except ValueError:
+                # Handle invalid dates (e.g., Feb 30)
+                last_day = calendar.monthrange(year, month_num)[1]
+                due_date = date(year, month_num, min(due_day, last_day))
+        else:
+            # If no joining date, set due date to 1st of month
+            due_date = date(year, month_num, 1)
+            
+        if due_date < date.today()+timedelta(days=2):
+            # Payment is overdue            
             results.append({
                 "student_name": payment.student.name,
                 "student_id": payment.student.id,
                 "phone": payment.student.contact,
                 "amount": payment.amount,
                 "month": payment.month,
-                "due_date": due_date.strftime("%d-%m-%Y"),
-                "due_date_obj": due_date,  # Add raw date for sorting
+                "due_date": due_date.strftime("%Y-%m-%d"),
+                "due_date_sort": due_date,  # For sorting
             })
-            
-            
-        
-    # SORT by due_date_obj (ascending)
-    results.sort(key=lambda x: x["due_date_obj"])
 
-    # Optionally, remove 'due_date_obj' before returning to the client:
+    # Sort by due date
+    results.sort(key=lambda x: x["due_date_sort"])
+    
+    # Remove sort key before returning
     for r in results:
-        r.pop("due_date_obj", None)
+        r.pop("due_date_sort", None)
         
     return results
+
+# Keep the old endpoint for backward compatibility (optional)
+@router.get("/reminders/pending-fees")
+def get_current_month_reminders(
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin)
+):
+    """
+    Get pending reminders for current month (backward compatibility)
+    """
+    current_month = date.today().strftime("%Y-%m")
+    return get_pending_reminders(current_month, db, admin)
