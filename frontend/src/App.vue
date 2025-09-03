@@ -59,7 +59,8 @@ body, html, #app {
   inset: 0;
   z-index: 0;
   /* background: radial-gradient(125% 125% at 50% 90%, #fff 40%, #6366f1 100%); */
-  background: linear-gradient(90deg, #7e00d0 0%, #007bff 100%);
+  /* background: linear-gradient(90deg, #7e00d0 0%, #007bff 100%); */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   
 
 }

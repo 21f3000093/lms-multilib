@@ -365,7 +365,8 @@ export default {
 <style scoped>
 .booking-container {
   min-height: 100vh;
-  background: linear-gradient(90deg, #7e00d0 0%, #007bff 100%);
+  /* background: linear-gradient(90deg, #7e00d0 0%, #007bff 100%); */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 20px;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   padding-top: 3.5rem;
@@ -1051,6 +1052,7 @@ export default {
 }
 
 @media (max-width: 480px) {
+  
   .search-input {
     font-size: 16px; /* Prevent zoom on iOS */
   }
