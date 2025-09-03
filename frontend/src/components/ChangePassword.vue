@@ -1,81 +1,124 @@
 <template>
-  <div class="change-password-container">
-    <div class="card">
-      <div class="card-header">
-        <h3>Change Password</h3>
+  <div class="change-password-page">
+    <div class="change-password-container">
+      <!-- Header Section -->
+      <div class="header-section">
+        <h2 class="page-title">Change Password</h2>
+        <p class="page-subtitle">Update your account security</p>
       </div>
-      <div class="card-body">
-        <form @submit.prevent="changePassword">
+
+      <!-- Password Change Form -->
+      <div class="form-container">
+        <form @submit.prevent="changePassword" class="password-form">
           <div class="form-group">
-            <label for="currentPassword">Current Password</label>
-            <input
-              type="password"
-              id="currentPassword"
-              v-model="form.current_password"
-              class="form-control"
-              required
-              :class="{ 'is-invalid': errors.current_password }"
-            />
-            <div v-if="errors.current_password" class="invalid-feedback">
+            <label for="currentPassword" class="form-label">Current Password</label>
+            <div class="input-wrapper">
+              <input
+                :type="showCurrentPassword ? 'text' : 'password'"
+                id="currentPassword"
+                v-model="form.current_password"
+                class="form-input"
+                :class="{ 'error': errors.current_password }"
+                placeholder="Enter your current password"
+                required
+              />
+              <button 
+                type="button" 
+                class="password-toggle" 
+                @click="showCurrentPassword = !showCurrentPassword"
+              >
+                {{ showCurrentPassword ? 'Hide' : 'Show' }}
+              </button>
+            </div>
+            <div v-if="errors.current_password" class="error-message">
               {{ errors.current_password }}
             </div>
           </div>
 
           <div class="form-group">
-            <label for="newPassword">New Password</label>
-            <input
-              type="password"
-              id="newPassword"
-              v-model="form.new_password"
-              class="form-control"
-              required
-              :class="{ 'is-invalid': errors.new_password }"
-            />
-            <div v-if="errors.new_password" class="invalid-feedback">
+            <label for="newPassword" class="form-label">New Password</label>
+            <div class="input-wrapper">
+              <input
+                :type="showNewPassword ? 'text' : 'password'"
+                id="newPassword"
+                v-model="form.new_password"
+                class="form-input"
+                :class="{ 'error': errors.new_password }"
+                placeholder="Enter your new password"
+                required
+              />
+              <button 
+                type="button" 
+                class="password-toggle" 
+                @click="showNewPassword = !showNewPassword"
+              >
+                {{ showNewPassword ? 'Hide' : 'Show' }}
+              </button>
+            </div>
+            <div v-if="errors.new_password" class="error-message">
               {{ errors.new_password }}
             </div>
           </div>
 
           <div class="form-group">
-            <label for="confirmPassword">Confirm New Password</label>
-            <input
-              type="password"
-              id="confirmPassword"
-              v-model="form.confirm_password"
-              class="form-control"
-              required
-              :class="{ 'is-invalid': errors.confirm_password }"
-            />
-            <div v-if="errors.confirm_password" class="invalid-feedback">
+            <label for="confirmPassword" class="form-label">Confirm New Password</label>
+            <div class="input-wrapper">
+              <input
+                :type="showConfirmPassword ? 'text' : 'password'"
+                id="confirmPassword"
+                v-model="form.confirm_password"
+                class="form-input"
+                :class="{ 'error': errors.confirm_password }"
+                placeholder="Confirm your new password"
+                required
+              />
+              <button 
+                type="button" 
+                class="password-toggle" 
+                @click="showConfirmPassword = !showConfirmPassword"
+              >
+                {{ showConfirmPassword ? 'Hide' : 'Show' }}
+              </button>
+            </div>
+            <div v-if="errors.confirm_password" class="error-message">
               {{ errors.confirm_password }}
             </div>
           </div>
 
           <div class="form-actions">
             <button
-              type="submit"
-              class="btn btn-primary"
+              type="button"
+              class="btn-cancel"
+              @click="resetForm"
               :disabled="loading"
             >
-              <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
-              {{ loading ? 'Changing...' : 'Change Password' }}
-            </button>
-            <button
-              type="button"
-              class="btn btn-secondary"
-              @click="resetForm"
-            >
               Cancel
+            </button>
+
+            <button
+              type="submit"
+              class="btn-submit"
+              :disabled="loading"
+            >
+              {{ loading ? 'Changing Password...' : 'Change Password' }}
             </button>
           </div>
         </form>
 
-        <!-- Success/Error Messages -->
-        <div v-if="successMessage" class="alert alert-success mt-3">
-          {{ successMessage }}
+        <!-- Success Message -->
+        <div v-if="successMessage" class="success-alert">
+          <div class="alert-content">
+            <div class="alert-title">Success</div>
+            <div class="alert-message">{{ successMessage }}</div>
+          </div>
         </div>
-        <div v-if="errorMessage" class="alert alert-danger mt-3">
-          {{ errorMessage }}
+
+        <!-- Error Message -->
+        <div v-if="errorMessage" class="error-alert">
+          <div class="alert-content">
+            <div class="alert-title">Error</div>
+            <div class="alert-message">{{ errorMessage }}</div>
+          </div>
         </div>
       </div>
     </div>
@@ -83,10 +126,12 @@
 </template>
 
 <script setup>
-/* eslint-disable */
 import { ref, reactive } from 'vue'
-import API from '../api';
+import API from '../api'
+import { useToast } from 'vue-toast-notification'
+import 'vue-toast-notification/dist/theme-sugar.css'
 
+const toast = useToast()
 
 const form = reactive({
   current_password: '',
@@ -103,6 +148,33 @@ const errors = reactive({
 const loading = ref(false)
 const successMessage = ref('')
 const errorMessage = ref('')
+
+// Password visibility toggles
+const showCurrentPassword = ref(false)
+const showNewPassword = ref(false)
+const showConfirmPassword = ref(false)
+
+const showSuccess = (message) => {
+  toast.success(message, {
+    position: 'top',
+    timeout: 3000,
+    style: {
+      backgroundColor: '#10b981',
+      color: '#fff',
+      borderRadius: '8px'
+    }
+  })
+}
+
+const showError = (message) => {
+  toast.error(message, {
+    style: {
+      backgroundColor: '#ef4444',
+      color: '#fff',
+      borderRadius: '8px'
+    }
+  })
+}
 
 const validateForm = () => {
   // Reset errors
@@ -123,7 +195,7 @@ const validateForm = () => {
     errors.new_password = 'New password is required'
     isValid = false
   } else if (form.new_password.length < 6) {
-    errors.new_password = 'New password must be at least 6 characters long'
+    errors.new_password = 'Password must be at least 6 characters long'
     isValid = false
   }
 
@@ -137,7 +209,7 @@ const validateForm = () => {
   }
 
   // Check if new password is different from current
-  if (form.current_password === form.new_password) {
+  if (form.current_password && form.new_password && form.current_password === form.new_password) {
     errors.new_password = 'New password must be different from current password'
     isValid = false
   }
@@ -157,12 +229,14 @@ const changePassword = async () => {
   loading.value = true
 
   try {
-    const response = await API.put('/auth/change-password', form)
+    await API.put('/auth/change-password', form)
 
-    successMessage.value = 'Password changed successfully!'
+    successMessage.value = 'Password has been changed successfully'
+    showSuccess('Password changed successfully')
+    
     resetForm()
     
-    // Optional: Auto-hide success message after 3 seconds
+    // Auto-hide success message after 3 seconds
     setTimeout(() => {
       successMessage.value = ''
     }, 3000)
@@ -172,8 +246,10 @@ const changePassword = async () => {
     
     if (error.response?.data?.detail) {
       errorMessage.value = error.response.data.detail
+      showError(error.response.data.detail)
     } else {
-      errorMessage.value = 'An error occurred while changing password'
+      errorMessage.value = 'Failed to change password. Please try again.'
+      showError('Failed to change password. Please try again.')
     }
   } finally {
     loading.value = false
@@ -190,141 +266,243 @@ const resetForm = () => {
   })
   
   errorMessage.value = ''
+  successMessage.value = ''
+  
+  // Reset password visibility
+  showCurrentPassword.value = false
+  showNewPassword.value = false
+  showConfirmPassword.value = false
 }
 </script>
 
 <style scoped>
+.change-password-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .change-password-container {
-  max-width: 40vw;
-  margin: 30vh auto;
-  padding: 0 1rem;
-  /* background-color: #ffffff; */
+  width: 100%;
+  max-width: 450px;
 }
 
-.card {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.159);
-  background-color: #ffffffb1;
+.header-section {
+  text-align: center;
+  color: white;
+  margin-bottom: 32px;
 }
 
-.card-header {
-  background-color: #f8f9fa00;
-  padding: 1rem;
-  border-bottom: 1px solid #ddd;
-  border-radius: 8px 8px 0 0;
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.025em;
 }
 
-.card-header h3 {
+.page-subtitle {
+  font-size: 0.95rem;
+  opacity: 0.9;
   margin: 0;
-  color: #333;
+  font-weight: 400;
 }
 
-.card-body {
-  padding: 1.5rem;
+.form-container {
+  background: white;
+  border-radius: 12px;
+  padding: 32px 28px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .form-group {
-  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
 }
 
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
+.form-label {
   font-weight: 500;
-  color: #333;
-}
-
-.form-control {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-.form-control:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.345);
-}
-
-.form-control.is-invalid {
-  border-color: #dc3545;
-}
-
-.invalid-feedback {
-  color: #dc3545;
+  color: #374151;
+  margin-bottom: 6px;
   font-size: 0.875rem;
-  margin-top: 0.25rem;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 14px;
+  padding-right: 70px;
+  font-size: 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+  background: white;
+}
+
+.form-input:focus {
+  border-color: #667eea;
+}
+
+.form-input.error {
+  border-color: #ef4444;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #667eea;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.password-toggle:hover {
+  background: #f3f4f6;
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 0.8rem;
+  margin-top: 4px;
+  font-weight: 500;
 }
 
 .form-actions {
   display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
+  gap: 12px;
+  margin-top: 8px;
 }
 
-.btn {
-  padding: 0.5rem 1rem;
+.btn-cancel,
+.btn-submit {
+  flex: 1;
+  padding: 12px 20px;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
   cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
 }
 
-.btn-primary {
-  background-color: #007bff;
+.btn-cancel {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+.btn-submit {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
 }
 
-.btn-primary:hover:not(:disabled) {
-  background-color: #0056b3;
+.btn-submit:hover:not(:disabled) {
+  opacity: 0.9;
 }
 
-.btn-primary:disabled {
-  background-color: #6c757d;
+.btn-cancel:disabled,
+.btn-submit:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
-.btn-secondary {
-  background-color: #6c757d;
-  color: white;
+.success-alert,
+.error-alert {
+  padding: 14px 16px;
+  border-radius: 8px;
+  margin-top: 16px;
 }
 
-.btn-secondary:hover {
-  background-color: #545b62;
+.success-alert {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
 }
 
-.alert {
-  padding: 0.75rem;
-  border-radius: 4px;
-  margin-top: 1rem;
+.error-alert {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
 }
 
-.alert-success {
-  background-color: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
+.alert-content {
+  text-align: center;
 }
 
-.alert-danger {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
+.alert-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 2px;
 }
 
-.spinner-border-sm {
-  width: 1rem;
-  height: 1rem;
+.alert-message {
+  font-size: 0.85rem;
+  opacity: 0.9;
 }
 
+/* Mobile Responsive */
 @media (max-width: 768px) {
+  .change-password-page {
+    padding: 16px;
+  }
+  
   .change-password-container {
-    max-width: 80vw;
+    max-width: 100%;
+  }
+  
+  .page-title {
+    font-size: 1.5rem;
+  }
+  
+  .form-container {
+    padding: 24px 20px;
+  }
+  
+  .form-input {
+    padding: 11px 12px;
+    padding-right: 65px;
+  }
+  
+  .form-actions {
+    flex-direction: column;
   }
 }
 
-
+@media (max-width: 480px) {
+  .change-password-page {
+    padding: 12px;
+  }
+  
+  .page-title {
+    font-size: 1.3rem;
+  }
+  
+  .form-container {
+    padding: 20px 16px;
+  }
+}
 </style>

@@ -1128,7 +1128,7 @@ thead{
     gap: 12px;
   }
 
-  .reminder-link[data-v-1678335a] {
+  .reminder-link {
     text-decoration: none;
     width: 100%;
 }
