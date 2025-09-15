@@ -266,12 +266,12 @@ export default {
       const totalOccupied = (this.data.shift1_count || 0) + 
                            (this.data.shift2_count || 0) + 
                            (this.data.shift3_count || 0);
-      const totalCapacity = (this.data.max_seats || 73) * 3;
+      const totalCapacity = (this.data.max_seats || 0) * 3;
       return totalCapacity > 0 ? Math.round((totalOccupied / totalCapacity) * 100) : 0;
     },
     
     availableSeats() {
-      const totalCapacity = (this.data.max_seats || 73) * 3;
+      const totalCapacity = (this.data.max_seats || 0) * 3;
       const totalOccupied = (this.data.shift1_count || 0) + 
                            (this.data.shift2_count || 0) + 
                            (this.data.shift3_count || 0);
@@ -285,7 +285,7 @@ export default {
     },
     
     getShiftPercentage(shiftNumber) {
-      const maxSeats = this.data.max_seats || 73;
+      const maxSeats = this.data.max_seats || 0;
       let currentCount = 0;
       
       switch(shiftNumber) {
@@ -307,7 +307,7 @@ export default {
     
     getAvailabilityText(shiftNumber) {
       const percentage = this.getShiftPercentage(shiftNumber);
-      const maxSeats = this.data.max_seats || 73;
+      const maxSeats = this.data.max_seats || 0;
       let currentCount = 0;
       
       switch(shiftNumber) {
