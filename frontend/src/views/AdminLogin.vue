@@ -152,10 +152,10 @@ export default {
       } catch (err) {
         if (err.response) {
           this.error = err.response.data.detail || 'Invalid username or password';
-          this.showError(this.error);
+          // this.showError(this.error);
         } else {
           this.error = 'Network error. Please check your connection.';
-          this.showError('Connection failed. Please try again.');
+          // this.showError('Connection failed. Please try again.');
         }
       } finally {
         this.loading = false;

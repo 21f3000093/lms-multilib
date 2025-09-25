@@ -19,7 +19,7 @@ def login(
         raise HTTPException(status_code=401, detail="invalid_credentials")
 
     if admin.status != "active": # type: ignore
-        raise HTTPException(status_code=403, detail="Your account is inactive or blocked")
+        raise HTTPException(status_code=403, detail="Your account is inactive")
 
     access_token = Authorize.create_access_token(subject=admin.username) # type: ignore
     Authorize.set_access_cookies(access_token)

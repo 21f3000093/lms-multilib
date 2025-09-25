@@ -165,7 +165,7 @@
               <svg class="dropdown-icon" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10s10-4.48,10-10S17.52,2,12,2z M13,19h-2v-2h2V19z M15.07,11.25l-0.9,0.92 C13.45,12.9,13,13.5,13,15h-2v-0.5c0-1.1,0.45-2.1,1.17-2.83l1.24-1.26c0.37-0.36,0.59-0.86,0.59-1.41c0-1.1-0.9-2-2-2 s-2,0.9-2,2H8c0-2.21,1.79-4,4-4s4,1.79,4,4C16,9.89,15.64,10.68,15.07,11.25z"/>
               </svg>
-              Help Center
+              About
             </a>
             
             <div class="dropdown-divider"></div>
@@ -317,6 +317,7 @@ export default {
     helpCenter() {
       console.log('Help Center clicked')
       this.dropdownOpen = false
+      this.$router.push('/about')
     },
     
     PricingPlans() {
