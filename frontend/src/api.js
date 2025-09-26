@@ -30,7 +30,7 @@ const showErrorToast = (message, timeout = 5000) => {
   });
 };
 
-const showWarningToast = (message, timeout = 4000) => {
+const showWarningToast = (message, timeout = 3000) => {
   toast.warning(message, {
     position: 'top',
     timeout,
@@ -69,15 +69,15 @@ API.interceptors.response.use(
       const detail = error.response.data?.detail;
 
       if (status === 403) {
-        showErrorToast('⛌ Your account is inactive.Please contact the Admin for more details.', 5000);
+        showErrorToast('Your account is inactive.Please contact the Admin for more details.', 5000);
       } 
       else if (status === 401) {
         if (detail === 'invalid_credentials') {
-          showErrorToast('⛌ Invalid username or password.');
+          showErrorToast('Invalid username or password.');
         } else if (detail === 'token_expired_or_invalid') {
-          showWarningToast('🔐 Your session has expired. Please log in again.');
+          showWarningToast('Your session has expired. Please log in again.');
         } else {
-          showErrorToast('🔒 Unauthorized access.');
+          showErrorToast('Unauthorized access.');
         }
       }
 
@@ -91,7 +91,7 @@ API.interceptors.response.use(
         // window.location.href = '/login';
         setTimeout(() => {
           window.location.href = '/login';
-        }, 3000);
+        }, 2000);
       }
     }
 
