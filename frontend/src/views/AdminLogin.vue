@@ -64,6 +64,18 @@
         </form>
       </div>
     </div>
+    <!-- Footer -->
+    <div class="footer-section">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <!-- <div class="logo-icon">📚</div> -->
+          <span class="logo-text">Smart Library App</span>
+        </div>
+        <p class="footer-text">
+          © 2025 Smart Library App. All rights reserved. Empowering library networks across the India.
+        </p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -179,9 +191,12 @@ export default {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   align-items: center;
-  justify-content: center;
+  /* justify-content: center; */
   padding: 20px;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  display: flex;
+  flex-direction: column;  
+  padding-top: 12rem;
 }
 
 .login-container {
@@ -356,10 +371,51 @@ export default {
   font-weight: 500;
 }
 
+/* Footer */
+.footer-section {
+  padding: 40px 20px;
+  background: rgba(0, 0, 0, 0.2);
+  color: white;
+  width: 100%;
+  position: absolute;
+  bottom: 0%;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.logo-icon {
+  font-size: 1.5rem;
+}
+
+.logo-text {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.footer-text {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin: 0;
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .login-page {
     padding: 16px;
+    padding-top: 12rem;
+    
   }
   
   .app-title {
@@ -391,6 +447,7 @@ export default {
   .login-container {
     max-width: 100%;
   }
+
   
   .app-title {
     font-size: 1.6rem;
