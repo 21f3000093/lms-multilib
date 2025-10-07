@@ -151,6 +151,9 @@
                   <!-- <span class="btn-icon">🗑️</span> -->
                   <span class="btn-text">Delete</span>
                 </button>
+                <button @click="viewReceipt(payment)" class="action-btn receipt-btn" :disabled="!payment.paid">
+                  <span class="btn-text">Receipt</span>
+                </button>
               </div>
             </td>
           </tr>
@@ -211,6 +214,9 @@
               <!-- <span class="btn-icon">🗑️</span> -->
               <span class="btn-text">Delete</span>
             </button>
+            <button @click="viewReceipt(payment)" class="action-btn receipt-btn mobile" :disabled="!payment.paid">
+              <span class="btn-text">Receipt</span>
+            </button>
           </div>
         </div>
       </div>
@@ -247,6 +253,8 @@ import API from '../api';
 import { useToast } from 'vue-toast-notification';
 import 'vue-toast-notification/dist/theme-sugar.css';
 import ConfirmationModal from './ConfirmationModal.vue';
+
+
 
 export default {
   components: {
@@ -468,7 +476,16 @@ export default {
 
     formatAmount(amount) {
       return amount.toLocaleString('en-IN');
+    },
+
+    viewReceipt(payment) {
+      if (!payment.paid) {
+        this.showError('❌ Payment not marked as paid yet');
+        return;
+      }
+      this.$router.push(`/receipts/${payment.id}`);
     }
+
   }
 };
 </script>
@@ -923,6 +940,21 @@ thead{
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
+
+.action-btn.receipt-btn {
+  background-color: #10b981;
+  color: white;
+}
+
+.action-btn.receipt-btn:disabled {
+  background-color: #cbd5e0;
+  cursor: not-allowed;
+}
+
+.action-btn.receipt-btn:hover:not(:disabled) {
+  background-color: #059669;
+}
+
 
 /* Mobile View */
 .mobile-view {

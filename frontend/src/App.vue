@@ -89,6 +89,16 @@ body, html, #app {
   color: #2c3e50;
 }
 
+@media print {
+  nav,
+  .navbar,
+  header,
+  .nav,
+  .no-print {
+    display: none !important;
+  }
+}
+
 
 
 /* Mobile responsive */

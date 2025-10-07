@@ -17,6 +17,7 @@ import ChangePassword from '@/components/ChangePassword.vue'
 import MonthlyExpenses from '@/components/MonthlyExpenses.vue'
 import PricingPlans from '@/components/PricingPlans.vue'
 import AboutView from '@/views/AboutView.vue'
+import ReceiptPage from '@/components/ReceiptPage.vue'
 
 
 
@@ -61,7 +62,12 @@ const routes = [
     component: PricingPlans,
     meta: { requiresAuth: false } // If you have auth guards
   },
-
+  {
+    path: '/receipts/:paymentId',
+    name: 'ReceiptPage',
+    component: ReceiptPage,
+    meta: { requiresAuth: true }
+  },
 ]
 
 const router = createRouter({

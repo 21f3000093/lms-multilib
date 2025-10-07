@@ -235,3 +235,21 @@ def delete_monthly_expense(
     if not success:
         raise HTTPException(status_code=404, detail="Expense not found")
     return None  # Or just use `pass`, since 204 = No Content
+
+# Add to main.py or your payments router
+
+@app.get("/monthly-payments/single/{payment_id}", response_model=schemas.MonthlyPaymentOut)
+def get_single_payment(
+    payment_id: int,
+    db: Session = Depends(get_db),
+    current_admin: models.Admin = Depends(get_current_admin)
+):
+    payment = db.query(models.MonthlyPayment)\
+        .filter(models.MonthlyPayment.id == payment_id)\
+        .filter(models.MonthlyPayment.library_id == current_admin.library_id)\
+        .first()
+    
+    if not payment:
+        raise HTTPException(status_code=404, detail="Payment record not found")
+    
+    return payment
