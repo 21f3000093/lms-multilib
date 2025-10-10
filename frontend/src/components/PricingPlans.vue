@@ -239,7 +239,7 @@ const plans = [
     price: 8.1,
     duration: "Per seat / per month (billed half-yearly)",
     multiplier: 6,
-    extraMonth: 2,
+    extraMonth: 1,
     discount: 10,
     icon: "🚀",
     badge: "MOST POPULAR",
