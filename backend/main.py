@@ -35,8 +35,6 @@ class Settings(BaseModel):
     authjwt_cookie_secure: bool = True
     # authjwt_cookie_samesite: str = "lax"   # ✅ allow cross-origin GETs
     # authjwt_cookie_domain: str = "localhost"  # ✅ important for matching frontend
-    authjwt_cookie_domain: str = ".smartlibraryapp.in"  # 👈 IMPORTANT
-    authjwt_cookie_path: str = "/"                     # 👈 IMPORTANT
     
 
 @AuthJWT.load_config # type:ignore
