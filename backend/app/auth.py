@@ -22,7 +22,7 @@ def login(
         raise HTTPException(status_code=403, detail="Your account is inactive")
 
     access_token = Authorize.create_access_token(subject=admin.username) # type: ignore
-    Authorize.set_access_cookies(access_token)
+    Authorize.set_access_cookies(access_token, max_age=60*60*24*7)  # 7 days
     
     # ✅ Eagerly load the related library for response
     db.refresh(admin)  # This ensures `admin.library` is populated
