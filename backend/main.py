@@ -29,12 +29,12 @@ class Settings(BaseModel):
     authjwt_secret_key: str = os.getenv("JWT_SECRET_KEY") # type: ignore
     authjwt_token_location: set = {"cookies"}  # <- Important!
     authjwt_cookie_csrf_protect: bool = False  # Optional
-    authjwt_access_token_expires: int = 60 * 60 * 24  # 24 hours
-    authjwt_cookie_max_age: int = 60 * 60 * 24
-    authjwt_cookie_samesite: str = "none"
+    authjwt_access_token_expires: int = 60 * 60 * 24 * 7  # 7 days
+    authjwt_cookie_max_age: int = 60 * 60 * 24 * 7  # 7 days
+    authjwt_cookie_samesite: str = "lax"   # allow cross-origin GETs
     authjwt_cookie_secure: bool = True
-    # authjwt_cookie_samesite: str = "lax"   # ✅ allow cross-origin GETs
-    # authjwt_cookie_domain: str = "localhost"  # ✅ important for matching frontend
+    # authjwt_cookie_samesite: str = "none"   #  allow cross-origin GETs
+    authjwt_cookie_domain: str = ".smartlibraryapp.in"  # important for matching frontend
     
 
 @AuthJWT.load_config # type:ignore
