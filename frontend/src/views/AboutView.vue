@@ -90,8 +90,7 @@
     </div>
 
     <!-- Technology Section -->
-
-    <!-- <div class="technology-section">
+    <div class="technology-section">
       <div class="section-header">
         <h2 class="section-title">Built With Modern Technology</h2>
         <p class="section-subtitle">Reliable, fast, and secure technology stack</p>
@@ -122,8 +121,7 @@
           <p class="tech-description">Works seamlessly on desktop, tablet, and mobile devices</p>
         </div>
       </div>
-    </div> 
-     -->
+    </div>
 
     <!-- Benefits Section -->
     <div class="benefits-section">
@@ -196,7 +194,6 @@
             <div class="contact-details">
               <h4>Email Support</h4>
               <p>shubham.libraryapp@gmail.com</p>
-              <a href="mailto:shubham.libraryapp@gmail.com">Email Us</a>
             </div>
           </div>
 
@@ -205,7 +202,6 @@
             <div class="contact-details">
               <h4>Phone Support</h4>
               <p>+91 9024600138</p>
-              <a href="tel:+919024600138">Call Us</a>
             </div>
           </div>
 
