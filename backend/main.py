@@ -31,9 +31,9 @@ class Settings(BaseModel):
     authjwt_cookie_csrf_protect: bool = False  # Optional
     authjwt_access_token_expires: int = 60 * 60 * 24  # 24 hours
     authjwt_cookie_max_age: int = 60 * 60 * 24
-    # authjwt_cookie_samesite: str = "none"
+    authjwt_cookie_samesite: str = "none"
     authjwt_cookie_secure: bool = True
-    authjwt_cookie_samesite: str = "lax"   # ✅ allow cross-origin GETs
+    # authjwt_cookie_samesite: str = "lax"   # ✅ allow cross-origin GETs
     # authjwt_cookie_domain: str = ".smartlibraryapp.in"  # ✅ important for matching frontend
     
 
