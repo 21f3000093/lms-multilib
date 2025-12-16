@@ -140,6 +140,19 @@ export default {
         return;
       }
 
+      // ✅ FORCE UNREGISTER OLD SERVICE WORKERS AND CLEAR CACHES
+
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (let registration of registrations) {
+          await registration.unregister();
+        }
+        
+        // Clear all caches
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(name => caches.delete(name)));
+      }
+
       this.loading = true;
       try {
         const res = await API.post('/auth/login', {
