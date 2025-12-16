@@ -88,7 +88,36 @@ module.exports = defineConfig({
     workboxPluginMode: 'GenerateSW',
     workboxOptions: {
       skipWaiting: true,
-      clientsClaim: true
+      clientsClaim: true,
+
+      // ✅ SIMPLE: Just exclude all API calls to your backend
+    runtimeCaching: [
+      {
+        // Match ALL requests to your backend API
+        urlPattern: /^https:\/\/lms-multilib-production\.up\.railway\.app\/.*/,
+        handler: 'NetworkOnly', // Never cache, always fetch fresh
+      },
+      {
+        // Cache images for offline use
+        urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/,
+        handler: 'CacheFirst',
+        options: {
+          cacheName: 'image-cache',
+          expiration: {
+            maxEntries: 50,
+            maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+          },
+        },
+      },
+      {
+        // Cache CSS and JS files with network fallback
+        urlPattern: /\.(?:js|css)$/,
+        handler: 'StaleWhileRevalidate',
+        options: {
+          cacheName: 'static-resources',
+        },
+      },
+    ],
     }
   }
 })
