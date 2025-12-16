@@ -81,18 +81,31 @@ API.interceptors.response.use(
         }
       }
 
-      if ([401, 403, 422].includes(status)) {
-        localStorage.removeItem('admin');
-        localStorage.removeItem('is_admin_logged_in');
+      // if ([401, 403, 422].includes(status)) {
+      //   localStorage.removeItem('admin');
+      //   localStorage.removeItem('is_admin_logged_in');
+      //   localStorage.removeItem('role');
+      //   localStorage.removeItem('username');
+      //   localStorage.removeItem('library_id');
+      //   localStorage.removeItem('library_name');
+      //   // window.location.href = '/login';
+      //   setTimeout(() => {
+      //     window.location.href = '/login';
+      //   }, 2000);
+      // }
+
+      // Only force logout on explicit token error or 403
+      if (status === 403 || (status === 401 && detail === 'token_expired_or_invalid')) {
         localStorage.removeItem('role');
         localStorage.removeItem('username');
         localStorage.removeItem('library_id');
         localStorage.removeItem('library_name');
-        // window.location.href = '/login';
+
         setTimeout(() => {
           window.location.href = '/login';
         }, 2000);
       }
+
     }
 
     return Promise.reject(error);
