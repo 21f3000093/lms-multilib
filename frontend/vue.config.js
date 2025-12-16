@@ -14,17 +14,16 @@ module.exports = defineConfig({
     })
   },
 
-  // ✅ Full PWA configuration
+  // ✅ PWA configuration
   pwa: {
-    // high-level settings
     name: 'Smart Library App',
     themeColor: '#3f51b5',
     msTileColor: '#ffffff',
 
-    // optional: if you want the manifest to be /manifest.json instead of /manifest.webmanifest
+    // optional: manifest path
     manifestPath: 'manifest.json',
 
-    // 👇 all the fields from your manifest.json go here
+    // manifest.json fields
     manifestOptions: {
       name: 'Smart Library App',
       short_name: 'Smart Library',
@@ -65,7 +64,7 @@ module.exports = defineConfig({
           type: 'image/png'
         },
         {
-          purpose: 'maskable',
+          purpose: 'any',
           sizes: '192x192',
           src: 'img/icons/maskable_icon_x192.png',
           type: 'image/png'
@@ -77,7 +76,7 @@ module.exports = defineConfig({
           type: 'image/png'
         },
         {
-          purpose: 'maskable',
+          purpose: 'any',
           sizes: '512x512',
           src: 'img/icons/maskable_icon_x512.png',
           type: 'image/png'
@@ -90,34 +89,36 @@ module.exports = defineConfig({
       skipWaiting: true,
       clientsClaim: true,
 
-      // ✅ SIMPLE: Just exclude all API calls to your backend
-    runtimeCaching: [
-      {
-        // Match ALL requests to your backend API
-        urlPattern: /^https:\/\/lms-multilib-production\.up\.railway\.app\/.*/,
-        handler: 'NetworkOnly', // Never cache, always fetch fresh
-      },
-      {
-        // Cache images for offline use
-        urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/,
-        handler: 'CacheFirst',
-        options: {
-          cacheName: 'image-cache',
-          expiration: {
-            maxEntries: 50,
-            maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
-          },
+      // change this version string on important deployments
+      cacheId: 'smart-library-v2',
+
+      runtimeCaching: [
+        {
+          // 🚫 Never cache API calls to Railway backend
+          urlPattern: /^https:\/\/lms-multilib-production\.up\.railway\.app\/.*/,
+          handler: 'NetworkOnly'
         },
-      },
-      {
-        // Cache CSS and JS files with network fallback
-        urlPattern: /\.(?:js|css)$/,
-        handler: 'StaleWhileRevalidate',
-        options: {
-          cacheName: 'static-resources',
+        {
+          // Cache images for offline use
+          urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/,
+          handler: 'CacheFirst',
+          options: {
+            cacheName: 'image-cache-v2',
+            expiration: {
+              maxEntries: 50,
+              maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
+            }
+          }
         },
-      },
-    ],
+        {
+          // Cache JS and CSS with stale‑while‑revalidate
+          urlPattern: /\.(?:js|css)$/,
+          handler: 'StaleWhileRevalidate',
+          options: {
+            cacheName: 'static-resources-v2'
+          }
+        }
+      ]
     }
   }
 })
