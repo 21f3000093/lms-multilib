@@ -1,7 +1,7 @@
 # crud.py
 from sqlalchemy.orm import Session , joinedload 
 from app import models, schemas
-# from fastapi import HTTPException
+from fastapi import HTTPException
 from sqlalchemy import func 
 from datetime import date , datetime
 from app.models import Student ,MonthlyPayment 
@@ -45,18 +45,18 @@ def create_student(db: Session, student: schemas.StudentCreate):
     # Fetch the selected seat
     seat = db.query(models.Seat).filter(models.Seat.id == student.seat_id).first()
     if not seat:
-        raise Exception("Selected seat does not exist.")
+        raise HTTPException(status_code=400, detail="Selected seat does not exist.")
 
     if seat.library_id != student.library_id: # type: ignore
-        raise Exception("Seat does not belong to the specified library.")
+        raise HTTPException(status_code=400, detail="Seat does not belong to the specified library.")
 
     # Check availability of that seat for selected shifts
     if student.shift1 and seat.shift1_student_id is not None:
-        raise Exception("Selected seat is already booked in Shift 1.")
+        raise HTTPException(status_code=400, detail="Selected seat is already booked in Shift 1.")
     if student.shift2 and seat.shift2_student_id is not None:
-        raise Exception("Selected seat is already booked in Shift 2.")
+        raise HTTPException(status_code=400, detail="Selected seat is already booked in Shift 2.")
     if student.shift3 and seat.shift3_student_id is not None:
-        raise Exception("Selected seat is already booked in Shift 3.")
+        raise HTTPException(status_code=400, detail="Selected seat is already booked in Shift 3.")
 
     # Calculate fee
     # if student.custom_fees is not None:
@@ -132,6 +132,26 @@ def update_student(db: Session, student_id: int, updated_data: schemas.StudentCr
     if not student:
         return None
 
+    # Validate seat and shift availability before mutating student
+    if updated_data.seat_id is None:
+        if updated_data.shift1 or updated_data.shift2 or updated_data.shift3:
+            raise HTTPException(status_code=400, detail="Seat is required when any shift is selected.")
+        seat = None
+    else:
+        seat = db.query(models.Seat).filter(
+            models.Seat.id == updated_data.seat_id,
+            models.Seat.library_id == student.library_id,
+        ).first()
+        if not seat:
+            raise HTTPException(status_code=400, detail="Selected seat does not exist.")
+
+        if updated_data.shift1 and seat.shift1_student_id not in (None, student.id): # type: ignore
+            raise HTTPException(status_code=400, detail="Selected seat is already booked in Shift 1.")
+        if updated_data.shift2 and seat.shift2_student_id not in (None, student.id): # type: ignore
+            raise HTTPException(status_code=400, detail="Selected seat is already booked in Shift 2.")
+        if updated_data.shift3 and seat.shift3_student_id not in (None, student.id): # type: ignore
+            raise HTTPException(status_code=400, detail="Selected seat is already booked in Shift 3.")
+
     for field, value in updated_data.dict().items():
         setattr(student, field, value)
 
@@ -139,23 +159,19 @@ def update_student(db: Session, student_id: int, updated_data: schemas.StudentCr
     db.refresh(student)
     
     # Update seats table scoped to this library only
-    seat = db.query(models.Seat).filter(
-        models.Seat.id == student.seat_id,
-        models.Seat.library_id == student.library_id,
-    ).first()
-    if seat:
-        # Clear old entries for this student within this library only
-        seats_for_library = db.query(models.Seat).filter(
-            models.Seat.library_id == student.library_id
-        ).all()
-        for s in seats_for_library:
-            if s.shift1_student_id == student.id: # type: ignore
-                s.shift1_student_id = None # type: ignore
-            if s.shift2_student_id == student.id: # type: ignore
-                s.shift2_student_id = None # type: ignore
-            if s.shift3_student_id == student.id: # type: ignore
-                s.shift3_student_id = None # type: ignore
+    # Clear old entries for this student within this library only
+    seats_for_library = db.query(models.Seat).filter(
+        models.Seat.library_id == student.library_id
+    ).all()
+    for s in seats_for_library:
+        if s.shift1_student_id == student.id: # type: ignore
+            s.shift1_student_id = None # type: ignore
+        if s.shift2_student_id == student.id: # type: ignore
+            s.shift2_student_id = None # type: ignore
+        if s.shift3_student_id == student.id: # type: ignore
+            s.shift3_student_id = None # type: ignore
 
+    if seat:
         # Set new values based on shifts
         if student.shift1: # type: ignore
             seat.shift1_student_id = student.id
@@ -163,10 +179,8 @@ def update_student(db: Session, student_id: int, updated_data: schemas.StudentCr
             seat.shift2_student_id = student.id
         if student.shift3: # type: ignore
             seat.shift3_student_id = student.id
-            
-        db.commit()
-    else:
-        raise Exception("Selected seat does not exist.")    
+
+    db.commit()
 
     
     return student

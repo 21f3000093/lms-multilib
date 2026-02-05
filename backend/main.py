@@ -29,6 +29,8 @@ class Settings(BaseModel):
     authjwt_secret_key: str = os.getenv("JWT_SECRET_KEY") # type: ignore
     authjwt_token_location: set = {"cookies"}  # <- Important!
     authjwt_cookie_csrf_protect: bool = True  # Enable CSRF protection for cookie auth
+    authjwt_csrf_methods: set = {"POST", "PUT", "PATCH", "DELETE"}
+    authjwt_csrf_header_name: str = "X-CSRF-Token"
     authjwt_access_token_expires: int = 60 * 60 * 24  # 24 hours
     authjwt_cookie_max_age: int = 60 * 60 * 24
     authjwt_cookie_samesite: str = "none"
@@ -193,6 +195,8 @@ def update_student(
     ).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
+    # Enforce tenant scoping on update payload
+    updated_data.library_id = admin.library_id
     student = crud.update_student(db, student_id, updated_data)
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
