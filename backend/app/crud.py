@@ -138,11 +138,17 @@ def update_student(db: Session, student_id: int, updated_data: schemas.StudentCr
     db.commit()
     db.refresh(student)
     
-        # Update seats table
-    seat = db.query(models.Seat).filter(models.Seat.id == student.seat_id).first()
+    # Update seats table scoped to this library only
+    seat = db.query(models.Seat).filter(
+        models.Seat.id == student.seat_id,
+        models.Seat.library_id == student.library_id,
+    ).first()
     if seat:
-        # Clear old entries for this student
-        for s in db.query(models.Seat).all():
+        # Clear old entries for this student within this library only
+        seats_for_library = db.query(models.Seat).filter(
+            models.Seat.library_id == student.library_id
+        ).all()
+        for s in seats_for_library:
             if s.shift1_student_id == student.id: # type: ignore
                 s.shift1_student_id = None # type: ignore
             if s.shift2_student_id == student.id: # type: ignore
@@ -152,9 +158,9 @@ def update_student(db: Session, student_id: int, updated_data: schemas.StudentCr
 
         # Set new values based on shifts
         if student.shift1: # type: ignore
-            seat.shift1_student_id = student.id 
+            seat.shift1_student_id = student.id
         if student.shift2: # type: ignore
-            seat.shift2_student_id = student.id 
+            seat.shift2_student_id = student.id
         if student.shift3: # type: ignore
             seat.shift3_student_id = student.id
             
@@ -459,7 +465,7 @@ def init_library(db: Session , name: str, address: str, contact_email: str, cont
     db.add(new_library)
     
     for seat_number in range(1, max_seats + 1):
-        seat = models.Seat(seat_number=seat_number, library_id=1)
+        seat = models.Seat(seat_number=seat_number, library_id=new_library.id)
         db.add(seat)
         
     db.commit()
