@@ -463,6 +463,7 @@ def create_admin(db: Session, username: str, password: str, role: str = "admin",
 def init_library(db: Session , name: str, address: str, contact_email: str, contact_phone: str, max_seats: int): # type: ignore
     new_library = models.Library(name=name, address=address, contact_email=contact_email, contact_phone=contact_phone, max_seats=max_seats)
     db.add(new_library)
+    db.flush()  # ensure new_library.id is available before creating seats
     
     for seat_number in range(1, max_seats + 1):
         seat = models.Seat(seat_number=seat_number, library_id=new_library.id)

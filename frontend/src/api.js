@@ -53,10 +53,29 @@ const showWarningToast = (message, timeout = 3000) => {
 };
 
 const API = axios.create({
-  baseURL: 'https://lms-multilib-production.up.railway.app',
-  // baseURL: 'http://localhost:8000',
+  // baseURL: 'https://lms-multilib-production.up.railway.app',
+  baseURL: 'http://localhost:8000',
   withCredentials: true,  // 🔒 Send secure HttpOnly cookie with every request
 });
+
+const getCookie = (name) => {
+  const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+  return match ? decodeURIComponent(match[2]) : null;
+};
+
+API.interceptors.request.use(
+  config => {
+    const method = (config.method || 'get').toLowerCase();
+    if (['post', 'put', 'patch', 'delete'].includes(method)) {
+      const csrfToken = getCookie('csrf_access_token');
+      if (csrfToken) {
+        config.headers['X-CSRF-Token'] = csrfToken;
+      }
+    }
+    return config;
+  },
+  error => Promise.reject(error)
+);
 
 
 
