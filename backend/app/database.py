@@ -6,21 +6,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+DATABASE_URL = os.getenv("DATABASE_URL")
+if DATABASE_URL is None:
+    raise ValueError("DATABASE_URL is not set in .env")
 
-def _resolve_database_url() -> str:
-    # Prefer DATABASE_URL; fallback to SQLALCHEMY_DATABASE_URL for compatibility.
-    raw = os.getenv("DATABASE_URL") or os.getenv("SQLALCHEMY_DATABASE_URL")
-    if not raw:
-        raise ValueError("DATABASE_URL or SQLALCHEMY_DATABASE_URL must be set")
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 
-    url = raw.strip().strip('"').strip("'")
-    # Some providers expose postgres://; SQLAlchemy prefers postgresql://
-    if url.startswith("postgres://"):
-        url = url.replace("postgres://", "postgresql://", 1)
-    return url
+# SQLALCHEMY_DATABASE_URL = "sqlite:///./library.db"
 
-
-SQLALCHEMY_DATABASE_URL = _resolve_database_url()
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(SQLALCHEMY_DATABASE_URL) # type: ignore
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
