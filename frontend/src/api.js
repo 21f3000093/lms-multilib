@@ -52,10 +52,14 @@ const showWarningToast = (message, timeout = 3000) => {
   });
 };
 
+const API_BASE_URL =
+  process.env.VUE_APP_API_BASE_URL ||
+  (process.env.NODE_ENV === 'production'
+    ? 'https://lms-multilib-production-abc6.up.railway.app'
+    : 'http://localhost:8000');
+
 const API = axios.create({
-  baseURL: 'https://lms-multilib-production-abc6.up.railway.app/', // Testing URL
-  // baseURL: 'https://lms-multilib-production.up.railway.app', //# Production URL
-  // baseURL: 'http://localhost:8000',
+  baseURL: API_BASE_URL,
   withCredentials: true,  // 🔒 Send secure HttpOnly cookie with every request
 });
 

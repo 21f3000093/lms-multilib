@@ -90,7 +90,7 @@ module.exports = defineConfig({
       clientsClaim: true,
 
       // change this version string on important deployments
-      cacheId: 'smart-library-v2',
+      cacheId: 'smart-library-v3',
 
       runtimeCaching: [
         {
