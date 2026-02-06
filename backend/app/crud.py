@@ -194,6 +194,7 @@ def mark_student_as_left(db: Session, student_id: int):
     # Mark status as 'left'
     student.status = "left" # type: ignore
     student.seat_id = None # type: ignore
+    student.date_of_dropout = date.today() # type: ignore
     
     # Clear seat assignments in all 3 shifts
     seats = db.query(models.Seat).filter(

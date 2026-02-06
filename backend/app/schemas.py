@@ -11,6 +11,7 @@ class StudentCreate(BaseModel):
     shift3: bool = False
     paid: bool = False
     date_of_joining: Optional[date] = None
+    date_of_dropout: Optional[date] = None
     custom_fees: Optional[int] = None  # ✅ new field
     total_fee: Optional[int] = None
     status: Optional[str] = "active"

@@ -80,6 +80,7 @@ class Student(Base):
     paid = Column(Boolean, default=False)
     custom_fees = Column(Integer, nullable=True)
     date_of_joining = Column(Date, default=date.today,index=True)
+    date_of_dropout = Column(Date, nullable=True)
     status = Column(String, default="active",index=True)
 
     library_id = Column(Integer, ForeignKey("libraries.id", ondelete="CASCADE"), nullable=False,index=True)
