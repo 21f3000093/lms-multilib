@@ -53,7 +53,7 @@ const showWarningToast = (message, timeout = 3000) => {
 };
 
 const API = axios.create({
-  baseURL: 'https://lms-multilib-production-373e.up.railway.app', // Testing URL
+  baseURL: 'https://lms-multilib-production-abc6.up.railway.app/', // Testing URL
   // baseURL: 'https://lms-multilib-production.up.railway.app', //# Production URL
   // baseURL: 'http://localhost:8000',
   withCredentials: true,  // 🔒 Send secure HttpOnly cookie with every request
