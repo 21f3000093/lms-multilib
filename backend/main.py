@@ -14,12 +14,11 @@ from app.dependencies import get_db , get_current_admin
 
 
 import os
+import logging
 from dotenv import load_dotenv
 
 load_dotenv()
-
-
-models.Base.metadata.create_all(bind=engine)
+logger = logging.getLogger(__name__)
 
 
 
@@ -52,14 +51,15 @@ app.include_router(seats.router)
 app.include_router(superadmin.superadmin_router)
 app.include_router(whatsapp_reminder.router)
 
-origins=os.getenv("ALLOWED_ORIGINS") # type: ignore
+allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "")
+allowed_origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
+if not allowed_origins:
+    allowed_origins = ["http://localhost:8080", "https://lms-multilib.vercel.app"]
 
 # CORS config
 app.add_middleware(
     CORSMiddleware,
-    # allow_origins=[origins],  # Change to frontend URL in production # type: ignore
-    # allow_origins=["http://localhost:8080"],  # Change to frontend URL in production 
-    allow_origins=["http://localhost:8080","https://lms-multilib.vercel.app"],  # lms-multilib.vercel.app Change to frontend URL in production 
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -74,31 +74,31 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 @app.on_event("startup")
 def startup_create_admin():
     db: Session = SessionLocal()
-    
-    # crud.init_library(db, name="Library", address="Address", contact_email="email", contact_phone="9090909090", max_seats=20)
-        
-    superadmin_username = os.getenv("SUPERADMIN_USERNAME")
-    superadmin_password = os.getenv("SUPERADMIN_PASSWORD")
-    
-    if not superadmin_username or not superadmin_password:
-        raise ValueError("SUPERADMIN_USERNAME and SUPERADMIN_PASSWORD must be set in .env")
+    try:
+        superadmin_username = os.getenv("SUPERADMIN_USERNAME")
+        superadmin_password = os.getenv("SUPERADMIN_PASSWORD")
 
-    existing_admin = crud.get_admin_by_username(db, superadmin_username) # type: ignore
-    if not existing_admin:
-        print("Creating default admin user...")
-        library = crud.init_library(
-            db,
-            name="SuperAdmin Library",
-            address="Address",
-            contact_email="shubhamnagar68819@gmail.com",
-            contact_phone="9024600138",
-            max_seats=10
-        )
+        # Do not crash app boot if bootstrap credentials are intentionally unset.
+        if not superadmin_username or not superadmin_password:
+            logger.warning("Skipping superadmin bootstrap: SUPERADMIN_USERNAME/SUPERADMIN_PASSWORD not set")
+            return
 
-        hashed_password1 = pwd_context.hash(superadmin_password) # type: ignore
-        crud.create_admin(db, username=superadmin_username, password=hashed_password1, role="superadmin") # type: ignore
-        # Do not auto-create a default weak admin account in production
-    db.close()
+        existing_admin = crud.get_admin_by_username(db, superadmin_username) # type: ignore
+        if not existing_admin:
+            logger.info("Creating default superadmin user")
+            crud.init_library(
+                db,
+                name="SuperAdmin Library",
+                address="Address",
+                contact_email="shubhamnagar68819@gmail.com",
+                contact_phone="9024600138",
+                max_seats=10
+            )
+
+            hashed_password1 = pwd_context.hash(superadmin_password) # type: ignore
+            crud.create_admin(db, username=superadmin_username, password=hashed_password1, role="superadmin") # type: ignore
+    finally:
+        db.close()
 
 
 
