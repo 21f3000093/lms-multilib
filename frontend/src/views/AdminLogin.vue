@@ -165,6 +165,7 @@ export default {
         localStorage.setItem('username', res.data.username);
         localStorage.setItem('library_id', res.data.library_id ?? ''); 
         localStorage.setItem('library_name', res.data.library?.name || '');
+        localStorage.setItem('csrf_token', res.data.csrf_token || '');
 
         this.showSuccess('✅ Login successful!');
 

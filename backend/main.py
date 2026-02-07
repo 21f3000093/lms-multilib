@@ -58,8 +58,8 @@ origins=os.getenv("ALLOWED_ORIGINS") # type: ignore
 app.add_middleware(
     CORSMiddleware,
     # allow_origins=[origins],  # Change to frontend URL in production # type: ignore
-    # allow_origins=["http://localhost:8080"],  # Change to frontend URL in production
-    allow_origins=["http://localhost:8080","https://lms-multilib.vercel.app"],  # Change to frontend URL in production 
+    # allow_origins=["http://localhost:8080"],  # Change to frontend URL in production 
+    allow_origins=["http://localhost:8080","https://lms-multilib.vercel.app"],  # lms-multilib.vercel.app Change to frontend URL in production 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

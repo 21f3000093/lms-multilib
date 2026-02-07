@@ -77,7 +77,7 @@ API.interceptors.request.use(
   config => {
     const method = (config.method || 'get').toLowerCase();
     if (['post', 'put', 'patch', 'delete'].includes(method)) {
-      const csrfToken = getCookie('csrf_access_token');
+      const csrfToken = localStorage.getItem('csrf_token') || getCookie('csrf_access_token');
       if (csrfToken) {
         config.headers['X-CSRF-Token'] = csrfToken;
       }
@@ -129,6 +129,7 @@ API.interceptors.response.use(
         localStorage.removeItem('username');
         localStorage.removeItem('library_id');
         localStorage.removeItem('library_name');
+        localStorage.removeItem('csrf_token');
 
         setTimeout(() => {
           window.location.href = '/login';

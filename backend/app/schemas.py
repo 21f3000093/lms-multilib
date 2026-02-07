@@ -110,6 +110,10 @@ class AdminOut(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class AdminLoginOut(AdminOut):
+    csrf_token: str
         
         
 class AdminChangePassword(BaseModel):

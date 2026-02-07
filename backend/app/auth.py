@@ -8,7 +8,7 @@ from app.dependencies import get_db, get_current_admin
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
-@router.post("/login", response_model=schemas.AdminOut)
+@router.post("/login", response_model=schemas.AdminLoginOut)
 def login(
     data: schemas.AdminLogin,
     db: Session = Depends(get_db),
@@ -27,7 +27,17 @@ def login(
     # ✅ Eagerly load the related library for response
     db.refresh(admin)  # This ensures `admin.library` is populated
 
-    return admin
+    csrf_token = Authorize.get_csrf_token(access_token)
+    return {
+        "id": admin.id,
+        "username": admin.username,
+        "role": admin.role,
+        "library_id": admin.library_id,
+        "status": admin.status,
+        "created_at": admin.created_at,
+        "library": admin.library,
+        "csrf_token": csrf_token,
+    }
 
 
 
@@ -66,5 +76,4 @@ def change_password(
         raise HTTPException(status_code=400, detail="Current password is incorrect")
     
     return {"message": "Password changed successfully"}
-
 
