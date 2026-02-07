@@ -5,6 +5,7 @@ from fastapi_jwt_auth import AuthJWT
 from sqlalchemy.orm import Session
 from . import schemas, crud
 from app.dependencies import get_db, get_current_admin
+from typing import Any, cast
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -27,7 +28,7 @@ def login(
     # ✅ Eagerly load the related library for response
     db.refresh(admin)  # This ensures `admin.library` is populated
 
-    csrf_token = Authorize.get_csrf_token(access_token)
+    csrf_token = cast(Any, Authorize).get_csrf_token(access_token)
     return {
         "id": admin.id,
         "username": admin.username,
@@ -76,4 +77,3 @@ def change_password(
         raise HTTPException(status_code=400, detail="Current password is incorrect")
     
     return {"message": "Password changed successfully"}
-
