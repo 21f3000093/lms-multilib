@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 class Settings(BaseModel):
     authjwt_secret_key: str = os.getenv("JWT_SECRET_KEY") # type: ignore
     authjwt_token_location: set = {"cookies"}  # <- Important!
-    authjwt_cookie_csrf_protect: bool = True  # Enable CSRF protection for cookie auth
+    authjwt_cookie_csrf_protect: bool = False  # Enable CSRF protection for cookie auth
     authjwt_csrf_methods: set = {"POST", "PUT", "PATCH", "DELETE"}
     authjwt_csrf_header_name: str = "X-CSRF-Token"
     authjwt_access_token_expires: int = 60 * 60 * 24  # 24 hours
@@ -51,10 +51,7 @@ app.include_router(seats.router)
 app.include_router(superadmin.superadmin_router)
 app.include_router(whatsapp_reminder.router)
 
-allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "")
-allowed_origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
-if not allowed_origins:
-    allowed_origins = ["http://localhost:8080", "https://lms-multilib.vercel.app"]
+allowed_origins = ["http://localhost:8080", "https://lms-multilib.vercel.app"]
 
 # CORS config
 app.add_middleware(
