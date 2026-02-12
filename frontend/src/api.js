@@ -52,10 +52,6 @@ const showWarningToast = (message, timeout = 3000) => {
   });
 };
 
-const isLocalHost = typeof window !== 'undefined' && (
-  window.location.hostname === 'localhost' ||
-  window.location.hostname === '127.0.0.1'
-);
 
 const API_BASE_URL = 'https://lms-multilib-production-abc6.up.railway.app';
 
