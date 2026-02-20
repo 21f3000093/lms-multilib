@@ -398,12 +398,13 @@ export default {
 
 <style scoped>
 .student-form {
-  height: 80vh;
+  height: 100vh;
   /* background: linear-gradient(90deg, #7e00d0 0%, #007bff 100%); */
   padding: 16px;
   padding-top: 3rem;
   font-family: "Inter", sans-serif;
   backdrop-filter: blur(4px);
+  overflow: auto;
   
 }
 

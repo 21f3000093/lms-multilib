@@ -888,6 +888,7 @@ export default {
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(4px);
+  overflow: auto;
 }
 
 .modal-content {
