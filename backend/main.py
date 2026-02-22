@@ -31,10 +31,10 @@ class Settings(BaseModel):
     authjwt_cookie_csrf_protect: bool = False  # Optional
     authjwt_access_token_expires: int = 60 * 60 * 24  # 24 hours
     authjwt_cookie_max_age: int = 60 * 60 * 24
-    authjwt_cookie_samesite: str = "lax"
+    authjwt_cookie_samesite: str = "none" # keep it "none" for local testing with secure cookies, change to "lax" for production if you want to allow cross-origin GETs without credentials
     authjwt_cookie_secure: bool = True
-    # authjwt_cookie_samesite: str = "lax"   # ✅ allow cross-origin GETs
-    authjwt_cookie_domain: str = ".smartlibraryapp.in"  # ✅ important for matching frontend
+    # authjwt_cookie_samesite: str = "lax"   # ✅ allow cross-origin GETs without credentials, change to "none" for local testing with secure cookies
+    # authjwt_cookie_domain: str = ".smartlibraryapp.in"  # ✅ important for matching frontend domain, adjust as needed for local testing vs production
     
 
 @AuthJWT.load_config # type:ignore
@@ -105,8 +105,12 @@ def get_students(db: Session = Depends(get_db), admin = Depends(get_current_admi
     return crud.get_students(db, library_id=admin.library_id)
 
 @app.get("/students/{student_id}", response_model=schemas.StudentOut)
-def get_student_by_id(student_id: int, db: Session = Depends(get_db)):
-    student = crud.get_student(db, student_id)
+def get_student_by_id(
+    student_id: int,
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin)
+):
+    student = crud.get_student(db, student_id, admin.library_id)
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
     return student
@@ -130,8 +134,12 @@ def available_seats(
 
 
 @app.put("/students/{student_id}/mark-left")
-def mark_left(student_id: int, db: Session = Depends(get_db)):
-    student = crud.mark_student_as_left(db, student_id)
+def mark_left(
+    student_id: int,
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin)
+):
+    student = crud.mark_student_as_left(db, student_id, admin.library_id)
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
     return {"message": f"Student {student.name} marked as left."}
@@ -139,8 +147,19 @@ def mark_left(student_id: int, db: Session = Depends(get_db)):
 
 
 @app.delete("/students/{student_id}")
-def delete_student(student_id: int, db: Session = Depends(get_db)):
-    student = db.query(models.Student).filter(models.Student.id == student_id).first()
+def delete_student(
+    student_id: int,
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin)
+):
+    student = (
+        db.query(models.Student)
+        .filter(
+            models.Student.id == student_id,
+            models.Student.library_id == admin.library_id
+        )
+        .first()
+    )
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
 
@@ -151,8 +170,15 @@ def delete_student(student_id: int, db: Session = Depends(get_db)):
 
 
 @app.put("/students/{student_id}", response_model=schemas.StudentOut)
-def update_student(student_id: int, updated_data: schemas.StudentCreate, db: Session = Depends(get_db)):
-    student = crud.update_student(db, student_id, updated_data)
+def update_student(
+    student_id: int,
+    updated_data: schemas.StudentCreate,
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin)
+):
+    # Enforce tenant ownership from authenticated admin, not client payload.
+    updated_data.library_id = admin.library_id
+    student = crud.update_student(db, student_id, updated_data, admin.library_id)
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
     return student
@@ -175,23 +201,35 @@ def get_payments(month: str, db: Session = Depends(get_db), admin = Depends(get_
 #     return crud.get_monthly_payments(db, month, library_id=admin.library_id)
 
 @app.put("/monthly-payments/{payment_id}", response_model=schemas.MonthlyPaymentOut)
-def mark_paid(payment_id: int, db: Session = Depends(get_db)):
-    updated = crud.mark_monthly_payment_as_paid(db, payment_id)
+def mark_paid(
+    payment_id: int,
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin)
+):
+    updated = crud.mark_monthly_payment_as_paid(db, payment_id, admin.library_id)
     if not updated:
         raise HTTPException(status_code=404, detail="Payment record not found")
     return updated
 
 @app.put("/monthly-payments/toggle/{payment_id}", response_model=schemas.MonthlyPaymentOut)
-def toggle_paid(payment_id: int, db: Session = Depends(get_db)):
-    updated = crud.toggle_monthly_payment_status(db, payment_id)
+def toggle_paid(
+    payment_id: int,
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin)
+):
+    updated = crud.toggle_monthly_payment_status(db, payment_id, admin.library_id)
     if not updated:
         raise HTTPException(status_code=404, detail="Payment not found")
     return updated
 
 
 @app.delete("/monthly-payments/{payment_id}")
-def delete_payment(payment_id: int, db: Session = Depends(get_db)):
-    deleted = crud.delete_monthly_payment(db, payment_id)
+def delete_payment(
+    payment_id: int,
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin)
+):
+    deleted = crud.delete_monthly_payment(db, payment_id, admin.library_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Payment not found")
     return {"message": "Deleted successfully"}
@@ -199,8 +237,12 @@ def delete_payment(payment_id: int, db: Session = Depends(get_db)):
 
 
 @app.get("/students/{student_id}/payments", response_model=List[schemas.MonthlyPaymentOut])
-def get_student_payments(student_id: int, db: Session = Depends(get_db)):
-    return crud.get_student_payments(db, student_id)
+def get_student_payments(
+    student_id: int,
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin)
+):
+    return crud.get_student_payments(db, student_id, admin.library_id)
 
 
 @app.get("/export-monthly-payments/{month}")

@@ -123,26 +123,49 @@ def get_students(db: Session, library_id: int):
 
 
 # To get a single student
-def get_student(db: Session, student_id: int):
-    return db.query(models.Student).filter(models.Student.id == student_id).first()
+def get_student(db: Session, student_id: int, library_id: int):
+    return (
+        db.query(models.Student)
+        .filter(
+            models.Student.id == student_id,
+            models.Student.library_id == library_id
+        )
+        .first()
+    )
 
 # To update a student
-def update_student(db: Session, student_id: int, updated_data: schemas.StudentCreate):
-    student = db.query(models.Student).filter(models.Student.id == student_id).first()
+def update_student(db: Session, student_id: int, updated_data: schemas.StudentCreate, library_id: int):
+    student = (
+        db.query(models.Student)
+        .filter(
+            models.Student.id == student_id,
+            models.Student.library_id == library_id
+        )
+        .first()
+    )
     if not student:
         return None
 
-    for field, value in updated_data.dict().items():
+    # Never trust client-provided tenant ID.
+    for field, value in updated_data.dict(exclude={"library_id"}).items():
         setattr(student, field, value)
+    student.library_id = library_id # type: ignore
 
     db.commit()
     db.refresh(student)
     
         # Update seats table
-    seat = db.query(models.Seat).filter(models.Seat.id == student.seat_id).first()
+    seat = (
+        db.query(models.Seat)
+        .filter(
+            models.Seat.id == student.seat_id,
+            models.Seat.library_id == library_id
+        )
+        .first()
+    )
     if seat:
         # Clear old entries for this student
-        for s in db.query(models.Seat).all():
+        for s in db.query(models.Seat).filter(models.Seat.library_id == library_id).all():
             if s.shift1_student_id == student.id: # type: ignore
                 s.shift1_student_id = None # type: ignore
             if s.shift2_student_id == student.id: # type: ignore
@@ -166,8 +189,15 @@ def update_student(db: Session, student_id: int, updated_data: schemas.StudentCr
     return student
 
 # To mark a student as left
-def mark_student_as_left(db: Session, student_id: int):
-    student = db.query(models.Student).filter_by(id=student_id).first()
+def mark_student_as_left(db: Session, student_id: int, library_id: int):
+    student = (
+        db.query(models.Student)
+        .filter(
+            models.Student.id == student_id,
+            models.Student.library_id == library_id
+        )
+        .first()
+    )
     if not student:
         return None
 
@@ -176,11 +206,16 @@ def mark_student_as_left(db: Session, student_id: int):
     student.seat_id = None # type: ignore
     
     # Clear seat assignments in all 3 shifts
-    seats = db.query(models.Seat).filter(
-        (models.Seat.shift1_student_id == student.id) |
-        (models.Seat.shift2_student_id == student.id) |
-        (models.Seat.shift3_student_id == student.id)
-    ).all()
+    seats = (
+        db.query(models.Seat)
+        .filter(models.Seat.library_id == library_id)
+        .filter(
+            (models.Seat.shift1_student_id == student.id) |
+            (models.Seat.shift2_student_id == student.id) |
+            (models.Seat.shift3_student_id == student.id)
+        )
+        .all()
+    )
 
     for seat in seats:
         nullable=True
@@ -275,8 +310,15 @@ def create_monthly_payments_for_all(db: Session, month: str, library_id: int):
 
     
 # To mark a monthly payment as paid
-def mark_monthly_payment_as_paid(db: Session, payment_id: int):
-    payment = db.query(models.MonthlyPayment).get(payment_id)
+def mark_monthly_payment_as_paid(db: Session, payment_id: int, library_id: int):
+    payment = (
+        db.query(models.MonthlyPayment)
+        .filter(
+            models.MonthlyPayment.id == payment_id,
+            models.MonthlyPayment.library_id == library_id
+        )
+        .first()
+    )
     if payment:
         payment.paid = True
         db.commit()
@@ -372,8 +414,15 @@ def get_monthly_payments(db: Session, month: str, library_id: int):
     return transformed_results
 
 # To toggle the status of a monthly payment between paid and not paid
-def toggle_monthly_payment_status(db: Session, payment_id: int):
-    payment = db.query(models.MonthlyPayment).get(payment_id)
+def toggle_monthly_payment_status(db: Session, payment_id: int, library_id: int):
+    payment = (
+        db.query(models.MonthlyPayment)
+        .filter(
+            models.MonthlyPayment.id == payment_id,
+            models.MonthlyPayment.library_id == library_id
+        )
+        .first()
+    )
     if payment:
         payment.paid = not payment.paid
         db.commit()
@@ -381,16 +430,33 @@ def toggle_monthly_payment_status(db: Session, payment_id: int):
     return payment
 
 # To delete a monthly payment record
-def delete_monthly_payment(db: Session, payment_id: int):
-    payment = db.query(models.MonthlyPayment).get(payment_id)
+def delete_monthly_payment(db: Session, payment_id: int, library_id: int):
+    payment = (
+        db.query(models.MonthlyPayment)
+        .filter(
+            models.MonthlyPayment.id == payment_id,
+            models.MonthlyPayment.library_id == library_id
+        )
+        .first()
+    )
     if payment:
         db.delete(payment)
         db.commit()
     return payment
 
 # To get payments for a specific student 
-def get_student_payments(db: Session, student_id: int):
-    return db.query(models.MonthlyPayment).filter(models.MonthlyPayment.student_id == student_id).order_by(models.MonthlyPayment.month.desc()).all()
+def get_student_payments(db: Session, student_id: int, library_id: int):
+    return (
+        db.query(models.MonthlyPayment)
+        .join(models.Student, models.MonthlyPayment.student_id == models.Student.id)
+        .filter(
+            models.MonthlyPayment.student_id == student_id,
+            models.MonthlyPayment.library_id == library_id,
+            models.Student.library_id == library_id
+        )
+        .order_by(models.MonthlyPayment.month.desc())
+        .all()
+    )
 
 
 # To export monthly payments to CSV 
