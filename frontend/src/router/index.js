@@ -24,7 +24,7 @@ import ReceiptPage from '@/components/ReceiptPage.vue'
 
 
 const routes = [
-  { path: '/login', name: 'AdminLogin', component: AdminLogin },
+  { path: '/login', name: 'AdminLogin', component: AdminLogin, meta: { guestOnly: true } },
   { path: '/', redirect: '/dashboard',meta: { requiresAuth: true } },
 
   { path: '/about', name: 'AboutView', component: AboutView },
@@ -85,15 +85,31 @@ const router = createRouter({
 //   }
 // });
 
+const getHomeRouteByRole = (role) => (role === 'superadmin' ? '/superadmin' : '/dashboard');
+
 router.beforeEach((to, from, next) => {
   const role = localStorage.getItem('role'); // set this after login (e.g. 'admin' or 'superadmin')
 
-  if (to.path === '/superadmin' && role !== 'superadmin') {
-    return next('/dashboard'); // block access if not superadmin
+  if (to.meta.guestOnly && role) {
+    return next(getHomeRouteByRole(role));
   }
 
   if (to.meta.requiresAuth && !role) {
     return next('/login'); // not logged in
+  }
+
+  // Superadmin should not stay on admin-only authenticated pages.
+  if (
+    role === 'superadmin' &&
+    to.meta.requiresAuth &&
+    !to.path.startsWith('/superadmin') &&
+    to.path !== '/change-password'
+  ) {
+    return next('/superadmin');
+  }
+
+  if (to.path.startsWith('/superadmin') && role !== 'superadmin') {
+    return next('/dashboard'); // block access if not superadmin
   }
 
   next();

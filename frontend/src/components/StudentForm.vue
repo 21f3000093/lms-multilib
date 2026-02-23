@@ -103,7 +103,7 @@
           <!-- <label>Date of Joining</label> -->
           <div class="input-wrapper">
             <span class="icon">📅</span>
-            <input type="date" v-model="student.date_of_joining" />
+            <input type="date" v-model="student.date_of_joining" required />
           </div>
         </div>
 
@@ -116,6 +116,7 @@
               type="number" 
               placeholder="Enter monthly fees amount"
               min="0"
+              required
             />
             <span class="currency">₹</span>
           </div>
