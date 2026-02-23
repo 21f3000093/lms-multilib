@@ -178,7 +178,10 @@ def update_student(
 ):
     # Enforce tenant ownership from authenticated admin, not client payload.
     updated_data.library_id = admin.library_id
-    student = crud.update_student(db, student_id, updated_data, admin.library_id)
+    try:
+        student = crud.update_student(db, student_id, updated_data, admin.library_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
     return student

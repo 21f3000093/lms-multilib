@@ -146,45 +146,67 @@ def update_student(db: Session, student_id: int, updated_data: schemas.StudentCr
     if not student:
         return None
 
+    # Resolve target seat and shifts before mutating DB state.
+    target_seat_id = updated_data.seat_id
+    target_shift1 = updated_data.shift1
+    target_shift2 = updated_data.shift2
+    target_shift3 = updated_data.shift3
+
+    target_seat = None
+    if target_seat_id is not None:
+        target_seat = (
+            db.query(models.Seat)
+            .filter(
+                models.Seat.id == target_seat_id,
+                models.Seat.library_id == library_id
+            )
+            .first()
+        )
+        if not target_seat:
+            raise ValueError("Selected seat does not exist.")
+
+        # Prevent overwriting another student's shift slot on update.
+        if target_shift1 and target_seat.shift1_student_id not in (None, student.id):
+            raise ValueError("Selected seat is already booked in Shift 1.")
+        if target_shift2 and target_seat.shift2_student_id not in (None, student.id):
+            raise ValueError("Selected seat is already booked in Shift 2.")
+        if target_shift3 and target_seat.shift3_student_id not in (None, student.id):
+            raise ValueError("Selected seat is already booked in Shift 3.")
+
+    # Clear previous seat assignment references for this student first.
+    for s in (
+        db.query(models.Seat)
+        .filter(models.Seat.library_id == library_id)
+        .filter(
+            (models.Seat.shift1_student_id == student.id) |
+            (models.Seat.shift2_student_id == student.id) |
+            (models.Seat.shift3_student_id == student.id)
+        )
+        .all()
+    ):
+        if s.shift1_student_id == student.id: # type: ignore
+            s.shift1_student_id = None # type: ignore
+        if s.shift2_student_id == student.id: # type: ignore
+            s.shift2_student_id = None # type: ignore
+        if s.shift3_student_id == student.id: # type: ignore
+            s.shift3_student_id = None # type: ignore
+
     # Never trust client-provided tenant ID.
     for field, value in updated_data.dict(exclude={"library_id"}).items():
         setattr(student, field, value)
     student.library_id = library_id # type: ignore
 
+    # Apply new seat assignment only after conflict checks pass.
+    if target_seat is not None:
+        if student.shift1: # type: ignore
+            target_seat.shift1_student_id = student.id
+        if student.shift2: # type: ignore
+            target_seat.shift2_student_id = student.id
+        if student.shift3: # type: ignore
+            target_seat.shift3_student_id = student.id
+
     db.commit()
     db.refresh(student)
-    
-        # Update seats table
-    seat = (
-        db.query(models.Seat)
-        .filter(
-            models.Seat.id == student.seat_id,
-            models.Seat.library_id == library_id
-        )
-        .first()
-    )
-    if seat:
-        # Clear old entries for this student
-        for s in db.query(models.Seat).filter(models.Seat.library_id == library_id).all():
-            if s.shift1_student_id == student.id: # type: ignore
-                s.shift1_student_id = None # type: ignore
-            if s.shift2_student_id == student.id: # type: ignore
-                s.shift2_student_id = None # type: ignore
-            if s.shift3_student_id == student.id: # type: ignore
-                s.shift3_student_id = None # type: ignore
-
-        # Set new values based on shifts
-        if student.shift1: # type: ignore
-            seat.shift1_student_id = student.id 
-        if student.shift2: # type: ignore
-            seat.shift2_student_id = student.id 
-        if student.shift3: # type: ignore
-            seat.shift3_student_id = student.id
-            
-        db.commit()
-    else:
-        raise Exception("Selected seat does not exist.")    
-
     
     return student
 
