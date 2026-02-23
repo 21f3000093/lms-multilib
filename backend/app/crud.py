@@ -320,7 +320,7 @@ def mark_monthly_payment_as_paid(db: Session, payment_id: int, library_id: int):
         .first()
     )
     if payment:
-        payment.paid = True
+        payment.paid = True  # type: ignore
         db.commit()
         db.refresh(payment)
     return payment
@@ -424,7 +424,7 @@ def toggle_monthly_payment_status(db: Session, payment_id: int, library_id: int)
         .first()
     )
     if payment:
-        payment.paid = not payment.paid
+        payment.paid = not payment.paid # type: ignore
         db.commit()
         db.refresh(payment)
     return payment
@@ -523,9 +523,10 @@ def create_admin(db: Session, username: str, password: str, role: str = "admin",
 def init_library(db: Session , name: str, address: str, contact_email: str, contact_phone: str, max_seats: int): # type: ignore
     new_library = models.Library(name=name, address=address, contact_email=contact_email, contact_phone=contact_phone, max_seats=max_seats)
     db.add(new_library)
+    db.flush()
     
     for seat_number in range(1, max_seats + 1):
-        seat = models.Seat(seat_number=seat_number, library_id=1)
+        seat = models.Seat(seat_number=seat_number, library_id=new_library.id)
         db.add(seat)
         
     db.commit()
