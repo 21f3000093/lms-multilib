@@ -310,7 +310,7 @@ export default {
           this.newStudentData = response.data;
           
           this.showSuccess('Student registered successfully!');
-          this.showWelcomeModal = true;
+          // this.showWelcomeModal = true;
           this.resetForm();
         }
 

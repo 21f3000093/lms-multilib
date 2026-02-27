@@ -224,7 +224,7 @@
           <span class="logo-text">Smart Library App</span>
         </div>
         <p class="footer-text">
-          © 2025 Smart Library App. All rights reserved. Empowering library networks across the India.
+          © 2026 Smart Library App. All rights reserved. Empowering library networks across the India.
         </p>
       </div>
     </div>
