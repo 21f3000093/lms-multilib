@@ -1050,6 +1050,11 @@ export default {
     flex-direction: row;
     gap: 8px;
   }
+
+  .modal-body {
+  padding: 0px;
+  padding-bottom: 3rem;
+}
 }
 
 @media (max-width: 480px) {
