@@ -4,7 +4,10 @@
     <div class="gradient-bg"></div>
 
     <!-- App content above background -->
-    <div class="app-content" :class="{ 'no-sidebar': !isLoggedIn }">
+    <div
+      class="app-content"
+      :class="{ 'no-sidebar': !isLoggedIn, 'has-bottom-nav': isLoggedIn && role === 'admin' }"
+    >
       <NavBar class="navbar"  />
       <router-view />
     </div>
@@ -18,7 +21,8 @@ export default {
   components: { NavBar },
   data() {
     return {
-      isLoggedIn: false
+      isLoggedIn: false,
+      role: ''
     }
   },
   mounted() {
@@ -27,6 +31,7 @@ export default {
   methods: {
     checkLoginStatus() {
       this.isLoggedIn = !!localStorage.getItem('role')
+      this.role = localStorage.getItem('role') || ''
     }
   },
   watch: {
@@ -106,6 +111,12 @@ body, html, #app {
   .app-content {
     margin-left: 0 !important;
     padding-top: 0px; /* More space for mobile navbar */
+  }
+}
+
+@media (max-width: 767px) {
+  .app-content.has-bottom-nav {
+    padding-bottom: calc(82px + env(safe-area-inset-bottom));
   }
 }
 </style>

@@ -250,6 +250,49 @@
       </div>
 
     </nav>
+
+    <!-- Mobile Bottom Navigation (admin only) -->
+    <nav v-if="isLoggedIn && role === 'admin'" class="mobile-bottom-nav">
+      <router-link
+        to="/dashboard"
+        class="bottom-link"
+        :class="{ active: isBottomNavActive('/dashboard') }"
+      >
+        <img src="../assets/svg/chart-2.svg" class="bottom-icon-img" alt="Dashboard" loading="lazy">
+      </router-link>
+
+      <router-link
+        to="/register"
+        class="bottom-link"
+        :class="{ active: isBottomNavActive('/register') }"
+      >
+        <img src="../assets/svg/add-plus-w.svg" class="bottom-icon-img" alt="Register" loading="lazy">
+      </router-link>
+
+      <router-link
+        to="/students"
+        class="bottom-link"
+        :class="{ active: isBottomNavActive('/students') }"
+      >
+        <img src="../assets/svg/list-w.svg" class="bottom-icon-img" alt="Student List" loading="lazy">
+      </router-link>
+
+      <router-link
+        to="/monthly-payments"
+        class="bottom-link"
+        :class="{ active: isBottomNavActive('/monthly-payments') }"
+      >
+        <img src="../assets/svg/money-dollar.svg" class="bottom-icon-img" alt="Monthly Fees" loading="lazy">
+      </router-link>
+
+      <router-link
+        to="/seat-map"
+        class="bottom-link"
+        :class="{ active: isBottomNavActive('/seat-map') }"
+      >
+        <img src="../assets/svg/map-w.svg" class="bottom-icon-img" alt="Seat Map" loading="lazy">
+      </router-link>
+    </nav>
   </div>
 </template>
 
@@ -331,6 +374,20 @@ export default {
       this.library_name = localStorage.getItem('library_name') || 'Smart Library'
       this.role = localStorage.getItem('role') || ''
       this.username = localStorage.getItem('username')
+    },
+
+    isBottomNavActive(basePath) {
+      const currentPath = this.$route.path
+
+      if (basePath === '/students') {
+        return currentPath === '/students' || currentPath.startsWith('/students/')
+      }
+
+      if (basePath === '/monthly-payments') {
+        return currentPath === '/monthly-payments' || currentPath.startsWith('/receipts/')
+      }
+
+      return currentPath === basePath
     },
     
     async logout() {
@@ -717,6 +774,70 @@ export default {
 
 .mobile-text {
   font-size: 1rem;
+}
+
+/* ========== MOBILE BOTTOM NAV ========== */
+.mobile-bottom-nav {
+  display: none;
+}
+
+.bottom-link {
+  color: #6b7280;
+  text-decoration: none;
+}
+
+@media (max-width: 767px) {
+  .mobile-bottom-nav {
+    --bottom-nav-height: 6%;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--bottom-nav-height);
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+    background: #ffffff;
+    border-top: 1px solid rgba(109, 61, 242, 0.14);
+    box-shadow: 20px -5px 22px 20px rgb(15 23 42 / 30%);
+    z-index: 1090;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    align-items: center;
+    gap: 4px;
+    margin: 2% 7%;
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+  }
+
+  .bottom-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
+    border-radius: 10px;
+    color: #5f6676;
+    transition: all 0.2s ease;
+  }
+
+  .bottom-link.active {
+    color: #6d3df2;
+    background: rgba(109, 61, 242, 0.08);
+  }
+
+  .bottom-icon-img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    filter: brightness(0) saturate(100%) invert(41%) sepia(10%) saturate(619%) hue-rotate(181deg) brightness(95%) contrast(89%);
+    transition: filter 0.2s ease;
+  }
+
+  .bottom-link.active .bottom-icon-img {
+    filter: brightness(0) saturate(100%) invert(28%) sepia(96%) saturate(1568%) hue-rotate(247deg) brightness(97%) contrast(99%);
+  }
 }
 
 /* ========== RESPONSIVE DESIGN ========== */
