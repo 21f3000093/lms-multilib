@@ -3,7 +3,7 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
-from app import models, schemas, crud , auth , seats , superadmin , whatsapp_reminder   
+from app import models, schemas, crud, auth, seats, superadmin, whatsapp_reminder, notifications
 from fastapi_jwt_auth import AuthJWT
 from app.database import engine, SessionLocal
 from pydantic import BaseSettings , BaseModel
@@ -49,6 +49,7 @@ app.include_router(auth.router)
 app.include_router(seats.router)
 app.include_router(superadmin.superadmin_router)
 app.include_router(whatsapp_reminder.router)
+app.include_router(notifications.router)
 
 origins=os.getenv("ALLOWED_ORIGINS") # type: ignore
 

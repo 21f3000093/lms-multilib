@@ -55,6 +55,31 @@
           </span>
           <span class="sidebar-text">Expenses</span>
         </router-link>
+        <router-link v-if="role === 'admin'" to="/notifications" class="sidebar-link">
+          <span class="sidebar-icon">
+            <svg class="sidebar-icon-svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12,22c1.1,0,2-0.9,2-2h-4C10,21.1,10.9,22,12,22z M18,16v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-0.83-0.67-1.5-1.5-1.5s-1.5,0.67-1.5,1.5v0.68C7.63,5.36,6,7.92,6,11v5l-2,2v1h16v-1L18,16z"/>
+            </svg>
+          </span>
+          <span class="sidebar-text">
+            Notifications
+            <span v-if="unreadCount > 0" class="sidebar-count">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+          </span>
+        </router-link>
+        <router-link v-if="role === 'superadmin'" to="/superadmin" class="sidebar-link">
+          <span class="sidebar-icon">
+            <img src="../assets/svg/chart-2.svg" class="sidebar-icon" alt="" loading="lazy">
+          </span>
+          <span class="sidebar-text">Dashboard</span>
+        </router-link>
+        <router-link v-if="role === 'superadmin'" to="/superadmin/notifications" class="sidebar-link">
+          <span class="sidebar-icon">
+            <svg class="sidebar-icon-svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12,22c1.1,0,2-0.9,2-2h-4C10,21.1,10.9,22,12,22z M18,16v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-0.83-0.67-1.5-1.5-1.5s-1.5,0.67-1.5,1.5v0.68C7.63,5.36,6,7.92,6,11v5l-2,2v1h16v-1L18,16z"/>
+            </svg>
+          </span>
+          <span class="sidebar-text">Notifications</span>
+        </router-link>
       </nav>
     </aside>
 
@@ -159,6 +184,9 @@
                 <path d="M12,22c1.1,0,2-0.9,2-2h-4C10,21.1,10.9,22,12,22z M18,16v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-0.83-0.67-1.5-1.5-1.5 s-1.5,0.67-1.5,1.5v0.68C7.63,5.36,6,7.92,6,11v5l-2,2v1h16v-1L18,16z"/>
               </svg>
               Notifications
+              <span v-if="role === 'admin' && unreadCount > 0" class="dropdown-count">
+                {{ unreadCount > 99 ? '99+' : unreadCount }}
+              </span>
             </a>
             
             <a href="#" class="dropdown-item" @click.prevent="helpCenter">
@@ -223,6 +251,28 @@
              <img src="../assets/svg/money-out-w.svg" class="mobile-icon" alt="" loading="lazy">
           </span>
           <span class="mobile-text">Expenses</span>
+        </router-link>
+        <router-link v-if="role === 'admin'" to="/notifications" @click="closeMenu" class="mobile-link">
+          <span class="mobile-icon">
+            <svg class="mobile-icon-svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12,22c1.1,0,2-0.9,2-2h-4C10,21.1,10.9,22,12,22z M18,16v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-0.83-0.67-1.5-1.5-1.5s-1.5,0.67-1.5,1.5v0.68C7.63,5.36,6,7.92,6,11v5l-2,2v1h16v-1L18,16z"/>
+            </svg>
+          </span>
+          <span class="mobile-text">Notifications</span>
+        </router-link>
+        <router-link v-if="role === 'superadmin'" to="/superadmin" @click="closeMenu" class="mobile-link">
+          <span class="mobile-icon">
+            <img src="../assets/svg/chart-2.svg" class="mobile-icon" alt="" loading="lazy">
+          </span>
+          <span class="mobile-text">Dashboard</span>
+        </router-link>
+        <router-link v-if="role === 'superadmin'" to="/superadmin/notifications" @click="closeMenu" class="mobile-link">
+          <span class="mobile-icon">
+            <svg class="mobile-icon-svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12,22c1.1,0,2-0.9,2-2h-4C10,21.1,10.9,22,12,22z M18,16v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-0.83-0.67-1.5-1.5-1.5s-1.5,0.67-1.5,1.5v0.68C7.63,5.36,6,7.92,6,11v5l-2,2v1h16v-1L18,16z"/>
+            </svg>
+          </span>
+          <span class="mobile-text">Notifications</span>
         </router-link>
       </div>
       <div class="mobile-menu" :class="{ 'show': menuOpen }" v-if="!isLoggedIn">
@@ -308,16 +358,28 @@ export default {
       username: localStorage.getItem('username'),
       library_name: localStorage.getItem('library_name') || 'Smart Library',
       role: localStorage.getItem('role') || '',
+      unreadCount: 0,
+      unreadPollIntervalId: null,
     }
   },
   
   mounted() {
     this.checkLoginStatus()
+    this.fetchUnreadCount()
     document.addEventListener('click', this.handleDocumentClick)
+    window.addEventListener('notifications:unread-count-updated', this.syncUnreadCount)
+    this.unreadPollIntervalId = window.setInterval(() => {
+      this.fetchUnreadCount()
+    }, 60000)
   },
   
   beforeUnmount() {
     document.removeEventListener('click', this.handleDocumentClick)
+    window.removeEventListener('notifications:unread-count-updated', this.syncUnreadCount)
+    if (this.unreadPollIntervalId) {
+      clearInterval(this.unreadPollIntervalId)
+      this.unreadPollIntervalId = null
+    }
   },
   
   methods: {
@@ -340,6 +402,24 @@ export default {
         this.menuOpen = false
       }
     },
+
+    syncUnreadCount(event) {
+      this.unreadCount = Number(event.detail?.count || 0)
+    },
+
+    async fetchUnreadCount() {
+      if (!this.isLoggedIn || this.role !== 'admin') {
+        this.unreadCount = 0
+        return
+      }
+
+      try {
+        const res = await API.get('/notifications/inbox/unread-count')
+        this.unreadCount = Number(res.data?.unread_count || 0)
+      } catch (err) {
+        this.unreadCount = 0
+      }
+    },
     
     viewProfile() {
       console.log('View Profile clicked')
@@ -353,8 +433,14 @@ export default {
     },
     
     notifications() {
-      console.log('Notifications clicked')
       this.dropdownOpen = false
+      if (this.role === 'superadmin') {
+        this.$router.push('/superadmin/notifications')
+        return
+      }
+      if (this.role === 'admin') {
+        this.$router.push('/notifications')
+      }
     },
     
     helpCenter() {
@@ -374,6 +460,9 @@ export default {
       this.library_name = localStorage.getItem('library_name') || 'Smart Library'
       this.role = localStorage.getItem('role') || ''
       this.username = localStorage.getItem('username')
+      if (this.role !== 'admin') {
+        this.unreadCount = 0
+      }
     },
 
     isBottomNavActive(basePath) {
@@ -407,6 +496,7 @@ export default {
           this.dropdownOpen = false
           this.library_name = 'Smart Library'
           this.username = ''
+          this.unreadCount = 0
           
           // Redirect to login
           this.$router.push('/login')
@@ -419,7 +509,10 @@ export default {
   },
   
   watch: {
-    '$route': 'checkLoginStatus'
+    '$route'() {
+      this.checkLoginStatus()
+      this.fetchUnreadCount()
+    }
   }
 }
 </script>
@@ -518,8 +611,29 @@ export default {
   text-align: center;
 }
 
+.sidebar-icon-svg {
+  width: 24px;
+  height: 24px;
+}
+
 .sidebar-text {
   font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar-count {
+  min-width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 0.72rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
 }
 
 /* ========== NAVBAR STYLES ========== */
@@ -726,6 +840,20 @@ export default {
   opacity: 0.7;
 }
 
+.dropdown-count {
+  margin-left: auto;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 0.72rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+}
+
 /* ========== MOBILE MENU ========== */
 .mobile-menu {
   position: fixed;
@@ -770,6 +898,11 @@ export default {
   font-size: 1.2rem;
   width: 24px;
   text-align: center;
+}
+
+.mobile-icon-svg {
+  width: 24px;
+  height: 24px;
 }
 
 .mobile-text {

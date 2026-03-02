@@ -1,8 +1,8 @@
 # models.py
-from sqlalchemy import Column, Integer, String, Boolean , ForeignKey, UniqueConstraint, Index
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, UniqueConstraint, Index, Text
 from app.database import Base
 from sqlalchemy import Date , DateTime
-from datetime import date 
+from datetime import date, datetime
 from sqlalchemy.orm import relationship
 
 
@@ -22,6 +22,7 @@ class Library(Base):
     seats = relationship("Seat", back_populates="library")
     monthly_payments = relationship("MonthlyPayment", back_populates="library")
     subscription = relationship("Subscription", uselist=False, back_populates="library")
+    notifications = relationship("Notification", back_populates="target_library")
 
 
 
@@ -46,6 +47,16 @@ class Admin(Base):
     created_at = Column(Date, default=date.today)
 
     library = relationship("Library", back_populates="admins")
+    sent_notifications = relationship(
+        "Notification",
+        foreign_keys="Notification.sender_admin_id",
+        back_populates="sender",
+    )
+    notification_recipients = relationship(
+        "NotificationRecipient",
+        back_populates="admin",
+        cascade="all, delete-orphan",
+    )
 
     
 # class Student(Base):
@@ -171,4 +182,51 @@ class Subscription(Base):
 
     __table_args__ = (
         Index("idx_subscriptions_library_status", "library_id", "status"),
+    )
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    message = Column(Text, nullable=False)
+    category = Column(String, default="general", nullable=False, index=True)
+    sender_admin_id = Column(Integer, ForeignKey("admins.id", ondelete="SET NULL"), nullable=True, index=True)
+    target_type = Column(String, default="all_admins", nullable=False, index=True)
+    target_library_id = Column(Integer, ForeignKey("libraries.id", ondelete="SET NULL"), nullable=True, index=True)
+    is_active = Column(Boolean, default=True, nullable=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    expires_at = Column(DateTime, nullable=True)
+
+    sender = relationship("Admin", foreign_keys=[sender_admin_id], back_populates="sent_notifications")
+    target_library = relationship("Library", back_populates="notifications")
+    recipients = relationship(
+        "NotificationRecipient",
+        back_populates="notification",
+        cascade="all, delete-orphan",
+    )
+
+
+class NotificationRecipient(Base):
+    __tablename__ = "notification_recipients"
+
+    id = Column(Integer, primary_key=True, index=True)
+    notification_id = Column(
+        Integer,
+        ForeignKey("notifications.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    admin_id = Column(Integer, ForeignKey("admins.id", ondelete="CASCADE"), nullable=False, index=True)
+    is_read = Column(Boolean, default=False, nullable=False, index=True)
+    read_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    notification = relationship("Notification", back_populates="recipients")
+    admin = relationship("Admin", back_populates="notification_recipients")
+
+    __table_args__ = (
+        UniqueConstraint("notification_id", "admin_id", name="uq_notification_recipient"),
+        Index("idx_notification_recipient_admin_unread_created", "admin_id", "is_read", "created_at"),
     )

@@ -1,6 +1,6 @@
-from pydantic import BaseModel 
-from typing import Optional
-from datetime import date
+from pydantic import BaseModel, Field
+from typing import Optional, List
+from datetime import date, datetime
 
 class StudentCreate(BaseModel):
     name: str
@@ -66,12 +66,6 @@ class AdminLogin(BaseModel):
 
 #     class Config:
 #         orm_mode = True
-
-
-from datetime import date
-
-
-
 
 
 class LibraryCreate(BaseModel):
@@ -141,3 +135,50 @@ class MonthlyExpenseOut(MonthlyExpenseBase):
 
     class Config:
         orm_mode = True
+
+
+class NotificationCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=200)
+    message: str = Field(..., min_length=1)
+    category: str = Field(default="general", min_length=1, max_length=50)
+    target_library_id: Optional[int] = None
+    target_admin_ids: Optional[List[int]] = None
+
+
+class NotificationOut(BaseModel):
+    id: int
+    title: str
+    message: str
+    category: str
+    sender_admin_id: Optional[int]
+    sender_username: Optional[str] = None
+    target_type: str
+    target_library_id: Optional[int]
+    is_active: bool
+    created_at: datetime
+    expires_at: Optional[datetime]
+    recipient_count: int = 0
+    unread_count: int = 0
+
+    class Config:
+        orm_mode = True
+
+
+class NotificationInboxItem(BaseModel):
+    recipient_id: int
+    notification_id: int
+    title: str
+    message: str
+    category: str
+    created_at: datetime
+    sender_username: Optional[str] = None
+    target_library_id: Optional[int] = None
+    is_read: bool
+    read_at: Optional[datetime] = None
+
+    class Config:
+        orm_mode = True
+
+
+class NotificationUnreadCount(BaseModel):
+    unread_count: int

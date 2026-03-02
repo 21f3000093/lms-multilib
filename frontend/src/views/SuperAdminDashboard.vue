@@ -1,6 +1,11 @@
 <template>
   <div class="dashboard">
-    <h1>Superadmin Dashboard</h1>
+    <div class="dashboard-header">
+      <h1>Superadmin Dashboard</h1>
+      <router-link to="/superadmin/notifications">
+        <button class="notify-link-btn">Notification Center</button>
+      </router-link>
+    </div>
 
     <!-- Create Library Form -->
     <section class="create-form">
@@ -229,9 +234,25 @@ export default {
 
 h1 {
   font-size: 2rem;
-  margin-bottom: 1.5rem;
-  text-align: center;
+  margin-bottom: 0;
   color: #2c3e50;
+}
+
+.dashboard-header {
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.notify-link-btn {
+  border: none;
+  border-radius: 8px;
+  background-color: #4f46e5;
+  color: #fff;
+  padding: 0.65rem 1rem;
+  font-weight: 600;
 }
 
 h2 {
@@ -346,6 +367,15 @@ td button:hover {
 }
 
 @media(max-width: 768px) {
+  .dashboard-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .notify-link-btn {
+    width: 100%;
+  }
+
   .library-table table {
     overflow-x: auto;
     display: block;

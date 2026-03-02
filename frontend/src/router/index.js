@@ -18,6 +18,8 @@ import MonthlyExpenses from '@/components/MonthlyExpenses.vue'
 import PricingPlans from '@/components/PricingPlans.vue'
 import AboutView from '@/views/AboutView.vue'
 import ReceiptPage from '@/components/ReceiptPage.vue'
+import NotificationCenter from '@/components/NotificationCenter.vue'
+import SuperadminNotifications from '@/components/SuperadminNotifications.vue'
 
 
 
@@ -48,6 +50,18 @@ const routes = [
     path: '/reminders',
     name: 'WhatsAppReminders',
     component: WhatsAppReminders,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/notifications',
+    name: 'NotificationCenter',
+    component: NotificationCenter,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/superadmin/notifications',
+    name: 'SuperadminNotifications',
+    component: SuperadminNotifications,
     meta: { requiresAuth: true }
   },
   {
