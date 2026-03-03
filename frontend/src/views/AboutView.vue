@@ -1,667 +1,585 @@
 <template>
-  <div class="about-page">
-    <!-- Hero Section -->
-    <div class="hero-section">
-      <div class="hero-content">
-        <h1 class="hero-title">Smart Library App</h1>
-        <p class="hero-subtitle">Modern Library Management Made Simple</p>
-        <div class="hero-icon" style="justify-content: center; margin: auto;">
-          <!-- 📚 -->
-           <img src="../assets/svg/book.svg" class="hero-icon" style="width: 9rem; margin: auto;" alt="">
-        </div>
-        <p class="hero-description">
-          Streamline your library operations with our comprehensive management system designed for modern libraries and study centers.
+  <main class="about-page" ref="pageRoot">
+    <div class="mesh-layer" aria-hidden="true"></div>
+
+    <section class="hero section-shell">
+      <div class="hero-copy reveal" data-stagger="0">
+        <p class="kicker">Trusted By Multi-Library Teams</p>
+        <h1>
+          The <span class="gradient-text">Operating System</span>
+          for modern study centers
+        </h1>
+        <p class="hero-subtitle">
+          Smart Library App helps teams manage students, seats, payments, and operations from one enterprise-grade dashboard.
         </p>
-      </div>
-    </div>
 
-    <!-- Features Section -->
-    <div class="features-section">
-      <div class="section-header">
-        <h2 class="section-title">Key Features</h2>
-        <p class="section-subtitle">Everything you need to manage your library efficiently</p>
-      </div>
-
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon">👥</div>
-          <h3 class="feature-title">Student Management</h3>
-          <p class="feature-description">
-            Register and manage students with comprehensive profiles, contact information, and enrollment tracking.
-          </p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">🪑</div>
-          <h3 class="feature-title">Seat Allocation</h3>
-          <p class="feature-description">
-            Smart seat management system with visual seat maps and real-time availability across multiple shifts.
-          </p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">💰</div>
-          <h3 class="feature-title">Fee Management</h3>
-          <p class="feature-description">
-            Automated monthly fee tracking, payment status monitoring, and flexible pricing for different shift combinations.
-          </p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">📊</div>
-          <h3 class="feature-title">Analytics Dashboard</h3>
-          <p class="feature-description">
-            Comprehensive dashboard with occupancy rates, revenue tracking, and detailed insights about your library operations.
-          </p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">🕐</div>
-          <h3 class="feature-title">Multiple Shifts</h3>
-          <p class="feature-description">
-            Support for morning, afternoon, and evening shifts with flexible enrollment options for students.
-          </p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">💸</div>
-          <h3 class="feature-title">Expense Tracking</h3>
-          <p class="feature-description">
-            Track monthly expenses with categorization, helping you maintain detailed financial records.
-          </p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">📱</div>
-          <h3 class="feature-title">WhatsApp Reminders</h3>
-          <p class="feature-description">
-            Automated reminder system for pending fees with direct WhatsApp integration for better communication.
-          </p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">🔐</div>
-          <h3 class="feature-title">Secure Access</h3>
-          <p class="feature-description">
-            Role-based authentication with admin control, ensuring secure access to your data.
-          </p>
+        <div class="hero-actions">
+          <a class="btn btn-solid magnetic" href="mailto:shubham.libraryapp@gmail.com" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
+            Book a Demo
+          </a>
+          <a class="btn btn-ghost magnetic" href="tel:+919024600138" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
+            Talk to Sales
+          </a>
         </div>
       </div>
-    </div>
 
-    <!-- Technology Section -->
-    <div class="technology-section">
-      <div class="section-header">
-        <h2 class="section-title">Built With Modern Technology</h2>
-        <p class="section-subtitle">Reliable, fast, and secure technology stack</p>
-      </div>
-
-      <div class="tech-grid">
-        <div class="tech-item">
-          <div class="tech-icon">⚡</div>
-          <h4 class="tech-name">Vue.js 3</h4>
-          <p class="tech-description">Modern frontend framework for responsive user interfaces</p>
-        </div>
-
-        <div class="tech-item">
-          <div class="tech-icon">🚀</div>
-          <h4 class="tech-name">FastAPI</h4>
-          <p class="tech-description">High-performance backend API with automatic documentation</p>
-        </div>
-
-        <div class="tech-item">
-          <div class="tech-icon">🗄️</div>
-          <h4 class="tech-name">PostgreSQL</h4>
-          <p class="tech-description">Robust and reliable database for data integrity</p>
-        </div>
-
-        <div class="tech-item">
-          <div class="tech-icon">📱</div>
-          <h4 class="tech-name">Responsive Design</h4>
-          <p class="tech-description">Works seamlessly on desktop, tablet, and mobile devices</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Benefits Section -->
-    <div class="benefits-section">
-      <div class="section-header">
-        <h2 class="section-title">Why Choose Smart Library App?</h2>
-      </div>
-
-      <div class="benefits-list">
-        <div class="benefit-item">
-          <div class="benefit-icon">✅</div>
-          <div class="benefit-content">
-            <h4 class="benefit-title">Easy to Use</h4>
-            <p class="benefit-description">Intuitive interface designed for library owners with minimal training required</p>
-          </div>
-        </div>
-
-        <div class="benefit-item">
-          <div class="benefit-icon">📈</div>
-          <div class="benefit-content">
-            <h4 class="benefit-title">Increase Efficiency</h4>
-            <p class="benefit-description">Automate repetitive tasks and reduce manual paperwork by up to 80%</p>
-          </div>
-        </div>
-
-        <div class="benefit-item">
-          <div class="benefit-icon">💡</div>
-          <div class="benefit-content">
-            <h4 class="benefit-title">Smart Insights</h4>
-            <p class="benefit-description">Get valuable insights about occupancy patterns and revenue trends</p>
-          </div>
-        </div>
-
-        <div class="benefit-item">
-          <div class="benefit-icon">🔒</div>
-          <div class="benefit-content">
-            <h4 class="benefit-title">Data Security</h4>
-            <p class="benefit-description">Your data is secure with encrypted storage and regular backups</p>
-          </div>
-        </div>
-
-        <div class="benefit-item">
-          <div class="benefit-icon">💰</div>
-          <div class="benefit-content">
-            <h4 class="benefit-title">Cost-Time Effective</h4>
-            <p class="benefit-description">Reduce operational costs and time while improving service quality</p>
-          </div>
-        </div>
-
-        <div class="benefit-item">
-          <div class="benefit-icon">⚡</div>
-          <div class="benefit-content">
-            <h4 class="benefit-title">Real-time Updates</h4>
-            <p class="benefit-description">Instant updates across all devices and users</p>
+      <div class="hero-visual reveal" data-stagger="1">
+        <div class="hero-orb floaty">
+          <div class="orb-core">
+            <BookOpen class="orb-icon" aria-hidden="true" />
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Contact Section -->
-    <div class="contact-section">
-      <div class="contact-content">
-        <h2 class="contact-title">Get Started Today</h2>
-        <p class="contact-description">
-          Ready to transform your library management? Contact us for support or questions.
+    <section class="stats section-shell reveal" data-stagger="0">
+      <article v-for="item in stats" :key="item.label" class="stat-card reveal" :data-stagger="item.stagger">
+        <p class="stat-value">{{ item.value }}</p>
+        <p class="stat-label">{{ item.label }}</p>
+      </article>
+    </section>
+
+    <section class="features section-shell">
+      <header class="section-header reveal" data-stagger="0">
+        <h2>Built for scale, reliability, and predictable operations</h2>
+        <p>Everything your admin team needs to run multi-library operations without workflow chaos.</p>
+      </header>
+
+      <div class="bento-grid">
+        <article
+          v-for="feature in features"
+          :key="feature.title"
+          class="bento-card reveal"
+          :class="feature.span"
+          :data-stagger="feature.stagger"
+        >
+          <div class="icon-wrap">
+            <component :is="feature.icon" class="feature-icon" aria-hidden="true" />
+          </div>
+          <h3>{{ feature.title }}</h3>
+          <p>{{ feature.description }}</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="cta section-shell reveal" data-stagger="1">
+      <div class="cta-card">
+        <p class="cta-kicker">Ready to scale faster?</p>
+        <h2>Launch a unified workflow for your entire library network.</h2>
+        <p>
+          Replace fragmented processes with one secure platform for admin control, communication, and growth.
         </p>
-        
-        <div class="contact-info">
-          <div class="contact-item">
-            <div class="contact-icon">📧</div>
-            <div class="contact-details">
-              <h4>Email Support</h4>
-              <p>shubham.libraryapp@gmail.com</p>
-            </div>
-          </div>
 
-          <div class="contact-item">
-            <div class="contact-icon">📞</div>
-            <div class="contact-details">
-              <h4>Phone Support</h4>
-              <p>+91 9024600138</p>
-            </div>
-          </div>
-
-          <div class="contact-item">
-            <div class="contact-icon">🌐</div>
-            <div class="contact-details">
-              <h4>Website</h4>
-              <p>www.smartlibraryapp.in</p>
-            </div>
-          </div>
+        <div class="cta-actions">
+          <a class="btn btn-solid magnetic" href="mailto:shubham.libraryapp@gmail.com" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
+            Start Conversation
+          </a>
+          <router-link class="btn btn-ghost magnetic" to="/pricing-plans" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
+            View Pricing
+          </router-link>
         </div>
       </div>
-    </div>
-
-    <!-- Footer -->
-    <div class="footer-section">
-      <div class="footer-content">
-        <div class="footer-logo">
-          <!-- <div class="logo-icon">📚</div> -->
-          <span class="logo-text">Smart Library App</span>
-        </div>
-        <p class="footer-text">
-          © 2026 Smart Library App. All rights reserved. Empowering library networks across the India.
-        </p>
-      </div>
-    </div>
-  </div>
+    </section>
+  </main>
 </template>
 
-<script>
-export default {
-  
-  mounted() {
-    // Add scroll animations or any other initialization
-    this.observeElements();
-  },
-  methods: {
-    observeElements() {
-      // Simple intersection observer for fade-in animations
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('animate-in');
-          }
-        });
-      }, { threshold: 0.1 });
+<script setup>
+import { onMounted, onBeforeUnmount, ref } from 'vue'
+import {
+  Armchair,
+  BarChart3,
+  BookOpen,
+  CreditCard,
+  MessageSquare,
+  ShieldCheck,
+} from 'lucide-vue-next'
 
-      // Observe all feature cards and benefit items
-      document.querySelectorAll('.feature-card, .benefit-item, .tech-item').forEach(el => {
-        observer.observe(el);
-      });
-    }
-  }
+const pageRoot = ref(null)
+let observer = null
+
+const stats = [
+  { value: '99.95%', label: 'Platform Uptime', stagger: 1 },
+  { value: '10k+', label: 'Students Managed', stagger: 2 },
+  { value: '250+', label: 'Libraries Enabled', stagger: 3 },
+  { value: '35%', label: 'Faster Admin Ops', stagger: 4 },
+]
+
+const features = [
+  {
+    icon: Armchair,
+    title: 'Live Seat Intelligence',
+    description: 'Track seat occupancy by shift in real-time with clear utilization visibility.',
+    span: 'span-2-rows',
+    stagger: 1,
+  },
+  {
+    icon: MessageSquare,
+    title: 'Automated Messaging',
+    description: 'Send reminders and important notices with template-driven WhatsApp workflows.',
+    span: 'span-2-cols',
+    stagger: 2,
+  },
+  {
+    icon: CreditCard,
+    title: 'Fee Collection Control',
+    description: 'Centralize monthly payment tracking, due detection, and receipts.',
+    span: '',
+    stagger: 3,
+  },
+  {
+    icon: BarChart3,
+    title: 'Operator Analytics',
+    description: 'Monitor trends, active students, and growth metrics at a glance.',
+    span: '',
+    stagger: 4,
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Role-Based Governance',
+    description: 'Separate superadmin and admin responsibilities with safer access boundaries.',
+    span: 'span-2-cols',
+    stagger: 5,
+  },
+]
+
+const onMagneticMove = (event) => {
+  const element = event.currentTarget
+  const bounds = element.getBoundingClientRect()
+  const x = event.clientX - bounds.left
+  const y = event.clientY - bounds.top
+  const centerX = bounds.width / 2
+  const centerY = bounds.height / 2
+  const dx = (x - centerX) * 0.08
+  const dy = (y - centerY) * 0.12
+
+  element.style.setProperty('--mx', `${x}px`)
+  element.style.setProperty('--my', `${y}px`)
+  element.style.transform = `translate(${dx}px, ${dy}px)`
 }
+
+const onMagneticLeave = (event) => {
+  const element = event.currentTarget
+  element.style.transform = 'translate(0, 0)'
+}
+
+onMounted(() => {
+  const targets = pageRoot.value?.querySelectorAll('.reveal') || []
+
+  observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) {
+          return
+        }
+
+        const stagger = Number(entry.target.dataset.stagger || 0)
+        entry.target.style.transitionDelay = `${Math.min(stagger * 80, 420)}ms`
+        entry.target.classList.add('is-visible')
+        observer?.unobserve(entry.target)
+      })
+    },
+    {
+      threshold: 0.18,
+      rootMargin: '0px 0px -10% 0px',
+    }
+  )
+
+  targets.forEach((target) => observer?.observe(target))
+})
+
+onBeforeUnmount(() => {
+  observer?.disconnect()
+  observer = null
+})
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 .about-page {
+  --bg: #0f172a;
+  --surface: rgba(148, 163, 184, 0.03);
+  --surface-border: rgba(255, 255, 255, 0.03);
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --brand-a: #22d3ee;
+  --brand-b: #3b82f6;
+
+  position: relative;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  padding: 5rem 0 4rem;
+  color: var(--text-primary);
+  background: var(--bg);
+  font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overflow: hidden;
+  isolation: isolate;
 }
 
-/* Hero Section */
-.hero-section {
-  padding: 80px 20px 60px 20px;
-  text-align: center;
-  color: white;
+.mesh-layer {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(45rem 24rem at 10% 15%, rgba(34, 211, 238, 0.14), transparent 70%),
+    radial-gradient(40rem 24rem at 86% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
+    radial-gradient(36rem 22rem at 65% 88%, rgba(14, 165, 233, 0.11), transparent 70%),
+    linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
+  filter: saturate(115%);
+  animation: mesh-drift 18s ease-in-out infinite alternate;
 }
 
-.hero-content {
-  max-width: 800px;
+.section-shell {
+  width: min(1140px, calc(100% - 2rem));
   margin: 0 auto;
 }
 
-.hero-icon {
-  font-size: 4rem;
-  margin-bottom: 24px;
-  animation: float 6s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
-
-.hero-title {
-  font-size: 3rem;
-  font-weight: 700;
-  margin: 0 0 16px 0;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.hero-subtitle {
-  font-size: 1.5rem;
-  font-weight: 500;
-  margin: 0 0 24px 0;
-  opacity: 0.9;
-}
-
-.hero-description {
-  font-size: 1.1rem;
-  line-height: 1.6;
-  opacity: 0.9;
-  margin: 0;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-/* Section Headers */
-.section-header {
-  text-align: center;
-  margin-bottom: 48px;
-  color: white;
-}
-
-.section-title {
-  font-size: 2.25rem;
-  font-weight: 700;
-  margin: 0 0 12px 0;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.section-subtitle {
-  font-size: 1.1rem;
-  opacity: 0.9;
-  margin: 0;
-}
-
-/* Features Section */
-.features-section {
-  padding: 60px 20px;
-}
-
-.features-grid {
+.hero {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.feature-card {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 16px;
-  padding: 32px 24px;
-  text-align: center;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.feature-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-}
-
-.feature-card.animate-in {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.feature-icon {
-  font-size: 2.5rem;
-  margin-bottom: 16px;
-}
-
-.feature-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin: 0 0 12px 0;
-}
-
-.feature-description {
-  font-size: 0.95rem;
-  color: #6b7280;
-  line-height: 1.6;
-  margin: 0;
-}
-
-/* Technology Section */
-.technology-section {
-  padding: 60px 20px;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.tech-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 24px;
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-.tech-item {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 12px;
-  padding: 24px;
-  text-align: center;
-  transition: all 0.3s ease;
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.tech-item:hover {
-  transform: translateY(-3px);
-}
-
-.tech-item.animate-in {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.tech-icon {
-  font-size: 2rem;
-  margin-bottom: 12px;
-}
-
-.tech-name {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin: 0 0 8px 0;
-}
-
-.tech-description {
-  font-size: 0.9rem;
-  color: #6b7280;
-  margin: 0;
-}
-
-/* Benefits Section */
-.benefits-section {
-  padding: 60px 20px;
-}
-
-.benefits-list {
-  max-width: 800px;
-  margin: 0 auto;
-  display: grid;
-  gap: 20px;
-}
-
-.benefit-item {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 12px;
-  padding: 24px;
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  transition: all 0.3s ease;
-  opacity: 0;
-  transform: translateX(-20px);
-}
-
-.benefit-item:hover {
-  transform: translateX(5px);
-}
-
-.benefit-item.animate-in {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.benefit-icon {
-  font-size: 1.5rem;
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border-radius: 8px;
-  display: flex;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 2.5rem;
   align-items: center;
+  padding-top: 2rem;
+}
+
+.kicker,
+.cta-kicker {
+  margin: 0;
+  display: inline-flex;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #cbd5e1;
+  background: rgba(148, 163, 184, 0.07);
+}
+
+.hero h1 {
+  margin: 0.9rem 0 0;
+  font-size: clamp(2.4rem, 6vw, 5.2rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, var(--brand-a), var(--brand-b));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero-subtitle,
+.section-header p,
+.cta-card p {
+  margin: 1.1rem 0 0;
+  max-width: 62ch;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  text-wrap: balance;
+}
+
+.hero-actions,
+.cta-actions {
+  margin-top: 1.7rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.hero-visual {
+  display: flex;
   justify-content: center;
 }
 
-.benefit-content {
-  flex: 1;
+.hero-orb {
+  width: min(360px, 84vw);
+  aspect-ratio: 1;
+  border-radius: 28px;
+  border: 1px solid var(--surface-border);
+  background:
+    linear-gradient(145deg, rgba(148, 163, 184, 0.14), rgba(148, 163, 184, 0.02)),
+    rgba(148, 163, 184, 0.02);
+  backdrop-filter: blur(12px);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 26px 60px rgba(2, 6, 23, 0.45);
 }
 
-.benefit-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin: 0 0 6px 0;
+.orb-core {
+  width: 9rem;
+  height: 9rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 28% 22%, rgba(34, 211, 238, 0.5), rgba(30, 41, 59, 0.08));
+  box-shadow:
+    inset 0 0 30px rgba(226, 232, 240, 0.16),
+    0 20px 40px rgba(34, 211, 238, 0.18);
 }
 
-.benefit-description {
-  font-size: 0.9rem;
-  color: #6b7280;
+.orb-icon {
+  width: 3.4rem;
+  height: 3.4rem;
+  color: #e2e8f0;
+  stroke-width: 1.8;
+}
+
+.stats {
+  margin-top: 2rem;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.stat-card,
+.bento-card,
+.cta-card {
+  border: 1px solid var(--surface-border);
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.stat-card {
+  border-radius: 14px;
+  padding: 1rem;
+  text-align: left;
+}
+
+.stat-value {
   margin: 0;
+  font-size: clamp(1.2rem, 2vw, 1.9rem);
+  font-weight: 700;
+}
+
+.stat-label {
+  margin: 0.45rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.features {
+  margin-top: 3rem;
+}
+
+.section-header h2,
+.cta-card h2 {
+  margin: 0;
+  font-size: clamp(1.5rem, 3.3vw, 2.4rem);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.bento-grid {
+  margin-top: 1.3rem;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-auto-rows: minmax(150px, auto);
+  gap: 0.9rem;
+}
+
+.bento-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  padding: 1.15rem;
+  grid-column: span 4;
+  transition: transform 240ms ease, border-color 240ms ease, box-shadow 240ms ease;
+}
+
+.bento-card::before {
+  content: '';
+  position: absolute;
+  inset: -35% auto auto -15%;
+  width: 11rem;
+  height: 11rem;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.2), transparent 70%);
+  opacity: 0;
+  transition: opacity 260ms ease;
+  pointer-events: none;
+}
+
+.bento-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(34, 211, 238, 0.28);
+  box-shadow: 0 20px 34px rgba(2, 6, 23, 0.42);
+}
+
+.bento-card:hover::before {
+  opacity: 1;
+}
+
+.bento-card h3 {
+  margin: 0.65rem 0 0;
+  font-size: 1.15rem;
+}
+
+.bento-card p {
+  margin: 0.55rem 0 0;
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 
-/* Contact Section */
-.contact-section {
-  padding: 60px 20px;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.contact-content {
-  max-width: 80vw;
-  margin: 0 auto;
-  text-align: center;
-  color: white;
-}
-
-.contact-title {
-  font-size: 2rem;
-  font-weight: 700;
-  margin: 0 0 16px 0;
-}
-
-.contact-description {
-  font-size: 1.1rem;
-  margin: 0 0 40px 0;
-  opacity: 0.9;
-}
-
-.contact-info {
+.icon-wrap {
+  width: 2.7rem;
+  height: 2.7rem;
+  border-radius: 10px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 24px;
-  margin-top: 40px;
+  place-items: center;
+  background: rgba(148, 163, 184, 0.14);
+  border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
-.contact-item {
-  background: rgba(255, 255, 255, 0.9);
+.feature-icon {
+  width: 1.3rem;
+  height: 1.3rem;
+  color: #cbd5e1;
+  stroke-width: 2.1;
+}
+
+.span-2-cols {
+  grid-column: span 8;
+}
+
+.span-2-rows {
+  grid-column: span 4;
+  grid-row: span 2;
+}
+
+.cta {
+  margin-top: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.cta-card {
+  border-radius: 22px;
+  padding: 1.8rem;
+  box-shadow: 0 20px 60px rgba(2, 6, 23, 0.45);
+}
+
+.btn {
+  --mx: 50%;
+  --my: 50%;
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.75rem 1.15rem;
   border-radius: 12px;
-  padding: 24px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  color: #1f2937;
+  text-decoration: none;
+  border: 1px solid transparent;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
+  will-change: transform;
 }
 
-.contact-icon {
-  font-size: 1.5rem;
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at var(--mx) var(--my), rgba(255, 255, 255, 0.2), transparent 55%);
+  opacity: 0;
+  transition: opacity 180ms ease;
+  pointer-events: none;
 }
 
-.contact-details h4 {
-  font-size: 1rem;
-  font-weight: 700;
-  margin: 0 0 4px 0;
+.btn:hover::after {
+  opacity: 1;
 }
 
-.contact-details p {
-  font-size: 0.9rem;
-  color: #6b7280;
-  margin: 0;
+.btn-solid {
+  background: linear-gradient(90deg, #0ea5e9, #3b82f6);
+  color: #f8fafc;
+  box-shadow: 0 14px 28px rgba(59, 130, 246, 0.28);
 }
 
-/* Footer */
-.footer-section {
-  padding: 40px 20px;
-  background: rgba(0, 0, 0, 0.2);
-  color: white;
+.btn-ghost {
+  color: #e2e8f0;
+  border-color: rgba(148, 163, 184, 0.4);
+  background: rgba(148, 163, 184, 0.04);
 }
 
-.footer-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  text-align: center;
+.btn-ghost:hover {
+  border-color: rgba(34, 211, 238, 0.42);
 }
 
-.footer-logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 16px;
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 620ms cubic-bezier(0.16, 1, 0.3, 1), transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.logo-icon {
-  font-size: 1.5rem;
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
-.logo-text {
-  font-size: 1.25rem;
-  font-weight: 700;
+.floaty {
+  animation: float 6s ease-in-out infinite;
 }
 
-.footer-text {
-  font-size: 0.9rem;
-  opacity: 0.8;
-  margin: 0;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-
-  .hero-title {
-    font-size: 2.25rem;
+@keyframes mesh-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
   }
-  
-  .hero-subtitle {
-    font-size: 1.25rem;
+  100% {
+    transform: translate3d(-1.5%, 1.2%, 0) scale(1.04);
   }
-  
-  .section-title {
-    font-size: 1.75rem;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
   }
-  
-  .features-grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
+  50% {
+    transform: translateY(-14px);
   }
-  
-  .feature-card {
-    padding: 24px 20px;
-  }
-  
-  .contact-info {
+}
+
+@media (max-width: 1024px) {
+  .hero {
     grid-template-columns: 1fr;
   }
-  
-  .benefit-item {
-    padding: 20px;
+
+  .hero-visual {
+    order: -1;
   }
-  
-  .contact-item {
-    flex-direction: column;
-    text-align: center;
+
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 480px) {
-  .hero-section {
-    padding: 80px 16px 40px 16px;
-  }
-  
-  .hero-title {
-    font-size: 1.875rem;
+@media (max-width: 767px) {
+  .about-page {
+    padding-top: 6rem;
   }
 
-  .hero-description {
-    margin: 10px auto;
+  .bento-grid {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
   }
-  
-  .features-section,
-  .technology-section,
-  .benefits-section,
-  .contact-section {
-    padding: 40px 16px;
+
+  .bento-card,
+  .span-2-cols,
+  .span-2-rows {
+    grid-column: span 1;
+    grid-row: span 1;
   }
-  
-  .footer-logo {
-    flex-direction: column;
-    gap: 8px;
+
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .cta-card {
+    padding: 1.3rem;
   }
 }
 </style>

@@ -1,858 +1,1118 @@
 <template>
-  <div class="pricing-container">
-    <div class="header-section">
-      <h1 class="heading">Plans & Pricing</h1>
-      <p class="subheading">Choose the perfect plan for your library</p>
-    </div>
+  <main class="pricing-page" ref="pageRoot">
+    <div class="mesh-layer" aria-hidden="true"></div>
 
-    <!-- Enhanced Seat Calculator -->
-    <div class="seat-calculator">
-      <label for="seat-input">Enter Number of Seats:</label>
-      <div class="input-group">
+    <section class="hero section-shell">
+      <div class="hero-copy reveal" data-stagger="0">
+        <p class="kicker">Plans Built For Growing Libraries</p>
+        <h1>
+          Predictable pricing for every
+          <span class="gradient-text">seat you manage</span>
+        </h1>
+        <p class="hero-subtitle">
+          Start small and scale confidently. Choose a plan that matches your seat capacity and operational goals.
+        </p>
+
+        <div class="hero-points">
+          <div class="point-chip">
+            <ShieldCheck class="point-icon" aria-hidden="true" />
+            No setup fee
+          </div>
+          <div class="point-chip">
+            <Sparkles class="point-icon" aria-hidden="true" />
+            First-time bonus months
+          </div>
+          <div class="point-chip">
+            <BadgeCheck class="point-icon" aria-hidden="true" />
+            Full feature access
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual reveal" data-stagger="1">
+        <div class="hero-orb floaty">
+          <div class="orb-core">
+            <IndianRupee class="orb-icon" aria-hidden="true" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="calculator section-shell reveal" data-stagger="1">
+      <div class="calculator-card">
+        <header>
+          <h2>Seat Cost Calculator</h2>
+          <p>Estimate your monthly cost instantly before selecting a plan.</p>
+        </header>
+
+        <label for="seat-input">Number of Seats</label>
         <input
           id="seat-input"
           v-model.number="seatCount"
           type="number"
-          min="0"
+          min="1"
+          max="300"
           placeholder="e.g. 100"
           @input="validateInput"
+          @blur="validateInput"
         />
+
         <div class="preset-buttons">
-          <button 
-            v-for="preset in presetSeats" 
+          <button
+            v-for="preset in presetSeats"
             :key="preset"
-            @click="seatCount = preset"
             class="preset-btn"
             :class="{ active: seatCount === preset }"
+            @click="seatCount = preset"
           >
             {{ preset }}
           </button>
         </div>
-      </div>
-      <div class="cost-preview">
-        <span>Estimated monthly cost: <strong>₹{{ estimatedMonthlyCost }}</strong></span>
-      </div>
-    </div>
 
-    <!-- Trust Indicators -->
-    <!-- <div class="trust-indicators">
-      <div class="trust-item">
-        <span class="icon">🏛️</span>
-        <span>Trusted by 500+ libraries</span>
-      </div>
-      <div class="trust-item">
-        <span class="icon">🔒</span>
-        <span>Secure payments</span>
-      </div>
-      <div class="trust-item">
-        <span class="icon">💰</span>
-        <span>30-day money back</span>
-      </div>
-    </div> -->
-
-    <!-- Pricing Cards -->
-    <div class="pricing-grid">
-      <div
-        v-for="(plan, index) in plans"
-        :key="index"
-        class="pricing-card"
-        :class="{ 
-          'featured': plan.featured,
-          'best-value': plan.bestValue 
-        }"
-      >
-        <!-- Plan Badge -->
-        <div v-if="plan.badge" class="plan-badge">{{ plan.badge }}</div>
-        
-        <div class="card-header">
-          <div class="plan-icon">{{ plan.icon }}</div>
-          <h2>{{ plan.name }}</h2>
-          <p class="description">{{ plan.description }}</p>
+        <div class="calculator-summary">
+          <article class="summary-item">
+            <p>Estimated monthly</p>
+            <strong>₹{{ formatCurrency(baseMonthlyCost) }}</strong>
+          </article>
+          <article class="summary-item">
+            <p>Yearly at monthly rate</p>
+            <strong>₹{{ formatCurrency(baseMonthlyCost * 12) }}</strong>
+          </article>
+          <article class="summary-item">
+            <p>Lowest monthly equivalent</p>
+            <strong>₹{{ formatCurrency(lowestEquivalentMonthly) }}</strong>
+          </article>
         </div>
+      </div>
+    </section>
 
-        <div class="pricing-display">
-          <div class="price-main">
-            <span class="currency">₹</span>
-            <span class="amount">{{ plan.price }}</span>
-            <span class="unit">/seat</span>
-          </div>
-          <p class="duration">{{ plan.duration }}</p>
-          
-          <!-- Savings Display -->
-          <div v-if="plan.discount" class="savings-badge">
-            <span class="discount">{{ plan.discount }}% OFF</span>
-            <span class="savings-amount">Save ₹{{ calculateSavings(plan) }}</span>
-          </div>
-        </div>
+    <section class="pricing section-shell">
+      <header class="section-header reveal" data-stagger="0">
+        <h2>Choose your billing cycle</h2>
+        <p>Longer commitments reduce cost per seat and unlock additional free months.</p>
+      </header>
 
-        <div class="features">
-          <ul>
-            <li v-for="(feature, i) in plan.features" :key="i">
-              <span class="checkmark">✓</span>
-              {{ feature }}
-            </li>
-          </ul>
-        </div>
+      <div class="pricing-grid">
+        <article
+          v-for="(plan, index) in plans"
+          :key="plan.name"
+          class="pricing-card reveal"
+          :class="{ featured: plan.featured, 'best-value': plan.bestValue }"
+          :data-stagger="(index % 5) + 1"
+        >
+          <div v-if="plan.badge" class="plan-badge" :class="plan.badgeTone">{{ plan.badge }}</div>
 
-        <!-- Enhanced Total Section -->
-        <div class="total-section">
-          <div class="total-cost">
-            <span class="total-label">Total Cost</span>
-            <span class="total-amount">₹{{ calculateTotal(plan) }}</span>
+          <div class="card-header">
+            <div class="plan-icon-wrap">
+              <component :is="plan.icon" class="plan-icon" aria-hidden="true" />
+            </div>
+            <h3>{{ plan.name }}</h3>
+            <p>{{ plan.description }}</p>
           </div>
-          
-          <div v-if="plan.extraMonth" class="bonus-offer">
-            <div class="bonus-icon">🎁</div>
-            <div class="bonus-text">
-              <strong>+{{ plan.extraMonth }} month{{ plan.extraMonth > 1 ? 's' : '' }} FREE</strong>
-              <small>for first-time buyers</small>
+
+          <div class="price-box">
+            <div class="price-main">
+              <span class="currency">₹</span>
+              <span class="amount">{{ plan.price.toFixed(2) }}</span>
+              <span class="unit">/seat/mo</span>
+            </div>
+            <p class="billing-note">{{ plan.duration }}</p>
+
+            <div v-if="plan.discount" class="savings-badge">
+              <span>{{ plan.discount }}% OFF</span>
+              <span>Save ₹{{ formatCurrency(calculateSavings(plan)) }}</span>
             </div>
           </div>
-          
-          <div class="effective-cost">
-            Pay for {{ plan.multiplier }} months, get {{ plan.multiplier + (plan.extraMonth || 0) }} months
+
+          <ul class="feature-list">
+            <li v-for="feature in plan.features" :key="feature">
+              <Check class="check-icon" aria-hidden="true" />
+              <span>{{ feature }}</span>
+            </li>
+          </ul>
+
+          <div class="total-box">
+            <div class="total-row">
+              <span>Total billed</span>
+              <strong>₹{{ formatCurrency(calculateTotal(plan)) }}</strong>
+            </div>
+
+            <div v-if="plan.extraMonth" class="bonus-row">
+              <Gift class="bonus-icon" aria-hidden="true" />
+              <div>
+                <strong>+{{ plan.extraMonth }} free month{{ plan.extraMonth > 1 ? 's' : '' }}</strong>
+                <p>For first-time purchase</p>
+              </div>
+            </div>
+
+            <p class="effective-note">
+              Effective: ₹{{ effectivePerSeat(plan) }}/seat/mo
+              <span>across {{ plan.multiplier + (plan.extraMonth || 0) }} months</span>
+            </p>
           </div>
-        </div>
-
-        <div class="card-footer">
-          <!-- <button class="cta-button" :class="{ 'primary': plan.featured }">
-            {{ plan.featured ? 'Start Free Trial' : 'Choose Plan' }}
-          </button> -->
-          
-          <div v-if="plan.featured" class="popular-choice">
-            <span class="fire">🔥</span> Most Popular Choice
-          </div>
-        </div>
+        </article>
       </div>
-    </div>
+    </section>
 
-    <!-- Features Comparison -->
-    <div class="features-section">
-      <h3>What's Included in All Plans</h3>
-      <div class="feature-grid">
-        <div class="feature-item">
-          <span class="feature-icon">
-            <!-- 📊 -->
-             <img src="../assets/svg/student-white.svg" class="feature-icon" style="width: 25px;" alt="">
-          </span>
-          <span>Student Management</span>
-        </div>
-        <div class="feature-item">
-          <!-- <span class="feature-icon">💺</span> -->
-           <span class="feature-icon">
-            <!-- 📊 -->
-             <img src="../assets/svg/map-w.svg" class="feature-icon" style="width: 25px;" alt="">
-          </span>
-          <span>Seat Allocation</span>
-        </div>
-        <div class="feature-item">
-          <span class="feature-icon">💳</span>
-          <span>Fee Management</span>
-        </div>
-        <div class="feature-item">
-          <span class="feature-icon">📱</span>
-          <span>WhatsApp Integration</span>
-        </div>
-        <div class="feature-item">
-          <span class="feature-icon">
-            <!-- 📊 -->
-             <img src="../assets/svg/chart-2.svg" class="feature-icon" style="width: 25px;" alt="">
-          </span>
-          <span>Analytics & Reports</span>
-        </div>
-        <div class="feature-item">
-          <span class="feature-icon">🔧</span>
-          <span>24/7 Support</span>
-        </div>
+    <section class="included section-shell reveal" data-stagger="1">
+      <h2>Included in every plan</h2>
+      <div class="included-grid">
+        <article v-for="item in includedFeatures" :key="item.label" class="included-card reveal" :data-stagger="item.stagger">
+          <component :is="item.icon" class="included-icon" aria-hidden="true" />
+          <p>{{ item.label }}</p>
+        </article>
       </div>
-    </div>
+    </section>
 
-    <!-- FAQ Section -->
-    <div class="faq-section">
-      <h3>Frequently Asked Questions</h3>
+    <section class="faq section-shell reveal" data-stagger="1">
+      <h2>FAQ</h2>
       <div class="faq-grid">
-        <div class="faq-item">
-          <h4>Can I change my plan anytime?</h4>
-          <p>Yes, you can upgrade your plan at any time. Changes take effect immediately.</p>
-        </div>
-        <!-- <div class="faq-item">
-          <h4>What happens to unused seats?</h4>
-          <p>Unused seats can be reassigned to new students. You only pay for active seats in your library.</p>
-        </div> -->
-        <div class="faq-item">
-          <h4>Is there a setup fee?</h4>
-          <p>No setup fees! We'll help you get started for free with our onboarding team.</p>
+        <article v-for="item in faqs" :key="item.question" class="faq-card reveal" :data-stagger="item.stagger">
+          <h3>{{ item.question }}</h3>
+          <p>{{ item.answer }}</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="cta section-shell reveal" data-stagger="1">
+      <div class="cta-card">
+        <p class="cta-kicker">Need custom enterprise support?</p>
+        <h2>Talk to us about a tailored plan for your library network.</h2>
+        <p>
+          We can help with migration, onboarding, and long-term pricing strategy for multi-branch operations.
+        </p>
+
+        <div class="cta-actions">
+          <a class="btn btn-solid magnetic" href="mailto:shubham.libraryapp@gmail.com" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
+            Contact Sales
+          </a>
+          <a class="btn btn-ghost magnetic" href="tel:+919024600138" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
+            Schedule Call
+          </a>
         </div>
       </div>
-    </div>
-  </div>
+    </section>
+  </main>
 </template>
 
 <script setup>
-import { ref, computed } from "vue"
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import {
+  BadgeCheck,
+  BarChart3,
+  Calendar,
+  Check,
+  CreditCard,
+  Crown,
+  Gem,
+  Gift,
+  IndianRupee,
+  LifeBuoy,
+  MessageSquare,
+  Rocket,
+  ShieldCheck,
+  Sparkles,
+  TrendingUp,
+  Users,
+  Armchair,
+} from 'lucide-vue-next'
+
+const pageRoot = ref(null)
+let observer = null
 
 const seatCount = ref(100)
 const presetSeats = [35, 50, 70, 100, 120]
+const baseSeatPrice = 9
 
 const plans = [
   {
-    name: "Monthly Pack",
-    description: "Perfect for trial or short-term use",
+    name: 'Monthly Pack',
+    description: 'Ideal for testing and flexible monthly billing.',
     price: 9,
-    duration: "Per seat / per month",
+    duration: 'Billed every month',
     multiplier: 1,
     extraMonth: 1,
     discount: 0,
-    icon: "📅",
+    icon: Calendar,
     badge: null,
+    badgeTone: '',
     featured: false,
     bestValue: false,
-    features: [
-      "₹9 × Seats",
-      // "Flexible cancellation",
-      "Full feature access",
-      "Email support"
-    ],
+    features: ['Full feature access', 'Email support', 'Flexible seat updates'],
   },
   {
-    name: "3-Month Pack",
-    description: "Save more with a quarterly plan",
+    name: '3-Month Pack',
+    description: 'Quarterly billing with immediate savings.',
     price: 8.55,
-    duration: "Per seat / per month (billed quarterly)",
+    duration: 'Billed quarterly',
     multiplier: 3,
     extraMonth: 1,
     discount: 5,
-    icon: "📈",
-    badge: "5% OFF",
+    icon: TrendingUp,
+    badge: '5% OFF',
+    badgeTone: 'tone-cyan',
     featured: false,
     bestValue: false,
-    features: [
-      "₹8.55 × Seats × 3",
-      "Save 5% vs monthly",
-      "Priority support",
-      // "Advanced analytics"
-    ],
+    features: ['Save 5% vs monthly', 'Priority support', 'Faster onboarding'],
   },
   {
-    name: "6-Month Pack",
-    description: "Great for growing libraries",
+    name: '6-Month Pack',
+    description: 'Balanced pricing for growing libraries.',
     price: 8.1,
-    duration: "Per seat / per month (billed half-yearly)",
+    duration: 'Billed half-yearly',
     multiplier: 6,
     extraMonth: 1,
     discount: 10,
-    icon: "🚀",
-    badge: "MOST POPULAR",
+    icon: Rocket,
+    badge: 'MOST POPULAR',
+    badgeTone: 'tone-blue',
     featured: true,
     bestValue: false,
-    features: [
-      "₹8.10 × Seats × 6",
-      "Save 10% vs monthly",
-      // "Custom integrations",
-      // "Advanced analytics",
-      "Dedicated support"
-    ],
+    features: ['Save 10% vs monthly', 'Dedicated support', 'Growth-ready pricing'],
   },
   {
-    name: "12-Month Pack",
-    description: "Best value annual plan",
+    name: '12-Month Pack',
+    description: 'Best annual value with stronger savings.',
     price: 7.65,
-    duration: "Per seat / per month (billed yearly)",
+    duration: 'Billed yearly',
     multiplier: 12,
     extraMonth: 2,
     discount: 15,
-    icon: "🏆",
-    badge: "BEST VALUE",
+    icon: Crown,
+    badge: 'BEST VALUE',
+    badgeTone: 'tone-amber',
     featured: false,
     bestValue: true,
-    features: [
-      "₹7.65 × Seats × 12",
-      "Save 15% vs monthly",
-      // "Advanced analytics",
-      "Dedicated support",
-      // "Custom training",
-      // "Account manager"
-    ],
+    features: ['Save 15% vs monthly', 'Dedicated support', 'Long-term cost stability'],
   },
   {
-    name: "24-Month Pack",
-    description: "Lowest cost, long-term plan",
+    name: '24-Month Pack',
+    description: 'Lowest per-seat rate for long-term operators.',
     price: 7.2,
-    duration: "Per seat / per month (billed every 2 years)",
+    duration: 'Billed every 24 months',
     multiplier: 24,
     extraMonth: 4,
     discount: 20,
-    icon: "💎",
-    badge: "MAXIMUM SAVINGS",
+    icon: Gem,
+    badge: 'MAX SAVINGS',
+    badgeTone: 'tone-emerald',
     featured: false,
     bestValue: false,
-    features: [
-      "₹7.20 × Seats × 24",
-      "Save 20% vs monthly",
-      // "Enterprise features",
-      "Custom development"
-    ],
+    features: ['Save 20% vs monthly', 'Custom support pathway', 'Long-horizon predictability'],
   },
 ]
 
-const estimatedMonthlyCost = computed(() => {
-  return (seatCount.value * 9).toLocaleString()
+const includedFeatures = [
+  { icon: Users, label: 'Student Management', stagger: 1 },
+  { icon: Armchair, label: 'Seat Allocation', stagger: 2 },
+  { icon: CreditCard, label: 'Fee Tracking', stagger: 3 },
+  { icon: MessageSquare, label: 'WhatsApp Alerts', stagger: 4 },
+  { icon: BarChart3, label: 'Analytics & Reports', stagger: 5 },
+  { icon: LifeBuoy, label: 'Support Assistance', stagger: 6 },
+]
+
+const faqs = [
+  {
+    question: 'Can I change plans later?',
+    answer: 'Yes. You can upgrade your billing cycle anytime and move to a higher savings tier.',
+    stagger: 1,
+  },
+  {
+    question: 'Do you charge any setup fee?',
+    answer: 'No setup fee. Our onboarding support helps you configure your account without extra charges.',
+    stagger: 2,
+  },
+  {
+    question: 'How are free months applied?',
+    answer: 'Bonus months are applied on first-time purchase of eligible long-duration plans.',
+    stagger: 3,
+  },
+]
+
+const baseMonthlyCost = computed(() => seatCount.value * baseSeatPrice)
+
+const lowestEquivalentMonthly = computed(() => {
+  const lowestPlan = plans.reduce((best, current) => {
+    const bestRate = getEffectivePerSeat(best)
+    const currentRate = getEffectivePerSeat(current)
+    return currentRate < bestRate ? current : best
+  }, plans[0])
+
+  return seatCount.value * getEffectivePerSeat(lowestPlan)
 })
 
+function validateInput() {
+  const numeric = Number(seatCount.value)
+  if (Number.isNaN(numeric)) {
+    seatCount.value = 1
+    return
+  }
+
+  if (numeric < 1) {
+    seatCount.value = 1
+    return
+  }
+
+  if (numeric > 300) {
+    seatCount.value = 300
+  }
+}
+
 function calculateTotal(plan) {
-  return (seatCount.value * plan.price * plan.multiplier).toLocaleString()
+  return seatCount.value * plan.price * plan.multiplier
 }
 
 function calculateSavings(plan) {
-  const monthlyTotal = seatCount.value * 9 * plan.multiplier
-  const planTotal = seatCount.value * plan.price * plan.multiplier
-  return (monthlyTotal - planTotal).toLocaleString()
+  const monthlyTotal = seatCount.value * baseSeatPrice * plan.multiplier
+  return monthlyTotal - calculateTotal(plan)
 }
 
-function validateInput() {
-  if (seatCount.value < 1) seatCount.value = 0
-  if (seatCount.value > 300) seatCount.value = 300
+function getEffectivePerSeat(plan) {
+  const months = plan.multiplier + (plan.extraMonth || 0)
+  return (plan.price * plan.multiplier) / months
 }
+
+function effectivePerSeat(plan) {
+  return getEffectivePerSeat(plan).toFixed(2)
+}
+
+function formatCurrency(value) {
+  return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(Math.round(value))
+}
+
+const onMagneticMove = (event) => {
+  const element = event.currentTarget
+  const bounds = element.getBoundingClientRect()
+  const x = event.clientX - bounds.left
+  const y = event.clientY - bounds.top
+  const centerX = bounds.width / 2
+  const centerY = bounds.height / 2
+  const dx = (x - centerX) * 0.08
+  const dy = (y - centerY) * 0.12
+
+  element.style.setProperty('--mx', `${x}px`)
+  element.style.setProperty('--my', `${y}px`)
+  element.style.transform = `translate(${dx}px, ${dy}px)`
+}
+
+const onMagneticLeave = (event) => {
+  event.currentTarget.style.transform = 'translate(0, 0)'
+}
+
+onMounted(() => {
+  const targets = pageRoot.value?.querySelectorAll('.reveal') || []
+
+  observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) {
+          return
+        }
+
+        const stagger = Number(entry.target.dataset.stagger || 0)
+        entry.target.style.transitionDelay = `${Math.min(stagger * 80, 420)}ms`
+        entry.target.classList.add('is-visible')
+        observer?.unobserve(entry.target)
+      })
+    },
+    {
+      threshold: 0.16,
+      rootMargin: '0px 0px -10% 0px',
+    }
+  )
+
+  targets.forEach((target) => observer?.observe(target))
+})
+
+onBeforeUnmount(() => {
+  observer?.disconnect()
+  observer = null
+})
 </script>
 
 <style scoped>
-.pricing-container {
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+.pricing-page {
+  --bg: #0f172a;
+  --surface: rgba(148, 163, 184, 0.03);
+  --surface-border: rgba(255, 255, 255, 0.03);
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --brand-a: #22d3ee;
+  --brand-b: #3b82f6;
+
+  position: relative;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  padding-top: 3rem;
+  padding: 5rem 0 4.5rem;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  overflow: hidden;
+  isolation: isolate;
 }
 
-.header-section {
-  text-align: center;
-  margin-bottom: 2rem;
-  color: white;
+.mesh-layer {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(45rem 24rem at 10% 15%, rgba(34, 211, 238, 0.14), transparent 70%),
+    radial-gradient(40rem 24rem at 86% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
+    radial-gradient(36rem 22rem at 65% 88%, rgba(14, 165, 233, 0.11), transparent 70%),
+    linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
+  filter: saturate(115%);
+  animation: mesh-drift 18s ease-in-out infinite alternate;
 }
 
-.heading {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.section-shell {
+  width: min(1140px, calc(100% - 2rem));
+  margin: 0 auto;
 }
 
-.subheading {
-  font-size: 1.1rem;
-  opacity: 0.9;
-  font-weight: 300;
+.hero {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 2.4rem;
+  align-items: center;
 }
 
-.seat-calculator {
-  max-width: 500px;
-  margin: 0 auto 2rem auto;
-  background: white;
-  padding: 24px;
-  border-radius: 20px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+.kicker,
+.cta-kicker {
+  margin: 0;
+  display: inline-flex;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #cbd5e1;
+  background: rgba(148, 163, 184, 0.07);
 }
 
-.seat-calculator label {
-  display: block;
-  margin-bottom: 12px;
-  font-weight: 600;
-  color: #333;
-  font-size: 1.1rem;
+.hero h1 {
+  margin: 0.9rem 0 0;
+  font-size: clamp(2.25rem, 5.8vw, 4.6rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
 }
 
-.input-group {
+.gradient-text {
+  background: linear-gradient(90deg, var(--brand-a), var(--brand-b));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero-subtitle,
+.section-header p,
+.calculator-card p,
+.cta-card p,
+.faq-card p {
+  margin: 1.05rem 0 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  text-wrap: balance;
+}
+
+.hero-points {
+  margin-top: 1.4rem;
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 0.6rem;
 }
 
-.seat-calculator input {
-  width: 90%;
-  padding: 16px;
-  border: 2px solid #e1e5e9;
+.point-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.26);
+  padding: 0.42rem 0.7rem;
+  font-size: 0.86rem;
+  color: #dbeafe;
+  background: rgba(148, 163, 184, 0.08);
+}
+
+.point-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.hero-visual {
+  display: flex;
+  justify-content: center;
+}
+
+.hero-orb {
+  width: min(340px, 84vw);
+  aspect-ratio: 1;
+  border-radius: 28px;
+  border: 1px solid var(--surface-border);
+  background:
+    linear-gradient(145deg, rgba(148, 163, 184, 0.14), rgba(148, 163, 184, 0.02)),
+    rgba(148, 163, 184, 0.02);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 26px 60px rgba(2, 6, 23, 0.45);
+  display: grid;
+  place-items: center;
+}
+
+.orb-core {
+  width: 9rem;
+  height: 9rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 30% 30%, rgba(34, 211, 238, 0.52), rgba(30, 41, 59, 0.09));
+  box-shadow:
+    inset 0 0 30px rgba(226, 232, 240, 0.16),
+    0 20px 40px rgba(34, 211, 238, 0.18);
+}
+
+.orb-icon {
+  width: 3.4rem;
+  height: 3.4rem;
+  color: #f8fafc;
+  stroke-width: 1.8;
+}
+
+.calculator {
+  margin-top: 1.9rem;
+}
+
+.calculator-card,
+.pricing-card,
+.included-card,
+.faq-card,
+.cta-card {
+  border: 1px solid var(--surface-border);
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.calculator-card {
+  border-radius: 20px;
+  padding: 1.25rem;
+}
+
+.calculator-card h2,
+.section-header h2,
+.included h2,
+.faq h2,
+.cta h2 {
+  margin: 0;
+  font-size: clamp(1.4rem, 3vw, 2.2rem);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.calculator-card label {
+  display: inline-block;
+  margin-top: 1rem;
+  font-weight: 600;
+  color: #dbeafe;
+}
+
+.calculator-card input {
+  width: 100%;
+  margin-top: 0.45rem;
+  padding: 0.82rem 0.85rem;
   border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(15, 23, 42, 0.75);
+  color: #f8fafc;
+  font-size: 1rem;
   outline: none;
-  font-size: 16px;
-  transition: border-color 0.3s ease;
 }
 
-.seat-calculator input:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+.calculator-card input:focus {
+  border-color: rgba(34, 211, 238, 0.7);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.15);
 }
 
 .preset-buttons {
+  margin-top: 0.75rem;
   display: flex;
-  gap: 8px;
+  gap: 0.45rem;
   flex-wrap: wrap;
 }
 
 .preset-btn {
-  padding: 8px 16px;
-  background: #f8f9fa;
-  border: 2px solid #e1e5e9;
-  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: rgba(148, 163, 184, 0.1);
+  color: #e2e8f0;
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 500;
 }
 
-.preset-btn:hover, .preset-btn.active {
-  background: #667eea;
-  color: white;
-  border-color: #667eea;
+.preset-btn.active,
+.preset-btn:hover {
+  border-color: rgba(34, 211, 238, 0.58);
+  background: rgba(34, 211, 238, 0.2);
 }
 
-.cost-preview {
-  text-align: center;
-  padding: 12px;
-  background: #f8f9ff;
-  border-radius: 8px;
-  margin-top: 12px;
-  color: #4f46e5;
+.calculator-summary {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
 }
 
-.trust-indicators {
-  display: flex;
-  justify-content: center;
-  gap: 2rem;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
+.summary-item {
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: rgba(15, 23, 42, 0.65);
+  padding: 0.7rem;
 }
 
-.trust-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: white;
-  font-size: 0.9rem;
-  opacity: 0.9;
+.summary-item p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #94a3b8;
 }
 
-.icon {
-  font-size: 1.2rem;
+.summary-item strong {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 1.02rem;
+}
+
+.pricing {
+  margin-top: 2.6rem;
+}
+
+.section-header {
+  margin-bottom: 1.1rem;
 }
 
 .pricing-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 24px;
-  max-width: 1400px;
-  margin: 0 auto;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 0.85rem;
 }
 
 .pricing-card {
-  background: white;
-  border-radius: 20px;
-  padding: 32px 24px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  display: flex;
-  flex-direction: column;
   position: relative;
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
+  overflow: hidden;
+  border-radius: 18px;
+  grid-column: span 4;
+  padding: 1.1rem;
+  transition: transform 240ms ease, box-shadow 240ms ease, border-color 240ms ease;
+}
+
+.pricing-card::before {
+  content: '';
+  position: absolute;
+  inset: -40% auto auto -20%;
+  width: 13rem;
+  height: 13rem;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.2), transparent 70%);
+  opacity: 0;
+  transition: opacity 260ms ease;
+  pointer-events: none;
 }
 
 .pricing-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+  border-color: rgba(34, 211, 238, 0.32);
+  box-shadow: 0 20px 34px rgba(2, 6, 23, 0.42);
+}
+
+.pricing-card:hover::before {
+  opacity: 1;
 }
 
 .pricing-card.featured {
-  border-color: #667eea;
-  transform: scale(1.02);
-  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.2);
+  grid-column: span 8;
+  border-color: rgba(14, 165, 233, 0.58);
 }
 
 .pricing-card.best-value {
-  border-color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.48);
 }
 
 .plan-badge {
   position: absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  color: white;
-  padding: 8px 20px;
-  border-radius: 20px;
-  font-size: 0.8rem;
+  right: 12px;
+  top: 12px;
+  border-radius: 999px;
+  padding: 0.27rem 0.58rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.04em;
+  color: #f8fafc;
+  background: linear-gradient(90deg, #0ea5e9, #2563eb);
 }
 
-.card-header {
-  text-align: center;
-  margin-bottom: 24px;
+.tone-cyan {
+  background: linear-gradient(90deg, #06b6d4, #0ea5e9);
+}
+
+.tone-blue {
+  background: linear-gradient(90deg, #2563eb, #3b82f6);
+}
+
+.tone-amber {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.tone-emerald {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.card-header h3 {
+  margin: 0.7rem 0 0;
+  font-size: 1.2rem;
+}
+
+.card-header p {
+  margin: 0.5rem 0 0;
+  color: var(--text-secondary);
+}
+
+.plan-icon-wrap {
+  width: 2.7rem;
+  height: 2.7rem;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: rgba(148, 163, 184, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.24);
 }
 
 .plan-icon {
-  font-size: 3rem;
-  margin-bottom: 12px;
+  width: 1.3rem;
+  height: 1.3rem;
+  color: #cbd5e1;
 }
 
-.pricing-card h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-  color: #1f2937;
-}
-
-.description {
-  color: #6b7280;
-  margin-bottom: 0;
-  line-height: 1.5;
-}
-
-.pricing-display {
-  text-align: center;
-  margin-bottom: 24px;
-  padding: 20px 0;
-  border-bottom: 2px solid #f3f4f6;
+.price-box {
+  margin-top: 0.95rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.22);
 }
 
 .price-main {
   display: flex;
   align-items: baseline;
-  justify-content: center;
-  gap: 4px;
-  margin-bottom: 8px;
+  gap: 0.3rem;
 }
 
 .currency {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #6b7280;
+  font-size: 1.2rem;
+  color: #cbd5e1;
 }
 
 .amount {
-  font-size: 3rem;
+  font-size: clamp(1.8rem, 3.2vw, 2.5rem);
   font-weight: 800;
-  color: #1f2937;
 }
 
-.unit {
-  font-size: 1.1rem;
-  color: #6b7280;
-  font-weight: 500;
+.unit,
+.billing-note {
+  color: #94a3b8;
 }
 
-.duration {
-  font-size: 0.9rem;
-  color: #6b7280;
-  margin-bottom: 12px;
+.billing-note {
+  margin: 0.35rem 0 0;
+  font-size: 0.88rem;
 }
 
 .savings-badge {
+  margin-top: 0.55rem;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  background: #dcfdf7;
-  color: #065f46;
-  padding: 8px 16px;
+  gap: 0.7rem;
   border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
+  background: rgba(16, 185, 129, 0.18);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #a7f3d0;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.84rem;
+  font-weight: 700;
 }
 
-.discount {
-  background: #10b981;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-}
-
-.features {
-  flex-grow: 1;
-  margin-bottom: 24px;
-}
-
-.features ul {
+.feature-list {
+  margin: 0.95rem 0 0;
   padding: 0;
-  margin: 0;
   list-style: none;
+  display: grid;
+  gap: 0.6rem;
 }
 
-.features li {
+.feature-list li {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-  font-size: 0.95rem;
-  color: #374151;
+  gap: 0.5rem;
+  align-items: flex-start;
+  color: #cbd5e1;
+  font-size: 0.9rem;
 }
 
-.checkmark {
-  color: #10b981;
-  font-weight: bold;
-  background: #dcfdf7;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
+.check-icon {
+  width: 1rem;
+  height: 1rem;
+  color: #34d399;
+  flex: 0 0 auto;
+  margin-top: 0.15rem;
 }
 
-.total-section {
-  margin-bottom: 24px;
-  padding: 20px;
-  background: #f9fafb;
+.total-box {
+  margin-top: 1rem;
   border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: rgba(15, 23, 42, 0.68);
+  padding: 0.75rem;
 }
 
-.total-cost {
+.total-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
+  align-items: baseline;
+  gap: 0.6rem;
 }
 
-.total-label {
-  font-weight: 600;
-  color: #374151;
+.total-row strong {
+  font-size: 1.08rem;
 }
 
-.total-amount {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #667eea;
-}
-
-.bonus-offer {
+.bonus-row {
+  margin-top: 0.6rem;
+  border-radius: 10px;
+  padding: 0.58rem;
+  background: rgba(59, 130, 246, 0.16);
+  border: 1px solid rgba(59, 130, 246, 0.34);
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: #f0f9ff;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 12px;
+  gap: 0.5rem;
+}
+
+.bonus-row strong {
+  display: block;
+  font-size: 0.9rem;
+}
+
+.bonus-row p {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  color: #bfdbfe;
 }
 
 .bonus-icon {
-  font-size: 1.5rem;
+  width: 1rem;
+  height: 1rem;
+  color: #bfdbfe;
+  flex: 0 0 auto;
 }
 
-.bonus-text {
+.effective-note {
+  margin: 0.65rem 0 0;
+  font-size: 0.82rem;
+  color: #93c5fd;
+}
+
+.effective-note span {
+  display: block;
+  color: #94a3b8;
+  margin-top: 0.2rem;
+}
+
+.included,
+.faq,
+.cta {
+  margin-top: 2.8rem;
+}
+
+.included-grid,
+.faq-grid {
+  margin-top: 1.1rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.included-card,
+.faq-card {
+  border-radius: 14px;
+  padding: 0.9rem;
+}
+
+.included-card {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: 0.55rem;
 }
 
-.bonus-text strong {
-  color: #0369a1;
-  font-weight: 700;
+.included-card p {
+  margin: 0;
+  color: #dbeafe;
+  font-size: 0.92rem;
 }
 
-.bonus-text small {
-  color: #64748b;
-  font-size: 0.8rem;
+.included-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: #67e8f9;
 }
 
-.effective-cost {
-  text-align: center;
-  font-size: 0.85rem;
-  color: #059669;
-  font-weight: 600;
-}
-
-.card-footer {
-  text-align: center;
-}
-
-.cta-button {
-  width: 100%;
-  padding: 16px;
-  background: #f3f4f6;
-  color: #374151;
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
+.faq-card h3 {
+  margin: 0;
   font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-bottom: 12px;
+  color: #f8fafc;
 }
 
-.cta-button.primary {
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  color: white;
-  border-color: #667eea;
+.faq-card p {
+  margin: 0.5rem 0 0;
+  font-size: 0.92rem;
 }
 
-.cta-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+.cta-card {
+  border-radius: 22px;
+  padding: 1.6rem;
+  box-shadow: 0 20px 60px rgba(2, 6, 23, 0.45);
 }
 
-.popular-choice {
-  font-size: 0.85rem;
-  color: #dc2626;
-  font-weight: 600;
+.cta-actions {
+  margin-top: 1.4rem;
   display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.btn {
+  --mx: 50%;
+  --my: 50%;
+
+  position: relative;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-}
-
-.features-section {
-  max-width: 1000px;
-  margin: 4rem auto 3rem auto;
-  text-align: center;
-  color: white;
-}
-
-.features-section h3 {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 2rem;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.feature-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-}
-
-.feature-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: rgba(255,255,255,0.1);
-  padding: 16px;
+  min-height: 44px;
+  padding: 0.75rem 1.15rem;
   border-radius: 12px;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-}
-
-.feature-item:hover {
-  background: rgba(255,255,255,0.2);
-  transform: translateY(-2px);
-}
-
-.feature-icon {
-  font-size: 1.5rem;
-}
-
-.faq-section {
-  max-width: 1000px;
-  margin: 3rem auto 2rem auto;
-  color: white;
-}
-
-.faq-section h3 {
-  text-align: center;
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 2rem;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.faq-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
-
-.faq-item {
-  background: rgba(255,255,255,0.1);
-  padding: 24px;
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-}
-
-.faq-item h4 {
-  font-size: 1.1rem;
+  text-decoration: none;
+  border: 1px solid transparent;
   font-weight: 600;
-  margin-bottom: 8px;
-  color: #fbbf24;
+  letter-spacing: 0.01em;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
+  will-change: transform;
 }
 
-.faq-item p {
-  line-height: 1.6;
-  opacity: 0.9;
-  margin: 0;
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at var(--mx) var(--my), rgba(255, 255, 255, 0.2), transparent 55%);
+  opacity: 0;
+  transition: opacity 180ms ease;
+  pointer-events: none;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .pricing-container {
-    padding: 16px;
-    padding-top: 4rem;
+.btn:hover::after {
+  opacity: 1;
+}
+
+.btn-solid {
+  background: linear-gradient(90deg, #0ea5e9, #3b82f6);
+  color: #f8fafc;
+  box-shadow: 0 14px 28px rgba(59, 130, 246, 0.28);
+}
+
+.btn-ghost {
+  color: #e2e8f0;
+  border-color: rgba(148, 163, 184, 0.4);
+  background: rgba(148, 163, 184, 0.04);
+}
+
+.btn-ghost:hover {
+  border-color: rgba(34, 211, 238, 0.42);
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 620ms cubic-bezier(0.16, 1, 0.3, 1), transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.floaty {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes mesh-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
   }
-  
-  .heading {
-    font-size: 2rem;
+  100% {
+    transform: translate3d(-1.5%, 1.2%, 0) scale(1.04);
   }
-  
-  .pricing-grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
   }
-  
+  50% {
+    transform: translateY(-14px);
+  }
+}
+
+@media (max-width: 1200px) {
+  .pricing-card,
   .pricing-card.featured {
-    transform: none;
+    grid-column: span 6;
   }
-  
-  .trust-indicators {
-    gap: 1rem;
+
+  .included-grid,
+  .faq-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  
-  .trust-item {
-    font-size: 0.8rem;
-  }
-  
-  .feature-grid {
+}
+
+@media (max-width: 1024px) {
+  .hero {
     grid-template-columns: 1fr;
   }
-  
+
+  .hero-visual {
+    order: -1;
+  }
+
+  .calculator-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  .pricing-page {
+    padding-top: 7rem;
+  }
+
+  .pricing-grid,
+  .included-grid,
   .faq-grid {
     grid-template-columns: 1fr;
   }
-  
-  .preset-buttons {
-    justify-content: center;
+
+  .pricing-card,
+  .pricing-card.featured {
+    grid-column: span 1;
+  }
+
+  .cta-card,
+  .calculator-card {
+    padding: 1.2rem;
   }
 }
-
-@media (max-width: 480px) {
-  .amount {
-    font-size: 2.5rem;
-  }
-  
-  .pricing-card {
-    padding: 24px 20px;
-  }
-  
-  .seat-calculator {
-    padding: 20px;
-  }
-}
-
-/* Loading Animation */
-.pricing-card {
-  animation: slideUp 0.6s ease-out forwards;
-  opacity: 0;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.pricing-card:nth-child(1) { animation-delay: 0.1s; }
-.pricing-card:nth-child(2) { animation-delay: 0.2s; }
-.pricing-card:nth-child(3) { animation-delay: 0.3s; }
-.pricing-card:nth-child(4) { animation-delay: 0.4s; }
-.pricing-card:nth-child(5) { animation-delay: 0.5s; }
 </style>
