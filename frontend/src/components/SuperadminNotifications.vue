@@ -1,385 +1,686 @@
 <template>
-  <section class="superadmin-notifications">
-    <header class="page-header">
-      <h1>Superadmin Notification Center</h1>
-      <p>Send announcements to all library admins or one specific library.</p>
-    </header>
+  <main class="superadmin-notifications" ref="pageRoot">
+    <div class="mesh-layer" aria-hidden="true"></div>
 
-    <section class="compose-card">
-      <h2>Create Notification</h2>
-      <form @submit.prevent="sendNotification" class="compose-form">
-        <input
-          v-model.trim="form.title"
-          type="text"
-          maxlength="200"
-          placeholder="Title"
-          required
-        />
+    <section class="hero section-shell reveal" data-stagger="0">
+      <div>
+        <p class="kicker">Superadmin Workspace</p>
+        <h1>
+          Broadcast
+          <span class="gradient-text">Notifications</span>
+        </h1>
+        <p class="hero-subtitle">
+          Send platform notices for subscription dues, promotional offers, and maintenance updates to one or all libraries.
+        </p>
+      </div>
 
-        <textarea
-          v-model.trim="form.message"
-          placeholder="Write message for admins"
-          rows="4"
-          required
-        ></textarea>
-
-        <div class="form-row">
-          <select v-model="form.category" required>
-            <option value="general">General</option>
-            <option value="subscription">Subscription</option>
-            <option value="offer">Offer</option>
-            <option value="maintenance">Maintenance</option>
-          </select>
-
-          <select v-model="targetMode" @change="onTargetModeChange">
-            <option value="all">All Libraries</option>
-            <option value="library">Specific Library</option>
-          </select>
-
-          <select v-if="targetMode === 'library'" v-model="selectedLibraryId" required>
-            <option disabled value="">Select library</option>
-            <option v-for="library in libraries" :key="library.id" :value="String(library.id)">
-              {{ library.name }} (ID: {{ library.id }})
-            </option>
-          </select>
-        </div>
-
-        <div class="actions">
-          <button type="button" class="secondary-btn" @click="resetForm">Clear</button>
-          <button type="submit" class="primary-btn" :disabled="sending">
-            {{ sending ? 'Sending...' : 'Send Notification' }}
-          </button>
-        </div>
-      </form>
+      <button class="btn btn-ghost" @click="loadSent" :disabled="loadingSent">
+        <RefreshCw class="btn-icon" :class="{ spinning: loadingSent }" aria-hidden="true" />
+        <span>Refresh Sent</span>
+      </button>
     </section>
 
-    <section class="sent-card">
-      <div class="sent-header">
-        <h2>Sent Notifications</h2>
-        <button class="secondary-btn" @click="loadSent" :disabled="loadingSent">
-          Refresh
-        </button>
-      </div>
+    <section class="section-shell reveal" data-stagger="1">
+      <article class="compose-card">
+        <header class="card-head">
+          <h2>Create Notification</h2>
+          <p>Compose once and target all libraries or a specific library.</p>
+        </header>
 
-      <div v-if="loadingSent" class="state-card">Loading sent notifications...</div>
-      <div v-else-if="sentNotifications.length === 0" class="state-card">
-        No notifications sent yet.
-      </div>
+        <form class="compose-form" @submit.prevent="sendNotification">
+          <label class="field-label" for="notify-title">Title</label>
+          <div class="field-wrap">
+            <Heading class="field-icon" aria-hidden="true" />
+            <input id="notify-title" v-model.trim="form.title" type="text" maxlength="200" placeholder="Title" required />
+          </div>
 
-      <div v-else class="sent-list">
-        <article v-for="item in sentNotifications" :key="item.id" class="sent-item">
-          <div class="sent-top">
-            <span class="sent-category" :class="`category-${item.category}`">{{ item.category }}</span>
-            <span class="sent-time">{{ formatDateTime(item.created_at) }}</span>
+          <label class="field-label" for="notify-message">Message</label>
+          <div class="field-wrap textarea-wrap">
+            <MessageSquare class="field-icon" aria-hidden="true" />
+            <textarea id="notify-message" v-model.trim="form.message" rows="4" placeholder="Write message for admins" required></textarea>
           </div>
-          <h3>{{ item.title }}</h3>
-          <p>{{ item.message }}</p>
-          <div class="sent-meta">
-            <span>Recipients: {{ item.recipient_count }}</span>
-            <span>Unread: {{ item.unread_count }}</span>
-            <span v-if="item.target_type === 'library'">Library ID: {{ item.target_library_id }}</span>
-            <span v-else>Target: {{ item.target_type }}</span>
+
+          <div class="form-grid">
+            <div>
+              <label class="field-label" for="notify-category">Category</label>
+              <div class="field-wrap">
+                <Tag class="field-icon" aria-hidden="true" />
+                <select id="notify-category" v-model="form.category" required>
+                  <option value="general">General</option>
+                  <option value="subscription">Subscription</option>
+                  <option value="offer">Offer</option>
+                  <option value="maintenance">Maintenance</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="field-label" for="notify-target-mode">Target</label>
+              <div class="field-wrap">
+                <SendHorizonal class="field-icon" aria-hidden="true" />
+                <select id="notify-target-mode" v-model="targetMode" @change="onTargetModeChange">
+                  <option value="all">All Libraries</option>
+                  <option value="library">Specific Library</option>
+                </select>
+              </div>
+            </div>
+
+            <div v-if="targetMode === 'library'">
+              <label class="field-label" for="notify-library">Library</label>
+              <div class="field-wrap">
+                <Library class="field-icon" aria-hidden="true" />
+                <select id="notify-library" v-model="selectedLibraryId" required>
+                  <option disabled value="">Select library</option>
+                  <option v-for="library in libraries" :key="library.id" :value="String(library.id)">
+                    {{ library.name }} (ID: {{ library.id }})
+                  </option>
+                </select>
+              </div>
+            </div>
           </div>
-        </article>
-      </div>
+
+          <div class="actions">
+            <button type="button" class="btn btn-ghost" @click="resetForm">
+              <RotateCcw class="btn-icon" aria-hidden="true" />
+              <span>Clear</span>
+            </button>
+            <button type="submit" class="btn btn-solid" :disabled="sending">
+              <Send class="btn-icon" aria-hidden="true" />
+              <span>{{ sending ? 'Sending...' : 'Send Notification' }}</span>
+            </button>
+          </div>
+        </form>
+      </article>
+
+      <article class="sent-card">
+        <header class="card-head sent-head">
+          <div>
+            <h2>Sent Notifications</h2>
+            <p>Recent broadcasts and delivery status snapshot.</p>
+          </div>
+          <span class="count-chip">{{ sentNotifications.length }} records</span>
+        </header>
+
+        <div v-if="loadingSent" class="state-card">
+          <RefreshCw class="state-icon spinning" aria-hidden="true" />
+          <span>Loading sent notifications...</span>
+        </div>
+
+        <div v-else-if="sentNotifications.length === 0" class="state-card">
+          <Inbox class="state-icon" aria-hidden="true" />
+          <span>No notifications sent yet.</span>
+        </div>
+
+        <div v-else class="sent-list">
+          <article
+            v-for="(item, index) in sentNotifications"
+            :key="item.id"
+            class="sent-item reveal"
+            :data-stagger="(index % 5) + 1"
+          >
+            <div class="sent-top">
+              <span class="category-pill" :class="`category-${item.category}`">{{ item.category }}</span>
+              <span class="time-text">
+                <Clock3 class="time-icon" aria-hidden="true" />
+                {{ formatDateTime(item.created_at) }}
+              </span>
+            </div>
+
+            <h3>{{ item.title }}</h3>
+            <p>{{ item.message }}</p>
+
+            <div class="sent-meta">
+              <span><Users class="meta-icon" aria-hidden="true" /> Recipients: {{ item.recipient_count }}</span>
+              <span><Bell class="meta-icon" aria-hidden="true" /> Unread: {{ item.unread_count }}</span>
+              <span v-if="item.target_type === 'library'"><Building2 class="meta-icon" aria-hidden="true" /> Library ID: {{ item.target_library_id }}</span>
+              <span v-else><Target class="meta-icon" aria-hidden="true" /> Target: {{ item.target_type }}</span>
+            </div>
+          </article>
+        </div>
+      </article>
     </section>
-  </section>
+  </main>
 </template>
 
-<script>
+<script setup>
+import { onBeforeUnmount, onMounted, ref } from 'vue'
+import {
+  Bell,
+  Building2,
+  Clock3,
+  Heading,
+  Inbox,
+  Library,
+  MessageSquare,
+  RefreshCw,
+  RotateCcw,
+  Send,
+  SendHorizonal,
+  Tag,
+  Target,
+  Users,
+} from 'lucide-vue-next'
 import API from '../api'
 
-export default {
-  name: 'SuperadminNotifications',
-  data() {
-    return {
-      form: {
-        title: '',
-        message: '',
-        category: 'general',
-      },
-      targetMode: 'all',
-      selectedLibraryId: '',
-      libraries: [],
-      sentNotifications: [],
-      sending: false,
-      loadingSent: false,
-    }
-  },
-  mounted() {
-    this.bootstrap()
-  },
-  methods: {
-    async bootstrap() {
-      await Promise.all([this.loadLibraries(), this.loadSent()])
-    },
+const pageRoot = ref(null)
+let observer = null
 
-    async loadLibraries() {
-      const res = await API.get('/superadmin/libraries')
-      this.libraries = res.data
-    },
+const form = ref({
+  title: '',
+  message: '',
+  category: 'general',
+})
 
-    async loadSent() {
-      this.loadingSent = true
-      try {
-        const res = await API.get('/notifications/sent', {
-          params: { limit: 80 },
-        })
-        this.sentNotifications = res.data
-      } finally {
-        this.loadingSent = false
-      }
-    },
+const targetMode = ref('all')
+const selectedLibraryId = ref('')
+const libraries = ref([])
+const sentNotifications = ref([])
+const sending = ref(false)
+const loadingSent = ref(false)
 
-    onTargetModeChange() {
-      if (this.targetMode === 'all') {
-        this.selectedLibraryId = ''
-      }
-    },
+const bootstrap = async () => {
+  await Promise.all([loadLibraries(), loadSent()])
+}
 
-    resetForm() {
-      this.form = {
-        title: '',
-        message: '',
-        category: 'general',
-      }
-      this.targetMode = 'all'
-      this.selectedLibraryId = ''
-    },
+const loadLibraries = async () => {
+  const res = await API.get('/superadmin/libraries')
+  libraries.value = res.data
+}
 
-    async sendNotification() {
-      if (!this.form.title || !this.form.message) {
-        alert('Title and message are required')
-        return
-      }
+const loadSent = async () => {
+  loadingSent.value = true
+  try {
+    const res = await API.get('/notifications/sent', {
+      params: { limit: 80 },
+    })
+    sentNotifications.value = res.data
+  } finally {
+    loadingSent.value = false
+  }
+}
 
-      if (this.targetMode === 'library' && !this.selectedLibraryId) {
-        alert('Please select a library')
-        return
-      }
+const onTargetModeChange = () => {
+  if (targetMode.value === 'all') {
+    selectedLibraryId.value = ''
+  }
+}
 
-      const payload = {
-        title: this.form.title,
-        message: this.form.message,
-        category: this.form.category,
-      }
+const resetForm = () => {
+  form.value = {
+    title: '',
+    message: '',
+    category: 'general',
+  }
+  targetMode.value = 'all'
+  selectedLibraryId.value = ''
+}
 
-      if (this.targetMode === 'library') {
-        payload.target_library_id = Number(this.selectedLibraryId)
-      }
+const sendNotification = async () => {
+  if (!form.value.title || !form.value.message) {
+    alert('Title and message are required')
+    return
+  }
 
-      this.sending = true
-      try {
-        await API.post('/notifications/', payload)
-        await this.loadSent()
-        this.resetForm()
-        alert('Notification sent successfully')
-      } finally {
-        this.sending = false
-      }
-    },
+  if (targetMode.value === 'library' && !selectedLibraryId.value) {
+    alert('Please select a library')
+    return
+  }
 
-    formatDateTime(value) {
-      if (!value) {
-        return '-'
-      }
-      return new Date(value).toLocaleString('en-IN', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
+  const payload = {
+    title: form.value.title,
+    message: form.value.message,
+    category: form.value.category,
+  }
+
+  if (targetMode.value === 'library') {
+    payload.target_library_id = Number(selectedLibraryId.value)
+  }
+
+  sending.value = true
+  try {
+    await API.post('/notifications/', payload)
+    await loadSent()
+    resetForm()
+    alert('Notification sent successfully')
+  } finally {
+    sending.value = false
+  }
+}
+
+const formatDateTime = (value) => {
+  if (!value) {
+    return '-'
+  }
+  return new Date(value).toLocaleString('en-IN', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+onMounted(async () => {
+  await bootstrap()
+
+  const targets = pageRoot.value?.querySelectorAll('.reveal') || []
+
+  observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) {
+          return
+        }
+
+        const stagger = Number(entry.target.dataset.stagger || 0)
+        entry.target.style.transitionDelay = `${Math.min(stagger * 80, 420)}ms`
+        entry.target.classList.add('is-visible')
+        observer?.unobserve(entry.target)
       })
     },
-  },
-}
+    {
+      threshold: 0.16,
+      rootMargin: '0px 0px -10% 0px',
+    }
+  )
+
+  targets.forEach((target) => observer?.observe(target))
+})
+
+onBeforeUnmount(() => {
+  observer?.disconnect()
+  observer = null
+})
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 .superadmin-notifications {
-  max-width: 90%;
-  margin: 5rem auto;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.82);
-  border-radius: 16px;
+  --bg: #0f172a;
+  --surface: rgba(148, 163, 184, 0.03);
+  --surface-border: rgba(255, 255, 255, 0.03);
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --brand-a: #22d3ee;
+  --brand-b: #3b82f6;
+
+  position: relative;
+  min-height: 100vh;
+  padding: 6.7rem 0 2.8rem;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  overflow: hidden;
+  isolation: isolate;
 }
 
-.page-header h1 {
+.mesh-layer {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(45rem 24rem at 10% 15%, rgba(34, 211, 238, 0.14), transparent 70%),
+    radial-gradient(40rem 24rem at 86% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
+    radial-gradient(36rem 22rem at 65% 88%, rgba(14, 165, 233, 0.11), transparent 70%),
+    linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
+  filter: saturate(115%);
+  animation: mesh-drift 18s ease-in-out infinite alternate;
+}
+
+.section-shell {
+  width: min(1040px, calc(100% - 2rem));
+  margin: 0 auto;
+}
+
+.hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.kicker {
   margin: 0;
-  color: #1f2937;
+  display: inline-flex;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #cbd5e1;
+  background: rgba(148, 163, 184, 0.07);
 }
 
-.page-header p {
-  margin: 0.5rem 0 1.2rem;
-  color: #4b5563;
+.hero h1 {
+  margin: 0.8rem 0 0;
+  font-size: clamp(1.9rem, 4.4vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, var(--brand-a), var(--brand-b));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero-subtitle,
+.card-head p,
+.sent-item p {
+  margin: 0.75rem 0 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  text-wrap: balance;
+}
+
+.btn {
+  min-height: 42px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  padding: 0.6rem 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-solid {
+  background: linear-gradient(90deg, #0ea5e9, #3b82f6);
+  color: #fff;
+  box-shadow: 0 14px 28px rgba(59, 130, 246, 0.28);
+}
+
+.btn-ghost {
+  background: rgba(148, 163, 184, 0.08);
+  border-color: rgba(148, 163, 184, 0.32);
+  color: #e2e8f0;
+}
+
+.btn-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+.compose-card,
+.sent-card,
+.sent-item,
+.state-card {
+  border: 1px solid var(--surface-border);
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .compose-card,
 .sent-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 1.2rem;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+  margin-top: 1.2rem;
+  border-radius: 16px;
+  padding: 1rem;
 }
 
 .sent-card {
-  margin-top: 1rem;
+  margin-top: 0.85rem;
 }
 
-.compose-card h2,
-.sent-card h2 {
-  margin: 0 0 0.8rem;
-  color: #111827;
+.card-head h2 {
+  margin: 0;
+  font-size: clamp(1.2rem, 2.8vw, 1.9rem);
 }
 
 .compose-form {
+  margin-top: 0.7rem;
   display: grid;
-  gap: 0.8rem;
+  gap: 0.65rem;
 }
 
-.compose-form input,
-.compose-form textarea,
-.compose-form select {
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 0.65rem 0.75rem;
+.field-label {
+  color: #cbd5e1;
+  font-weight: 600;
+  font-size: 0.86rem;
+}
+
+.field-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: 12px;
+  padding: 0 0.6rem;
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  background: rgba(15, 23, 42, 0.75);
+}
+
+.textarea-wrap {
+  align-items: flex-start;
+  padding-top: 0.55rem;
+}
+
+.field-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  color: #94a3b8;
+  flex: 0 0 auto;
+  margin-top: 0.05rem;
+}
+
+.field-wrap input,
+.field-wrap textarea,
+.field-wrap select {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #f8fafc;
   font-size: 0.95rem;
+  padding: 0.78rem 0;
 }
 
-.form-row {
+.field-wrap select option {
+  color: #0f172a;
+}
+
+.form-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.7rem;
+  gap: 0.62rem;
 }
 
 .actions {
+  margin-top: 0.25rem;
   display: flex;
   justify-content: flex-end;
-  gap: 0.7rem;
+  gap: 0.58rem;
 }
 
-.primary-btn,
-.secondary-btn {
-  border: none;
-  border-radius: 8px;
-  padding: 0.55rem 0.85rem;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.primary-btn {
-  background: #5b21b6;
-  color: #fff;
-}
-
-.primary-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.secondary-btn {
-  background: #e5e7eb;
-  color: #111827;
-}
-
-.sent-header {
+.sent-head {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  align-items: center;
   gap: 0.8rem;
-  margin-bottom: 0.8rem;
+}
+
+.count-chip {
+  border-radius: 999px;
+  padding: 0.32rem 0.56rem;
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  background: rgba(148, 163, 184, 0.08);
+  color: #cbd5e1;
+  font-size: 0.76rem;
+  font-weight: 700;
 }
 
 .state-card {
-  border: 1px dashed #cbd5e1;
-  border-radius: 10px;
-  padding: 1rem;
-  color: #475569;
+  margin-top: 0.85rem;
+  border-radius: 12px;
+  padding: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #cbd5e1;
+}
+
+.state-icon {
+  width: 0.98rem;
+  height: 0.98rem;
 }
 
 .sent-list {
+  margin-top: 0.85rem;
   display: grid;
-  gap: 0.8rem;
+  gap: 0.72rem;
 }
 
 .sent-item {
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 0.85rem;
-  text-align: left;
+  border-radius: 12px;
+  padding: 0.9rem;
 }
 
 .sent-top {
   display: flex;
   justify-content: space-between;
+  gap: 0.65rem;
   align-items: center;
-  gap: 0.6rem;
 }
 
-.sent-category {
+.category-pill {
   text-transform: capitalize;
-  border-radius: 999px;
-  padding: 0.22rem 0.5rem;
   font-size: 0.74rem;
   font-weight: 700;
-  background: #e0e7ff;
-  color: #3730a3;
+  padding: 0.22rem 0.48rem;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.22);
+  color: #e2e8f0;
 }
 
 .category-subscription {
-  background: #fee2e2;
-  color: #991b1b;
+  background: rgba(239, 68, 68, 0.2);
+  color: #fecaca;
 }
 
 .category-offer {
-  background: #dcfce7;
-  color: #166534;
+  background: rgba(16, 185, 129, 0.2);
+  color: #a7f3d0;
 }
 
-.sent-time {
-  color: #6b7280;
-  font-size: 0.8rem;
+.category-general {
+  background: rgba(59, 130, 246, 0.2);
+  color: #bfdbfe;
+}
+
+.category-maintenance {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fde68a;
+}
+
+.time-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #94a3b8;
+  font-size: 0.76rem;
+}
+
+.time-icon,
+.meta-icon {
+  width: 0.88rem;
+  height: 0.88rem;
 }
 
 .sent-item h3 {
-  margin: 0.55rem 0 0.45rem;
-  color: #1f2937;
-}
-
-.sent-item p {
-  margin: 0;
-  color: #374151;
-  line-height: 1.4;
+  margin: 0.62rem 0 0.4rem;
+  color: #f8fafc;
+  font-size: 1rem;
 }
 
 .sent-meta {
-  margin-top: 0.7rem;
+  margin-top: 0.66rem;
   display: flex;
-  gap: 0.9rem;
+  gap: 0.7rem;
   flex-wrap: wrap;
-  color: #475569;
-  font-size: 0.82rem;
 }
 
-@media (max-width: 900px) {
-  .form-row {
-    grid-template-columns: 1fr;
+.sent-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  font-size: 0.8rem;
+  color: #cbd5e1;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 620ms cubic-bezier(0.16, 1, 0.3, 1), transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes mesh-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(-1.5%, 1.2%, 0) scale(1.04);
   }
 }
 
-@media (max-width: 767px) {
-  .superadmin-notifications {
-    margin: 5rem auto;
-    padding: 1rem;
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 980px) {
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
   }
 
   .actions {
     justify-content: stretch;
   }
 
-  .primary-btn,
-  .secondary-btn {
+  .actions .btn {
     flex: 1;
+  }
+}
+
+@media (max-width: 767px) {
+  .superadmin-notifications {
+    padding-top: 5.4rem;
+  }
+
+  .section-shell {
+    width: min(1040px, calc(100% - 1rem));
+  }
+
+  .sent-head,
+  .sent-top {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 </style>
