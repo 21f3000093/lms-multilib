@@ -1,346 +1,145 @@
 <template>
   <div class="layout-wrapper">
-    <!-- Desktop Sidebar -->
     <aside v-if="isLoggedIn" class="sidebar desktop-only">
-      <div class="sidebar-header">
-        <router-link 
-          :to="role === 'superadmin' ? '/superadmin' : '/dashboard'" 
-          class="sidebar-logo"
-        >
-          <!-- <div class="logo-icon">📚</div> -->
-          <div class="logo-text">{{ library_name }}</div>
-        </router-link>
-      </div>
-      
+      <router-link :to="homeRoute" class="brand-link" @click="closeMenu">
+        <span class="brand-icon-wrap">
+          <BookOpen class="brand-icon" aria-hidden="true" />
+        </span>
+        <span class="brand-text-wrap">
+          <span class="brand-title">Smart Library</span>
+          <span class="brand-subtitle">{{ library_name || 'Workspace' }}</span>
+        </span>
+      </router-link>
+
       <nav class="sidebar-nav">
-        <router-link v-if="role === 'admin'" to="/dashboard" class="sidebar-link">
-          <span class="sidebar-icon">
-            <!-- 📊 -->
-            <img src="../assets/svg/chart-2.svg" class="sidebar-icon" alt="" loading="lazy">
-          </span>
-          <span class="sidebar-text">Dashboard</span>
-        </router-link>
-        <router-link v-if="role === 'admin'" to="/register" class="sidebar-link">
-          <span class="sidebar-icon">
-            <!-- ➕ -->
-             <img src="../assets/svg/add-plus-w.svg" class="sidebar-icon" alt="" loading="lazy">
-          </span>
-          <span class="sidebar-text">Register</span>
-        </router-link>
-        <router-link v-if="role === 'admin'" to="/students" class="sidebar-link">
-          <span class="sidebar-icon">
-            <!-- 📋 -->
-             <img src="../assets/svg/list-w.svg" class="sidebar-icon" alt="" loading="lazy">
-          </span>
-          <span class="sidebar-text">Student List</span>
-        </router-link>
-        <router-link v-if="role === 'admin'" to="/monthly-payments" class="sidebar-link">
-          <span class="sidebar-icon">
-            <!-- 💰 -->
-             <img src="../assets/svg/money-dollar.svg" class="sidebar-icon" alt="" loading="lazy">
-          </span>
-          <span class="sidebar-text">Monthly Fees</span>
-        </router-link>
-        <router-link v-if="role === 'admin'" to="/seat-map" class="sidebar-link">
-          <span class="sidebar-icon">
-            <!-- 🪑 -->
-             <img src="../assets/svg/map-w.svg" class="sidebar-icon" alt="" loading="lazy">
-          </span>
-          <span class="sidebar-text">Seat Map</span>
-        </router-link>
-        <router-link v-if="role === 'admin'" to="/monthly-expenses" class="sidebar-link">
-          <span class="sidebar-icon">
-            <!-- 💸 -->
-             <img src="../assets/svg/money-out-w.svg" class="sidebar-icon" alt="" loading="lazy">
-          </span>
-          <span class="sidebar-text">Expenses</span>
-        </router-link>
-        <router-link v-if="role === 'admin'" to="/notifications" class="sidebar-link">
-          <span class="sidebar-icon">
-            <svg class="sidebar-icon-svg" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12,22c1.1,0,2-0.9,2-2h-4C10,21.1,10.9,22,12,22z M18,16v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-0.83-0.67-1.5-1.5-1.5s-1.5,0.67-1.5,1.5v0.68C7.63,5.36,6,7.92,6,11v5l-2,2v1h16v-1L18,16z"/>
-            </svg>
-          </span>
-          <span class="sidebar-text">
-            Notifications
-            <span v-if="unreadCount > 0" class="sidebar-count">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
-          </span>
-        </router-link>
-        <router-link v-if="role === 'superadmin'" to="/superadmin" class="sidebar-link">
-          <span class="sidebar-icon">
-            <img src="../assets/svg/chart-2.svg" class="sidebar-icon" alt="" loading="lazy">
-          </span>
-          <span class="sidebar-text">Dashboard</span>
-        </router-link>
-        <router-link v-if="role === 'superadmin'" to="/superadmin/notifications" class="sidebar-link">
-          <span class="sidebar-icon">
-            <svg class="sidebar-icon-svg" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12,22c1.1,0,2-0.9,2-2h-4C10,21.1,10.9,22,12,22z M18,16v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-0.83-0.67-1.5-1.5-1.5s-1.5,0.67-1.5,1.5v0.68C7.63,5.36,6,7.92,6,11v5l-2,2v1h16v-1L18,16z"/>
-            </svg>
-          </span>
-          <span class="sidebar-text">Notifications</span>
+        <router-link
+          v-for="item in sidebarItems"
+          :key="item.key"
+          :to="item.to"
+          class="sidebar-link"
+          :class="{ 'is-active': isNavItemActive(item) }"
+        >
+          <component :is="item.icon" class="nav-icon" aria-hidden="true" />
+          <span class="nav-label">{{ item.label }}</span>
+          <span v-if="item.unread && unreadCount > 0" class="nav-badge">{{ unreadBadge }}</span>
         </router-link>
       </nav>
     </aside>
 
-    <!-- Top Navbar -->
-    <nav class="navbar" :class="{ 'with-sidebar': isLoggedIn }">
-      <div class="navbar-content">
-        <!-- Mobile hamburger menu -->
-        <button 
-          v-if="isLoggedIn || !isLoggedIn" 
-          class="hamburger mobile-only" 
-          :class="{ 'menu-open': menuOpen }" 
-          @click="toggleMenu"
-        >
-          <span class="hamburger-line"></span>
-          <span class="hamburger-line"></span>
-          <span class="hamburger-line"></span>
+    <nav class="topbar" :class="{ 'with-sidebar': isLoggedIn }">
+      <div class="topbar-content">
+        <button class="menu-btn mobile-only" type="button" @click="toggleMenu" :aria-label="menuOpen ? 'Close menu' : 'Open menu'">
+          <X v-if="menuOpen" class="menu-icon" aria-hidden="true" />
+          <Menu v-else class="menu-icon" aria-hidden="true" />
         </button>
-        
-        <!-- Desktop/Mobile logo when not logged in -->
+        <div v-if="isLoggedIn" class="desktop-only"> </div>
 
-        <div v-if="!isLoggedIn" class="desktop-only"></div>
-        <router-link 
-          v-if="!isLoggedIn" 
-          to="/login" 
-          class="navbar-logo"
-        >
-          <!-- <div class="logo-icon">📚</div> -->
-          
-          <div class="logo-text">Smart Library App</div>
-          
+        <router-link :to="homeRoute" class="topbar-brand" @click="closeMenu">
+          <BookOpen class="topbar-brand-icon" aria-hidden="true" />
+          <span>Smart Library App</span>
         </router-link>
-        <div v-if="!isLoggedIn" class="desktop-only"></div>
 
-        <div v-if="!isLoggedIn" class="mobile-only" style="width: 42px;">
-
+        <div class="topbar-actions" v-if="!isLoggedIn">
+          <router-link to="/pricing-plans" class="public-link desktop-only">Pricing</router-link>
+          <router-link to="/about" class="public-link desktop-only">About</router-link>
+          <router-link to="/login" class="public-link public-link-primary desktop-only">Login</router-link>
         </div>
-        <div v-if="isLoggedIn" class="desktop-only"></div>
 
-        <router-link 
-          v-if="isLoggedIn" 
-          :to="role === 'superadmin' ? '/superadmin' : '/dashboard'" 
-          class="navbar-logo desktop-only"
-          @click="closeMenu"
-        >
-          <!-- <div class="logo-icon">📚</div> -->
-          <div class="logo-text">Smart Library App</div>
-        </router-link>
+        <div v-if="isLoggedIn" class="topbar-actions">
+          <button
+            v-if="role === 'admin'"
+            type="button"
+            class="notification-btn"
+            @click="openNotifications"
+            aria-label="Notifications"
+          >
+            <Bell class="notification-icon" aria-hidden="true" />
+            <span v-if="unreadCount > 0" class="notification-badge">{{ unreadBadge }}</span>
+          </button>
 
-        <!-- Mobile logo when logged in -->
-        <router-link 
-          v-if="isLoggedIn" 
-          :to="role === 'superadmin' ? '/superadmin' : '/dashboard'" 
-          class="navbar-logo mobile-only"
-          @click="closeMenu"
-        >
-          <!-- <div class="logo-icon">📚</div> -->
-          <div class="logo-text">Smart Library App</div>
-        </router-link>
-        
-        <!-- User Dropdown (Desktop & Mobile) -->
-        <div v-if="isLoggedIn" class="user-dropdown" @click.stop="toggleDropdown">
-          <div class="user-avatar">
-            <img src="../assets/profile/account.png" alt="User Avatar" loading="lazy" />
-          </div>
-          
-          <!-- Dropdown Menu -->
-          <div class="dropdown-menu" :class="{ 'show': dropdownOpen }" @click.stop>
-            <div class="dropdown-header">
-              <img src="../assets/profile/account.png" alt="User Avatar" loading="lazy" />
-              <div class="user-info">
-                <div class="user-name">{{ library_name || 'User' }}</div>
-                <div class="user-email">{{ username }}</div>
+          <div class="user-menu" @click.stop>
+            <button type="button" class="user-btn" @click="toggleDropdown">
+              <img src="../assets/profile/account.png" alt="User avatar" class="user-avatar" loading="lazy" />
+            </button>
+
+            <div class="dropdown" :class="{ show: dropdownOpen }" @click.stop>
+              <div class="dropdown-head">
+                <img src="../assets/profile/account.png" alt="User avatar" class="dropdown-avatar" loading="lazy" />
+                <div>
+                  <p class="dropdown-title">{{ library_name || 'Smart Library' }}</p>
+                  <p class="dropdown-subtitle">{{ username }}</p>
+                </div>
               </div>
+
+              <button type="button" class="dropdown-item" @click="goChangePassword">
+                <KeyRound class="dropdown-icon" aria-hidden="true" />
+                <span>Change Password</span>
+              </button>
+              <button type="button" class="dropdown-item" @click="goPricing">
+                <CircleDollarSign class="dropdown-icon" aria-hidden="true" />
+                <span>Pricing & Plans</span>
+              </button>
+              <button type="button" class="dropdown-item" @click="openNotifications">
+                <Bell class="dropdown-icon" aria-hidden="true" />
+                <span>Notifications</span>
+                <span v-if="role === 'admin' && unreadCount > 0" class="dropdown-badge">{{ unreadBadge }}</span>
+              </button>
+              <button type="button" class="dropdown-item" @click="goAbout">
+                <Info class="dropdown-icon" aria-hidden="true" />
+                <span>About</span>
+              </button>
+
+              <div class="dropdown-divider"></div>
+
+              <button type="button" class="dropdown-item danger" @click="logout">
+                <LogOut class="dropdown-icon" aria-hidden="true" />
+                <span>Logout</span>
+              </button>
             </div>
-            
-            <div class="dropdown-divider"></div>
-            
-            <a href="#" class="dropdown-item" @click.prevent="viewProfile">
-              <svg class="dropdown-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-              </svg>
-              View Profile
-            </a>
-            
-            <a href="#" class="dropdown-item" @click.prevent="ChangePassword">
-              <svg class="dropdown-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.82,11.69,4.82,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
-              </svg>
-              Change Password
-            </a>
-
-            <a href="#" class="dropdown-item" @click.prevent="PricingPlans">
-              <svg class="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M15 5.5 C13.4 4.3, 11 4.3, 9.4 5.5 C7.8 6.7, 7.8 9.1, 9.4 10.3 C11 11.5, 13.4 11.0, 15 12.8 C16.6 14.6, 16.6 17.0, 15 18.2 C13.4 19.4, 11 19.4, 9.0 18.4" />
-                <path d="M12 3v18" />
-              </svg>
-              Pricing & Plans
-            </a>
-
-            <a href="#" class="dropdown-item" @click.prevent="notifications">
-              <svg class="dropdown-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12,22c1.1,0,2-0.9,2-2h-4C10,21.1,10.9,22,12,22z M18,16v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-0.83-0.67-1.5-1.5-1.5 s-1.5,0.67-1.5,1.5v0.68C7.63,5.36,6,7.92,6,11v5l-2,2v1h16v-1L18,16z"/>
-              </svg>
-              Notifications
-              <span v-if="role === 'admin' && unreadCount > 0" class="dropdown-count">
-                {{ unreadCount > 99 ? '99+' : unreadCount }}
-              </span>
-            </a>
-            
-            <a href="#" class="dropdown-item" @click.prevent="helpCenter">
-              <svg class="dropdown-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10s10-4.48,10-10S17.52,2,12,2z M13,19h-2v-2h2V19z M15.07,11.25l-0.9,0.92 C13.45,12.9,13,13.5,13,15h-2v-0.5c0-1.1,0.45-2.1,1.17-2.83l1.24-1.26c0.37-0.36,0.59-0.86,0.59-1.41c0-1.1-0.9-2-2-2 s-2,0.9-2,2H8c0-2.21,1.79-4,4-4s4,1.79,4,4C16,9.89,15.64,10.68,15.07,11.25z"/>
-              </svg>
-              About
-            </a>
-            
-            <div class="dropdown-divider"></div>
-            
-            <a href="#" class="dropdown-item logout-item" @click.prevent="logout">
-              <svg class="dropdown-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17,7l-1.41,1.41L18.17,11H8v2h10.17l-2.58,2.59L17,17l5-5L17,7z M4,5h8V3H4C2.9,3,2,3.9,2,5v14c0,1.1,0.9,2,2,2h8v-2H4V5z"/>
-              </svg>
-              Logout
-            </a>
           </div>
         </div>
       </div>
 
-      <!-- Mobile Navigation Links -->
-      <div class="mobile-menu" :class="{ 'show': menuOpen }" v-if="isLoggedIn">
-        <router-link v-if="role === 'admin'" to="/dashboard" @click="closeMenu" class="mobile-link">
-          <span class="mobile-icon">
-            <!-- 📊 -->
-            <img src="../assets/svg/chart-2.svg" class="mobile-icon" alt="" loading="lazy">
-          </span>
-          <span class="mobile-text">Dashboard</span>
-        </router-link>
-        <router-link v-if="role === 'admin'" to="/register" @click="closeMenu" class="mobile-link">
-          <span class="mobile-icon">
-            <!-- ➕ -->
-             <img src="../assets/svg/add-plus-w.svg" class="mobile-icon" alt="" loading="lazy">
-          </span>
-          <span class="mobile-text">Register</span>
-        </router-link>
-        <router-link v-if="role === 'admin'" to="/students" @click="closeMenu" class="mobile-link">
-          <span class="mobile-icon">
-            <!-- 📋 -->
-             <img src="../assets/svg/list-w.svg" class="mobile-icon" alt="" loading="lazy">
-          </span>
-          <span class="mobile-text">Student List</span>
-        </router-link>
-        <router-link v-if="role === 'admin'" to="/monthly-payments" @click="closeMenu" class="mobile-link">
-          <span class="mobile-icon">
-            <!-- 💰 -->
-             <img src="../assets/svg/money-dollar.svg" class="mobile-icon" alt="" loading="lazy">
-          </span>
-          <span class="mobile-text">Monthly Fees</span>
-        </router-link>
-        <router-link v-if="role === 'admin'" to="/seat-map" @click="closeMenu" class="mobile-link">
-          <span class="mobile-icon">
-            <!-- 🪑 -->
-             <img src="../assets/svg/map-w.svg" class="mobile-icon" alt="" loading="lazy">
-          </span>
-          <span class="mobile-text">Seat Map</span>
-        </router-link>
-        <router-link v-if="role === 'admin'" to="/monthly-expenses" @click="closeMenu" class="mobile-link">
-          <span class="mobile-icon">
-            <!-- 💸 -->
-             <img src="../assets/svg/money-out-w.svg" class="mobile-icon" alt="" loading="lazy">
-          </span>
-          <span class="mobile-text">Expenses</span>
-        </router-link>
-        <router-link v-if="role === 'admin'" to="/notifications" @click="closeMenu" class="mobile-link">
-          <span class="mobile-icon">
-            <svg class="mobile-icon-svg" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12,22c1.1,0,2-0.9,2-2h-4C10,21.1,10.9,22,12,22z M18,16v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-0.83-0.67-1.5-1.5-1.5s-1.5,0.67-1.5,1.5v0.68C7.63,5.36,6,7.92,6,11v5l-2,2v1h16v-1L18,16z"/>
-            </svg>
-          </span>
-          <span class="mobile-text">Notifications</span>
-        </router-link>
-        <router-link v-if="role === 'superadmin'" to="/superadmin" @click="closeMenu" class="mobile-link">
-          <span class="mobile-icon">
-            <img src="../assets/svg/chart-2.svg" class="mobile-icon" alt="" loading="lazy">
-          </span>
-          <span class="mobile-text">Dashboard</span>
-        </router-link>
-        <router-link v-if="role === 'superadmin'" to="/superadmin/notifications" @click="closeMenu" class="mobile-link">
-          <span class="mobile-icon">
-            <svg class="mobile-icon-svg" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12,22c1.1,0,2-0.9,2-2h-4C10,21.1,10.9,22,12,22z M18,16v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-0.83-0.67-1.5-1.5-1.5s-1.5,0.67-1.5,1.5v0.68C7.63,5.36,6,7.92,6,11v5l-2,2v1h16v-1L18,16z"/>
-            </svg>
-          </span>
-          <span class="mobile-text">Notifications</span>
-        </router-link>
-      </div>
-      <div class="mobile-menu" :class="{ 'show': menuOpen }" v-if="!isLoggedIn">
-        <router-link to="/login" @click="closeMenu" class="mobile-link">
-          <span class="mobile-icon">
-            <!-- 👤 -->
-             <img src="../assets/svg/login-w.svg" class="mobile-icon" alt="" loading="lazy">
-          </span>
-          <span class="mobile-text">Login</span>
-        </router-link>
-        <router-link to="/pricing-plans" @click="closeMenu" class="mobile-link">
-          <span class="mobile-icon">
-            <!-- 💰 -->
-             <img src="../assets/svg/price-tag1.svg" class="mobile-icon" alt="" loading="lazy" >
-          </span>
-          <span class="mobile-text">Plans & Pricing</span>
-        </router-link>
-        <router-link to="/about" @click="closeMenu" class="mobile-link">
-          <span class="mobile-icon">
-            <!-- 🤔 -->
-             <img src="../assets/svg/about.svg" class="mobile-icon" alt="" loading="lazy">
-          </span>
-          <span class="mobile-text">About</span>
+      <div class="mobile-panel" :class="{ show: menuOpen }" v-if="isLoggedIn">
+        <router-link
+          v-for="item in mobileItems"
+          :key="item.key"
+          :to="item.to"
+          class="mobile-link"
+          :class="{ 'is-active': isNavItemActive(item) }"
+          @click="closeMenu"
+        >
+          <component :is="item.icon" class="nav-icon" aria-hidden="true" />
+          <span class="mobile-label">{{ item.label }}</span>
+          <span v-if="item.unread && unreadCount > 0" class="mobile-badge">{{ unreadBadge }}</span>
         </router-link>
       </div>
 
+      <div class="mobile-panel" :class="{ show: menuOpen }" v-else>
+        <router-link
+          v-for="item in publicMobileItems"
+          :key="item.key"
+          :to="item.to"
+          class="mobile-link"
+          :class="{ 'is-active': isNavItemActive(item) }"
+          @click="closeMenu"
+        >
+          <component :is="item.icon" class="nav-icon" aria-hidden="true" />
+          <span class="mobile-label">{{ item.label }}</span>
+        </router-link>
+      </div>
     </nav>
 
-    <!-- Mobile Bottom Navigation (admin only) -->
-    <nav v-if="isLoggedIn && role === 'admin'" class="mobile-bottom-nav">
+    <nav v-if="isLoggedIn && role === 'admin'" class="bottom-nav mobile-only">
       <router-link
-        to="/dashboard"
+        v-for="item in bottomItems"
+        :key="item.key"
+        :to="item.to"
         class="bottom-link"
-        :class="{ active: isBottomNavActive('/dashboard') }"
+        :class="{ 'is-active': isNavItemActive(item) }"
+        :aria-label="item.label"
       >
-        <img src="../assets/svg/chart-2.svg" class="bottom-icon-img" alt="Dashboard" loading="lazy">
-      </router-link>
-
-      <router-link
-        to="/register"
-        class="bottom-link"
-        :class="{ active: isBottomNavActive('/register') }"
-      >
-        <img src="../assets/svg/add-plus-w.svg" class="bottom-icon-img" alt="Register" loading="lazy">
-      </router-link>
-
-      <router-link
-        to="/students"
-        class="bottom-link"
-        :class="{ active: isBottomNavActive('/students') }"
-      >
-        <img src="../assets/svg/list-w.svg" class="bottom-icon-img" alt="Student List" loading="lazy">
-      </router-link>
-
-      <router-link
-        to="/monthly-payments"
-        class="bottom-link"
-        :class="{ active: isBottomNavActive('/monthly-payments') }"
-      >
-        <img src="../assets/svg/money-dollar.svg" class="bottom-icon-img" alt="Monthly Fees" loading="lazy">
-      </router-link>
-
-      <router-link
-        to="/seat-map"
-        class="bottom-link"
-        :class="{ active: isBottomNavActive('/seat-map') }"
-      >
-        <img src="../assets/svg/map-w.svg" class="bottom-icon-img" alt="Seat Map" loading="lazy">
+        <component :is="item.icon" class="bottom-icon" aria-hidden="true" />
       </router-link>
     </nav>
   </div>
@@ -348,8 +147,48 @@
 
 <script>
 import API from '../api'
+import {
+  Armchair,
+  Banknote,
+  Bell,
+  BookOpen,
+  CircleDollarSign,
+  Grid3X3,
+  Info,
+  KeyRound,
+  LayoutDashboard,
+  LogIn,
+  LogOut,
+  Menu,
+  ReceiptText,
+  Shield,
+  UserCircle2,
+  UserPlus,
+  Users,
+  X,
+} from 'lucide-vue-next'
 
 export default {
+  components: {
+    Armchair,
+    Banknote,
+    Bell,
+    BookOpen,
+    CircleDollarSign,
+    Grid3X3,
+    Info,
+    KeyRound,
+    LayoutDashboard,
+    LogIn,
+    LogOut,
+    Menu,
+    ReceiptText,
+    Shield,
+    UserCircle2,
+    UserPlus,
+    Users,
+    X,
+  },
   data() {
     return {
       isLoggedIn: false,
@@ -362,7 +201,56 @@ export default {
       unreadPollIntervalId: null,
     }
   },
-  
+  computed: {
+    homeRoute() {
+      if (!this.isLoggedIn) {
+        return '/login'
+      }
+      return this.role === 'superadmin' ? '/superadmin' : '/dashboard'
+    },
+    unreadBadge() {
+      return this.unreadCount > 99 ? '99+' : String(this.unreadCount)
+    },
+    adminItems() {
+      return [
+        { key: 'dashboard', to: '/dashboard', label: 'Dashboard', icon: 'LayoutDashboard' },
+        { key: 'register', to: '/register', label: 'Register', icon: 'UserPlus' },
+        { key: 'students', to: '/students', label: 'Student List', icon: 'Users' },
+        { key: 'monthly-payments', to: '/monthly-payments', label: 'Monthly Fees', icon: 'Banknote' },
+        { key: 'seat-map', to: '/seat-map', label: 'Seat Map', icon: 'Grid3X3' },
+        { key: 'monthly-expenses', to: '/monthly-expenses', label: 'Expenses', icon: 'ReceiptText' },
+        { key: 'notifications', to: '/notifications', label: 'Notifications', icon: 'Bell', unread: true },
+      ]
+    },
+    superAdminItems() {
+      return [
+        { key: 'superadmin-dashboard', to: '/superadmin', label: 'Dashboard', icon: 'Shield' },
+        { key: 'superadmin-notifications', to: '/superadmin/notifications', label: 'Notifications', icon: 'Bell' },
+      ]
+    },
+    sidebarItems() {
+      return this.role === 'superadmin' ? this.superAdminItems : this.adminItems
+    },
+    mobileItems() {
+      return this.sidebarItems
+    },
+    publicMobileItems() {
+      return [
+        { key: 'public-login', to: '/login', label: 'Login', icon: 'LogIn' },
+        { key: 'public-pricing', to: '/pricing-plans', label: 'Plans & Pricing', icon: 'CircleDollarSign' },
+        { key: 'public-about', to: '/about', label: 'About', icon: 'Info' },
+      ]
+    },
+    bottomItems() {
+      return [
+        { key: 'dashboard', to: '/dashboard', label: 'Dashboard', icon: 'LayoutDashboard' },
+        { key: 'register', to: '/register', label: 'Register', icon: 'UserPlus' },
+        { key: 'students', to: '/students', label: 'Student List', icon: 'Users' },
+        { key: 'monthly-payments', to: '/monthly-payments', label: 'Monthly Fees', icon: 'Banknote' },
+        { key: 'seat-map', to: '/seat-map', label: 'Seat Map', icon: 'Armchair' },
+      ]
+    },
+  },
   mounted() {
     this.checkLoginStatus()
     this.fetchUnreadCount()
@@ -372,7 +260,6 @@ export default {
       this.fetchUnreadCount()
     }, 60000)
   },
-  
   beforeUnmount() {
     document.removeEventListener('click', this.handleDocumentClick)
     window.removeEventListener('notifications:unread-count-updated', this.syncUnreadCount)
@@ -381,32 +268,27 @@ export default {
       this.unreadPollIntervalId = null
     }
   },
-  
   methods: {
     closeMenu() {
       this.menuOpen = false
     },
-    
     toggleMenu() {
       this.menuOpen = !this.menuOpen
+      this.dropdownOpen = false
     },
-    
-    toggleDropdown(event) {
-      event.stopPropagation()
+    toggleDropdown() {
       this.dropdownOpen = !this.dropdownOpen
+      this.menuOpen = false
     },
-    
     handleDocumentClick(event) {
       if (!this.$el.contains(event.target)) {
         this.dropdownOpen = false
         this.menuOpen = false
       }
     },
-
     syncUnreadCount(event) {
       this.unreadCount = Number(event.detail?.count || 0)
     },
-
     async fetchUnreadCount() {
       if (!this.isLoggedIn || this.role !== 'admin') {
         this.unreadCount = 0
@@ -420,41 +302,6 @@ export default {
         this.unreadCount = 0
       }
     },
-    
-    viewProfile() {
-      console.log('View Profile clicked')
-      this.dropdownOpen = false
-    },
-    
-    ChangePassword() {
-      console.log('Change Password clicked')
-      this.dropdownOpen = false
-      this.$router.push('/change-password')
-    },
-    
-    notifications() {
-      this.dropdownOpen = false
-      if (this.role === 'superadmin') {
-        this.$router.push('/superadmin/notifications')
-        return
-      }
-      if (this.role === 'admin') {
-        this.$router.push('/notifications')
-      }
-    },
-    
-    helpCenter() {
-      console.log('Help Center clicked')
-      this.dropdownOpen = false
-      this.$router.push('/about')
-    },
-    
-    PricingPlans() {
-      console.log('Pricing Plans clicked')
-      this.dropdownOpen = false
-      this.$router.push('/pricing-plans')
-    },
-    
     checkLoginStatus() {
       this.isLoggedIn = !!localStorage.getItem('role')
       this.library_name = localStorage.getItem('library_name') || 'Smart Library'
@@ -464,56 +311,81 @@ export default {
         this.unreadCount = 0
       }
     },
-
-    isBottomNavActive(basePath) {
+    isNavItemActive(item) {
       const currentPath = this.$route.path
 
-      if (basePath === '/students') {
+      if (item.key === 'students') {
         return currentPath === '/students' || currentPath.startsWith('/students/')
       }
 
-      if (basePath === '/monthly-payments') {
+      if (item.key === 'monthly-payments') {
         return currentPath === '/monthly-payments' || currentPath.startsWith('/receipts/')
       }
 
-      return currentPath === basePath
+      if (item.key === 'superadmin-dashboard') {
+        return currentPath.startsWith('/superadmin') && !currentPath.startsWith('/superadmin/notifications')
+      }
+
+      if (item.key === 'superadmin-notifications') {
+        return currentPath === '/superadmin/notifications'
+      }
+
+      return currentPath === item.to
     },
-    
+    goChangePassword() {
+      this.dropdownOpen = false
+      this.$router.push('/change-password')
+    },
+    goPricing() {
+      this.dropdownOpen = false
+      this.$router.push('/pricing-plans')
+    },
+    goAbout() {
+      this.dropdownOpen = false
+      this.$router.push('/about')
+    },
+    openNotifications() {
+      this.dropdownOpen = false
+      if (this.role === 'superadmin') {
+        this.$router.push('/superadmin/notifications')
+        return
+      }
+      if (this.role === 'admin') {
+        this.$router.push('/notifications')
+      }
+    },
     async logout() {
       try {
         if (confirm('Are you sure you want to log out?')) {
           await API.post('/auth/logout')
-          
-          // Clear localStorage
+
           localStorage.removeItem('role')
           localStorage.removeItem('username')
           localStorage.removeItem('library_id')
           localStorage.removeItem('library_name')
 
-          // Reset component state
           this.isLoggedIn = false
           this.menuOpen = false
           this.dropdownOpen = false
           this.library_name = 'Smart Library'
           this.username = ''
           this.unreadCount = 0
-          
-          // Redirect to login
+
           this.$router.push('/login')
         }
       } catch (err) {
-        console.error('Logout failed', err)
         alert('Logout failed. Try again.')
       }
-    }
+    },
   },
-  
   watch: {
-    '$route'() {
+    $route() {
       this.checkLoginStatus()
       this.fetchUnreadCount()
-    }
-  }
+      this.closeMenu()
+      this.dropdownOpen = false
+    },
+  },
 }
 </script>
 
@@ -522,458 +394,431 @@ export default {
   position: relative;
 }
 
-/* ========== SIDEBAR STYLES ========== */
 .sidebar {
   width: 260px;
-  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
-  color: white;
   position: fixed;
   top: 0;
   left: 0;
-  height: 100vh;
-  overflow-y: auto;
-  z-index: 1000;
-  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+  height: 100dvh;
+  z-index: 1060;
   display: flex;
   flex-direction: column;
+  padding: 1rem 0.85rem;
+  border-right: 1px solid rgba(148, 163, 184, 0.2);
+  background:
+    radial-gradient(120% 80% at 20% 0%, rgba(56, 189, 248, 0.12), transparent 45%),
+    rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
-.sidebar-header {
-  padding: 20px 16px;
-  /* border-bottom: 1px solid rgba(255,255,255,0.1); */
-}
-
-.sidebar-logo {
+.brand-link {
   display: flex;
   align-items: center;
-  gap: 12px;
-  color: white;
+  gap: 0.72rem;
   text-decoration: none;
-  transition: all 0.3s ease;
+  color: #e2e8f0;
+  padding: 0.45rem 0.5rem;
+  border-radius: 12px;
 }
 
-.sidebar-logo:hover {
-  opacity: 0.9;
+.brand-icon-wrap {
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: rgba(148, 163, 184, 0.14);
+  border: 1px solid rgba(148, 163, 184, 0.25);
 }
 
-.logo-icon {
-  font-size: 1.8rem;
-  width: 40px;
-  height: 40px;
-  background: rgba(255,255,255,0.15);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.brand-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: #67e8f9;
 }
 
-.logo-text {
-  font-size: 1.2rem;
+.brand-text-wrap {
+  display: grid;
+  line-height: 1.05;
+}
+
+.brand-title {
+  font-size: 0.95rem;
   font-weight: 700;
-  letter-spacing: -0.3px;
-  line-height: 1.2;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+
+.brand-subtitle {
+  font-size: 0.73rem;
+  color: #94a3b8;
+  margin-top: 0.2rem;
+  max-width: 172px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sidebar-nav {
-  flex: 1;
-  padding: 16px 0;
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.35rem;
 }
 
 .sidebar-link {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  margin: 4px 12px;
-  color: rgba(255,255,255,0.85);
+  gap: 0.62rem;
   text-decoration: none;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 0.3s ease;
+  color: #cbd5e1;
+  padding: 0.62rem 0.68rem;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  transition: all 180ms ease;
 }
 
 .sidebar-link:hover {
-  background: rgba(255,255,255,0.15);
-  color: white;
-  transform: translateX(2px);
+  background: rgba(148, 163, 184, 0.12);
+  color: #f8fafc;
 }
 
-.sidebar-link.router-link-exact-active {
-  background: rgba(255,255,255,0.2);
-  color: white;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+.sidebar-link.is-active {
+  border-color: rgba(56, 189, 248, 0.45);
+  background: rgba(14, 165, 233, 0.18);
+  color: #f8fafc;
 }
 
-.sidebar-icon {
-  font-size: 1.2rem;
-  width: 24px;
-  text-align: center;
+.nav-icon {
+  width: 1.02rem;
+  height: 1.02rem;
+  flex: 0 0 auto;
 }
 
-.sidebar-icon-svg {
-  width: 24px;
-  height: 24px;
+.nav-label {
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
-.sidebar-text {
-  font-size: 0.95rem;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.sidebar-count {
+.nav-badge,
+.notification-badge,
+.dropdown-badge,
+.mobile-badge {
+  margin-left: auto;
   min-width: 20px;
   height: 20px;
   border-radius: 999px;
-  background: #ef4444;
-  color: #ffffff;
-  font-size: 0.72rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fff;
+  background: #ef4444;
 }
 
-/* ========== NAVBAR STYLES ========== */
-.navbar {
+.topbar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 64px;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  z-index: 1100;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  transition: all 0.3s ease;
+  height: 68px;
+  z-index: 1070;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
-.navbar.with-sidebar {
-  left: 260px;
+.topbar.with-sidebar {
+  left: 285px;
 }
 
-.navbar-content {
+.topbar-content {
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 1rem;
+  gap: 0.9rem;
 }
 
-.navbar-logo {
-  display: flex;
+.topbar-brand {
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  color: white;
+  gap: 0.5rem;
+  color: #e2e8f0;
   text-decoration: none;
   font-weight: 700;
+  font-size: 0.97rem;
 }
 
-.navbar-logo .logo-icon {
-  font-size: 1.6rem;
-  width: 36px;
-  height: 36px;
-  background: rgba(255,255,255,0.15);
-  border-radius: 6px;
-  display: flex;
+.topbar-brand-icon {
+  width: 1.05rem;
+  height: 1.05rem;
+  color: #67e8f9;
+}
+
+.topbar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.public-link {
+  text-decoration: none;
+  color: #cbd5e1;
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 0.4rem 0.65rem;
+  border-radius: 9px;
+  border: 1px solid transparent;
+}
+
+.public-link:hover {
+  border-color: rgba(148, 163, 184, 0.35);
+  color: #f8fafc;
+}
+
+.public-link-primary {
+  border-color: rgba(56, 189, 248, 0.45);
+  background: rgba(14, 165, 233, 0.2);
+  color: #f8fafc;
+}
+
+.menu-btn {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  background: rgba(148, 163, 184, 0.08);
+  color: #f8fafc;
+  cursor: pointer;
 }
 
-.navbar-logo .logo-text {
-  font-size: 1.1rem;
-  letter-spacing: -0.3px;
+.menu-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  pointer-events: none;
 }
 
-.hamburger {
-  display: none;
-  flex-direction: column;
+.notification-btn {
+  position: relative;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
-  background: transparent;
-  border: none;
+  background: rgba(148, 163, 184, 0.08);
+  color: #e2e8f0;
+  cursor: pointer;
+}
+
+.notification-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  min-width: 18px;
+  height: 18px;
+}
+
+.user-menu {
+  position: relative;
+}
+
+.user-btn {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  overflow: hidden;
   cursor: pointer;
   padding: 0;
-  margin-right: 12px;
-}
-
-.hamburger-line {
-  width: 24px;
-  height: 3px;
-  background: white;
-  margin: 2px 0;
-  border-radius: 2px;
-  transition: all 0.3s ease;
-}
-
-.hamburger.menu-open .hamburger-line:nth-child(1) {
-  transform: rotate(45deg) translate(5px, 5px);
-}
-
-.hamburger.menu-open .hamburger-line:nth-child(2) {
-  opacity: 0;
-}
-
-.hamburger.menu-open .hamburger-line:nth-child(3) {
-  transform: rotate(-45deg) translate(5px, -5px);
-}
-
-/* ========== USER DROPDOWN ========== */
-.user-dropdown {
-  position: relative;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-}
-
-.user-dropdown:hover {
-  background: rgba(255,255,255,0.1);
+  background: rgba(148, 163, 184, 0.1);
 }
 
 .user-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 2px solid rgba(255,255,255,0.3);
-}
-
-.user-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.dropdown-menu {
+.dropdown {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 10px);
   right: 0;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-  min-width: 280px;
+  min-width: 260px;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(15, 23, 42, 0.96);
+  box-shadow: 0 20px 40px rgba(2, 6, 23, 0.45);
+  padding: 0.45rem;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-10px) scale(0.95);
-  transition: all 0.3s ease;
-  z-index: 1200;
-  overflow: hidden;
+  transform: translateY(-8px) scale(0.98);
+  transition: all 180ms ease;
 }
 
-.dropdown-menu.show {
+.dropdown.show {
   opacity: 1;
   visibility: visible;
   transform: translateY(0) scale(1);
 }
 
-.dropdown-header {
+.dropdown-head {
   display: flex;
   align-items: center;
-  padding: 16px 20px;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  gap: 0.65rem;
+  border-radius: 10px;
+  padding: 0.55rem;
+  background: rgba(148, 163, 184, 0.08);
+  margin-bottom: 0.3rem;
 }
 
-.dropdown-header img {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  margin-right: 12px;
-  border: 2px solid rgba(255,255,255,0.3);
+.dropdown-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
 }
 
-.user-info {
-  flex: 1;
-}
-
-.user-name {
+.dropdown-title {
+  margin: 0;
+  color: #e2e8f0;
+  font-size: 0.84rem;
   font-weight: 700;
-  font-size: 0.9rem;
-  margin-bottom: 2px;
 }
 
-.user-email {
-  font-size: 0.8rem;
-  opacity: 0.9;
+.dropdown-subtitle {
+  margin: 0.2rem 0 0;
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+.dropdown-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #cbd5e1;
+  border-radius: 10px;
+  padding: 0.57rem 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+
+.dropdown-item:hover {
+  background: rgba(148, 163, 184, 0.14);
+  color: #f8fafc;
+}
+
+.dropdown-item.danger {
+  color: #fda4af;
+}
+
+.dropdown-item.danger:hover {
+  background: rgba(239, 68, 68, 0.18);
+  color: #fecaca;
+}
+
+.dropdown-icon {
+  width: 0.95rem;
+  height: 0.95rem;
 }
 
 .dropdown-divider {
   height: 1px;
-  background: #e5e7eb;
-  margin: 8px 0;
+  background: rgba(148, 163, 184, 0.24);
+  margin: 0.35rem 0;
 }
 
-.dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  color: #374151;
-  text-decoration: none;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.dropdown-item:hover {
-  background: #f3f4f6;
-}
-
-.dropdown-item.logout-item {
-  color: #ef4444;
-  border-top: 1px solid #e5e7eb;
-}
-
-.dropdown-item.logout-item:hover {
-  background: #fef2f2;
-}
-
-.dropdown-icon {
-  width: 18px;
-  height: 18px;
-  opacity: 0.7;
-}
-
-.dropdown-count {
-  margin-left: auto;
-  min-width: 20px;
-  height: 20px;
-  border-radius: 999px;
-  background: #ef4444;
-  color: #ffffff;
-  font-size: 0.72rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 6px;
-}
-
-/* ========== MOBILE MENU ========== */
-.mobile-menu {
+.mobile-panel {
   position: fixed;
-  top: 64px;
+  top: 68px;
   left: 0;
   right: 0;
-  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
-  transform: translateX(-120%);
-  transition: transform 0.3s ease;
-  z-index: 1000;
-  max-height: calc(100vh - 64px);
-  overflow-y: auto;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  transform: translateX(-180%);
+  transition: transform 220ms ease;
+  z-index: 1065;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.98);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
-.mobile-menu.show {
+.mobile-panel.show {
   transform: translateY(0);
 }
 
 .mobile-link {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px 20px;
-  color: white;
+  gap: 0.58rem;
   text-decoration: none;
+  color: #cbd5e1;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+  padding: 0.85rem 1rem;
+}
+
+.mobile-link.is-active {
+  background: rgba(14, 165, 233, 0.18);
+  color: #f8fafc;
+}
+
+.mobile-label {
+  font-size: 0.92rem;
   font-weight: 600;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  transition: all 0.3s ease;
 }
 
-.mobile-link:hover {
-  background: rgba(255,255,255,0.15);
-  padding-left: 24px;
-}
-
-.mobile-link.router-link-exact-active {
-  background: rgba(255,255,255,0.2);
-}
-
-.mobile-icon {
-  font-size: 1.2rem;
-  width: 24px;
-  text-align: center;
-}
-
-.mobile-icon-svg {
-  width: 24px;
-  height: 24px;
-}
-
-.mobile-text {
-  font-size: 1rem;
-}
-
-/* ========== MOBILE BOTTOM NAV ========== */
-.mobile-bottom-nav {
-  display: none;
+.bottom-nav {
+  position: fixed;
+  left: 0.8rem;
+  right: 0.8rem;
+  bottom: calc(0.55rem + env(safe-area-inset-bottom));
+  z-index: 1068;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  padding: 0.4rem;
+  box-shadow: 0 20px 35px rgba(2, 6, 23, 0.35);
 }
 
 .bottom-link {
-  color: #6b7280;
+  height: 2.55rem;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: #94a3b8;
   text-decoration: none;
 }
 
-@media (max-width: 767px) {
-  .mobile-bottom-nav {
-    --bottom-nav-height: 6%;
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: var(--bottom-nav-height);
-    padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
-    background: #ffffff;
-    border-top: 1px solid rgba(109, 61, 242, 0.14);
-    box-shadow: 20px -5px 22px 20px rgb(15 23 42 / 30%);
-    z-index: 1090;
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    align-items: center;
-    gap: 4px;
-    margin: 2% 7%;
-    border-top-left-radius: 18px;
-    border-top-right-radius: 18px;
-    border-bottom-left-radius: 18px;
-    border-bottom-right-radius: 18px;
-  }
-
-  .bottom-link {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 0;
-    height: 100%;
-    padding: 0;
-    border-radius: 10px;
-    color: #5f6676;
-    transition: all 0.2s ease;
-  }
-
-  .bottom-link.active {
-    color: #6d3df2;
-    background: rgba(109, 61, 242, 0.08);
-  }
-
-  .bottom-icon-img {
-    width: 22px;
-    height: 22px;
-    object-fit: contain;
-    filter: brightness(0) saturate(100%) invert(41%) sepia(10%) saturate(619%) hue-rotate(181deg) brightness(95%) contrast(89%);
-    transition: filter 0.2s ease;
-  }
-
-  .bottom-link.active .bottom-icon-img {
-    filter: brightness(0) saturate(100%) invert(28%) sepia(96%) saturate(1568%) hue-rotate(247deg) brightness(97%) contrast(99%);
-  }
+.bottom-link.is-active {
+  background: rgba(14, 165, 233, 0.22);
+  color: #e2e8f0;
 }
 
-/* ========== RESPONSIVE DESIGN ========== */
+.bottom-icon {
+  width: 1.12rem;
+  height: 1.12rem;
+}
+
 .desktop-only {
   display: block;
 }
@@ -986,69 +831,43 @@ export default {
   .desktop-only {
     display: none !important;
   }
-  
+
   .mobile-only {
-    display: flex !important;
+    display: inline-flex !important;
   }
-  
-  .navbar {
+
+  .bottom-nav.mobile-only {
+    display: grid !important;
+  }
+
+  .topbar {
     left: 0 !important;
-    height: 64px;
-    padding: 0 16px;
-  }
-  
-  .navbar-content {
-    padding: 0;
-  }
-  
-  .hamburger {
-    display: flex !important;
-  }
-  
-  .navbar-logo .logo-text {
-    font-size: 1rem;
   }
 }
 
-@media (max-width: 480px) {
-  .navbar-logo .logo-text {
-    display: block;
+@media (max-width: 767px) {
+  .topbar-content {
+    padding: 0 0.8rem;
   }
-  
-  .dropdown-menu {
-    min-width: 250px;
-    right: -12px;
-  }
-  
-  .mobile-link {
-    padding: 14px 16px;
-  }
-  
-  .user-avatar {
-    width: 36px;
-    height: 36px;
+
+  .topbar-brand {
+    font-size: 0.9rem;
   }
 }
 
-/* Scroll behavior */
 .sidebar::-webkit-scrollbar,
-.mobile-menu::-webkit-scrollbar {
+.mobile-panel::-webkit-scrollbar {
   width: 4px;
 }
 
 .sidebar::-webkit-scrollbar-track,
-.mobile-menu::-webkit-scrollbar-track {
-  background: rgba(255,255,255,0.1);
+.mobile-panel::-webkit-scrollbar-track {
+  background: rgba(148, 163, 184, 0.12);
 }
 
 .sidebar::-webkit-scrollbar-thumb,
-.mobile-menu::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.3);
-  border-radius: 2px;
-}
-
-.sidebar::-webkit-scrollbar-thumb:hover,
-.mobile-menu::-webkit-scrollbar-thumb:hover {
-  background: rgba(255,255,255,0.5);
+.mobile-panel::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.45);
+  border-radius: 999px;
 }
 </style>
