@@ -1,499 +1,522 @@
 <template>
-  <div class="login-page">
-    <div class="login-container">
-      <!-- App Header -->
-      <div class="app-header">
-        <h1 class="app-title">Smart Library App</h1>
-      </div>
+  <main class="login-page">
+    <div class="mesh-layer" aria-hidden="true"></div>
 
-      <!-- Login Form -->
-      <div class="login-form-wrapper">
-        <div class="login-header">
-          <h2 class="login-title">Admin Login</h2>
+    <section class="login-shell">
+      <article class="intro-card">
+        <p class="kicker">Smart Library App</p>
+        <h1>
+          Unified operations for
+          <span class="gradient-text">modern libraries</span>
+        </h1>
+        <p>
+          Manage students, seat allocation, payments, reminders, and analytics from a single secure workspace.
+        </p>
+
+        <div class="intro-points">
+          <div class="point">
+            <ShieldCheck class="point-icon" aria-hidden="true" />
+            Role-based access
+          </div>
+          <div class="point">
+            <Sparkles class="point-icon" aria-hidden="true" />
+            WhatsApp automation
+          </div>
+          <div class="point">
+            <BarChart3 class="point-icon" aria-hidden="true" />
+            Real-time visibility
+          </div>
         </div>
+      </article>
 
-        <form @submit.prevent="login" class="login-form">
-          <div class="form-group">
-            <input 
-              v-model="username" 
+      <article class="form-card">
+        <header class="form-head">
+          <h2>Admin Login</h2>
+          <p>Sign in to continue to your dashboard.</p>
+        </header>
+
+        <form class="login-form" @submit.prevent="login">
+          <label class="input-label" for="username">Username</label>
+          <div class="input-wrap" :class="{ error: error && !username }">
+            <User class="input-icon" aria-hidden="true" />
+            <input
+              id="username"
+              v-model="username"
               type="text"
-              placeholder="Username" 
-              required 
+              placeholder="Enter username"
+              required
+              autocomplete="username"
               @blur="onUsernameBlur"
-              class="form-input"
-              :class="{ error: error && !username }"
             />
           </div>
 
-          <div class="form-group">
-            <div class="password-wrapper">
-              <input
-                :type="showPassword ? 'text' : 'password'"
-                v-model="password"
-                placeholder="Password"
-                required
-                @blur="onPasswordBlur"
-                class="form-input password-input"
-                :class="{ error: error && !password }"
-              />
-              <button 
-                type="button" 
-                class="toggle-password-btn" 
-                @click="togglePassword"
-                tabindex="-1"
-              >
-                {{ showPassword ? 'Hide' : 'Show' }}
-              </button>
-            </div>
+          <label class="input-label" for="password">Password</label>
+          <div class="input-wrap" :class="{ error: error && !password }">
+            <Lock class="input-icon" aria-hidden="true" />
+            <input
+              id="password"
+              :type="showPassword ? 'text' : 'password'"
+              v-model="password"
+              placeholder="Enter password"
+              required
+              autocomplete="current-password"
+              @blur="onPasswordBlur"
+            />
+            <button type="button" class="toggle-btn" @click="togglePassword" :aria-label="showPassword ? 'Hide password' : 'Show password'">
+              <EyeOff v-if="showPassword" class="toggle-icon" aria-hidden="true" />
+              <Eye v-else class="toggle-icon" aria-hidden="true" />
+            </button>
           </div>
 
-          <button 
-            type="submit" 
-            :disabled="loading" 
-            class="login-btn"
-            :class="{ loading: loading }"
-          >
-            <span v-if="loading" class="loading-spinner">⏳</span>
-            <span class="btn-text">{{ loading ? 'Logging in...' : 'Login' }}</span>
+          <button type="submit" class="login-btn" :disabled="loading">
+            <LoaderCircle v-if="loading" class="spinner" aria-hidden="true" />
+            <span>{{ loading ? 'Signing in...' : 'Sign in' }}</span>
+            <ArrowRight v-if="!loading" class="btn-arrow" aria-hidden="true" />
           </button>
 
-          <div v-if="error" class="error-message">
-            <span class="error-icon">⚠️</span>
-            <span class="error-text">{{ error }}</span>
-          </div>
+          <p v-if="error" class="error-banner">
+            <AlertCircle class="error-icon" aria-hidden="true" />
+            <span>{{ error }}</span>
+          </p>
         </form>
-      </div>
-    </div>
-    <!-- Footer -->
-    <div class="footer-section">
-      <div class="footer-content">
-        <div class="footer-logo">
-          <!-- <div class="logo-icon">📚</div> -->
-          <span class="logo-text">Smart Library App</span>
+
+        <div class="form-footer-links">
+          <router-link to="/pricing-plans">Pricing</router-link>
+          <span>•</span>
+          <router-link to="/about">About</router-link>
         </div>
-        <p class="footer-text">
-          © 2026 Smart Library App. All rights reserved.
-        </p>
-        <p class="footer-text">Empowering library networks across the India.</p>
-      </div>
-    </div>
-  </div>
+      </article>
+    </section>
+
+    <footer class="page-footer">
+      <p>© 2026 Smart Library App. All rights reserved.</p>
+    </footer>
+  </main>
 </template>
 
-<script>
-import API from '../api';
-import { useToast } from 'vue-toast-notification';
-import 'vue-toast-notification/dist/theme-sugar.css';
+<script setup>
+import { ref } from 'vue'
+import {
+  AlertCircle,
+  ArrowRight,
+  BarChart3,
+  Eye,
+  EyeOff,
+  LoaderCircle,
+  Lock,
+  ShieldCheck,
+  Sparkles,
+  User,
+} from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
+import { useToast } from 'vue-toast-notification'
+import 'vue-toast-notification/dist/theme-sugar.css'
+import API from '../api'
 
-export default {
-  setup() {
-    const toast = useToast();
-    
-    const showSuccess = (message) => {
-      toast.success(message, {
-        position: 'top',
-        timeout: 2000,
-        style: {
-          backgroundColor: '#667eea',
-          color: '#fff',
-          borderRadius: '12px'
-        }
-      });
-    };
-    
-    const showError = (message) => {
-      toast.error(message, {
-        style: {
-          backgroundColor: '#dc2626',
-          color: '#fff',
-          borderRadius: '12px'
-        }
-      });
-    };
-    
-    return { showSuccess, showError };
-  },
+const router = useRouter()
+const toast = useToast()
 
-  data() {
-    return {
-      username: '',
-      password: '',
-      error: '',
-      showPassword: false,
-      loading: false,
-    };
-  },
+const username = ref('')
+const password = ref('')
+const error = ref('')
+const showPassword = ref(false)
+const loading = ref(false)
 
-  methods: {
-    togglePassword() {
-      this.showPassword = !this.showPassword;
+const showSuccess = (message) => {
+  toast.success(message, {
+    position: 'top',
+    timeout: 2000,
+    style: {
+      backgroundColor: '#0ea5e9',
+      color: '#fff',
+      borderRadius: '12px',
     },
+  })
+}
 
-    async login() {
-      this.error = '';
-      this.onUsernameBlur();
-      this.onPasswordBlur();
-      
-      if (!this.username || !this.password) {
-        this.error = 'Please enter both username and password';
-        this.showError('Please fill in all fields');
-        return;
-      }
-
-      // ✅ FORCE UNREGISTER OLD SERVICE WORKERS AND CLEAR CACHES
-
-      if ('serviceWorker' in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        for (let registration of registrations) {
-          await registration.unregister();
-        }
-        
-        // Clear all caches
-        const cacheNames = await caches.keys();
-        await Promise.all(cacheNames.map(name => caches.delete(name)));
-      }
-
-      this.loading = true;
-      try {
-        const res = await API.post('/auth/login', {
-          username: this.username,
-          password: this.password
-        });
-
-        // Store user data
-        localStorage.setItem('role', res.data.role);
-        localStorage.setItem('username', res.data.username);
-        localStorage.setItem('library_id', res.data.library_id ?? ''); 
-        localStorage.setItem('library_name', res.data.library?.name || '');
-
-        this.showSuccess('✅ Login successful!');
-
-        // Redirect based on role
-        if (res.data.role === 'superadmin') {
-          this.$router.push('/superadmin');
-        } else {
-          this.$router.push('/dashboard');
-        }
-
-      } catch (err) {
-        if (err.response) {
-          this.error = err.response.data.detail || 'Invalid username or password';
-          // this.showError(this.error);
-        } else {
-          this.error = 'Network error. Please check your connection.';
-          // this.showError('Connection failed. Please try again.');
-        }
-      } finally {
-        this.loading = false;
-      }
+const showError = (message) => {
+  toast.error(message, {
+    style: {
+      backgroundColor: '#dc2626',
+      color: '#fff',
+      borderRadius: '12px',
     },
+  })
+}
 
-    onUsernameBlur() {
-      this.username = this.username.trim().replace(/\s+/g, ' ');
-    },
+const togglePassword = () => {
+  showPassword.value = !showPassword.value
+}
 
-    onPasswordBlur() {
-      this.password = this.password.trim();
-    },
+const onUsernameBlur = () => {
+  username.value = username.value.trim().replace(/\s+/g, ' ')
+}
+
+const onPasswordBlur = () => {
+  password.value = password.value.trim()
+}
+
+const login = async () => {
+  error.value = ''
+  onUsernameBlur()
+  onPasswordBlur()
+
+  if (!username.value || !password.value) {
+    error.value = 'Please enter both username and password'
+    showError('Please fill in all fields')
+    return
   }
-};
+
+  if ('serviceWorker' in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations()
+    for (const registration of registrations) {
+      await registration.unregister()
+    }
+
+    const cacheNames = await caches.keys()
+    await Promise.all(cacheNames.map((name) => caches.delete(name)))
+  }
+
+  loading.value = true
+  try {
+    const res = await API.post('/auth/login', {
+      username: username.value,
+      password: password.value,
+    })
+
+    localStorage.setItem('role', res.data.role)
+    localStorage.setItem('username', res.data.username)
+    localStorage.setItem('library_id', res.data.library_id ?? '')
+    localStorage.setItem('library_name', res.data.library?.name || '')
+
+    showSuccess('Login successful')
+
+    if (res.data.role === 'superadmin') {
+      router.push('/superadmin')
+    } else {
+      router.push('/dashboard')
+    }
+  } catch (err) {
+    if (err.response) {
+      error.value = err.response.data.detail || 'Invalid username or password'
+    } else {
+      error.value = 'Network error. Please check your connection.'
+    }
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 .login-page {
+  --bg: #0f172a;
+  --surface: rgba(148, 163, 184, 0.03);
+  --surface-border: rgba(255, 255, 255, 0.03);
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --brand-a: #22d3ee;
+  --brand-b: #3b82f6;
+
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  /* justify-content: center; */
-  padding: 20px;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  display: flex;
-  flex-direction: column;  
-  padding-top: 12rem;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  font-family: Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text-primary);
+  background: var(--bg);
+  padding: 6.7rem 1rem 2rem;
 }
 
-.login-container {
-  width: 100%;
-  max-width: 400px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+.mesh-layer {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(45rem 24rem at 10% 15%, rgba(34, 211, 238, 0.14), transparent 70%),
+    radial-gradient(40rem 24rem at 86% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
+    radial-gradient(36rem 22rem at 65% 88%, rgba(14, 165, 233, 0.11), transparent 70%),
+    linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
+  filter: saturate(115%);
+  animation: mesh-drift 18s ease-in-out infinite alternate;
 }
 
-.app-header {
-  text-align: center;
-  margin-bottom: 20px;
+.login-shell {
+  width: min(1080px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.1rem;
 }
 
-.app-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: white;
-  margin: 0;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  letter-spacing: -0.5px;
-}
-
-.login-form-wrapper {
-  background: rgba(255, 255, 255, 0.95);
+.intro-card,
+.form-card {
+  border: 1px solid var(--surface-border);
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: 20px;
-  padding: 32px 28px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(10px);
+  padding: 1.4rem;
 }
 
-.login-header {
-  text-align: center;
-  margin-bottom: 28px;
-}
-
-.login-title {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #1f2937;
+.kicker {
   margin: 0;
+  display: inline-flex;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #cbd5e1;
+  background: rgba(148, 163, 184, 0.07);
+}
+
+.intro-card h1 {
+  margin: 0.9rem 0 0;
+  font-size: clamp(1.9rem, 4.4vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, var(--brand-a), var(--brand-b));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.intro-card p {
+  margin: 1rem 0 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.intro-points {
+  margin-top: 1.2rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.point {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #dbeafe;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.point-icon {
+  width: 1rem;
+  height: 1rem;
+  color: #67e8f9;
+}
+
+.form-head h2 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.form-head p {
+  margin: 0.45rem 0 0;
+  color: var(--text-secondary);
 }
 
 .login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.7rem;
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
+.input-label {
+  color: #cbd5e1;
+  font-weight: 600;
+  font-size: 0.88rem;
 }
 
-.form-input {
-  width: 100%;
-  padding: 14px 16px;
-  font-size: 16px; /* Prevent zoom on iOS */
-  border: 2px solid #e1e5e9;
-  border-radius: 12px;
-  outline: none;
-  transition: all 0.3s ease;
-  box-sizing: border-box;
-  background: white;
-}
-
-.form-input:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.form-input.error {
-  border-color: #dc2626;
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
-}
-
-.password-wrapper {
-  position: relative;
+.input-wrap {
   display: flex;
   align-items: center;
+  gap: 0.5rem;
+  border-radius: 12px;
+  padding: 0 0.65rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(15, 23, 42, 0.75);
 }
 
-.password-input {
-  padding-right: 70px;
+.input-wrap.error {
+  border-color: rgba(248, 113, 113, 0.78);
 }
 
-.toggle-password-btn {
-  position: absolute;
-  right: 12px;
-  background: none;
+.input-wrap:focus-within {
+  border-color: rgba(34, 211, 238, 0.7);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.15);
+}
+
+.input-icon {
+  width: 0.98rem;
+  height: 0.98rem;
+  color: #94a3b8;
+  flex: 0 0 auto;
+}
+
+.input-wrap input {
+  width: 100%;
   border: none;
-  color: #667eea;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
-  padding: 4px 8px;
-  border-radius: 6px;
-  transition: all 0.3s ease;
+  outline: none;
+  background: transparent;
+  color: #f8fafc;
+  font-size: 0.98rem;
+  min-height: 46px;
 }
 
-.toggle-password-btn:hover {
-  background: rgba(102, 126, 234, 0.1);
-  color: #4f46e5;
+.input-wrap input::placeholder {
+  color: #64748b;
+}
+
+.toggle-btn {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(148, 163, 184, 0.08);
+  color: #e2e8f0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.toggle-icon {
+  width: 0.95rem;
+  height: 0.95rem;
 }
 
 .login-btn {
-  width: 100%;
-  padding: 14px 20px;
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  color: white;
+  margin-top: 0.55rem;
+  min-height: 46px;
   border: none;
   border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
+  background: linear-gradient(90deg, #0ea5e9, #3b82f6);
+  color: #fff;
+  font-weight: 700;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin-top: 8px;
+  gap: 0.45rem;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
 }
 
 .login-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 14px 28px rgba(59, 130, 246, 0.28);
 }
 
 .login-btn:disabled {
-  opacity: 0.7;
+  opacity: 0.75;
   cursor: not-allowed;
-  transform: none;
 }
 
-.login-btn.loading {
-  background: linear-gradient(45deg, #9ca3af, #6b7280);
-}
-
-.loading-spinner {
+.spinner {
+  width: 1rem;
+  height: 1rem;
   animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+.btn-arrow {
+  width: 0.95rem;
+  height: 0.95rem;
 }
 
-.btn-text {
-  font-weight: 600;
-}
-
-.error-message {
-  display: flex;
+.error-banner {
+  margin: 0.3rem 0 0;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background: rgba(220, 38, 38, 0.1);
-  color: #dc2626;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  border: 1px solid rgba(220, 38, 38, 0.2);
+  gap: 0.45rem;
+  color: #fecaca;
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 0.55rem 0.65rem;
+  border-radius: 10px;
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  background: rgba(239, 68, 68, 0.12);
 }
 
 .error-icon {
-  font-size: 1rem;
-  flex-shrink: 0;
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: 0 0 auto;
 }
 
-.error-text {
-  flex: 1;
-  font-weight: 500;
-}
-
-/* Footer */
-.footer-section {
-  padding: 40px 20px;
-  background: rgba(0, 0, 0, 0.2);
-  color: white;
-  width: 100%;
-  position: absolute;
-  bottom: 0%;
-}
-
-.footer-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  text-align: center;
-}
-
-.footer-logo {
-  display: flex;
+.form-footer-links {
+  margin-top: 0.95rem;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 0.45rem;
+  color: #64748b;
 }
 
-.logo-icon {
-  font-size: 1.5rem;
+.form-footer-links a {
+  color: #cbd5e1;
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 600;
 }
 
-.logo-text {
-  font-size: 1.25rem;
-  font-weight: 700;
+.form-footer-links a:hover {
+  color: #67e8f9;
 }
 
-.footer-text {
-  font-size: 0.9rem;
-  opacity: 0.8;
-  margin: 0;
+.page-footer {
+  width: min(1080px, 100%);
+  margin: 1.2rem auto 0;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.84rem;
 }
 
-/* Mobile Responsive */
-@media (max-width: 768px) {
+@keyframes mesh-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(-1.5%, 1.2%, 0) scale(1.04);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 960px) {
+  .login-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767px) {
   .login-page {
-    padding: 16px;
-    padding-top: 12rem;
-    
-  }
-  
-  .app-title {
-    font-size: 1.8rem;
-  }
-  
-  .login-form-wrapper {
-    padding: 24px 20px;
-  }
-  
-  .login-title {
-    font-size: 1.5rem;
-  }
-  
-  .form-input {
-    padding: 12px 14px;
-  }
-  
-  .password-input {
-    padding-right: 65px;
-  }
-  
-  .toggle-password-btn {
-    font-size: 0.8rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .login-container {
-    max-width: 100%;
+    padding-top: 5.4rem;
+    padding-bottom: 1.5rem;
   }
 
-  
-  .app-title {
-    font-size: 1.6rem;
+  .intro-card,
+  .form-card {
+    padding: 1.1rem;
   }
-  
-  .login-form-wrapper {
-    padding: 20px 16px;
-  }
-  
-  .login-title {
-    font-size: 1.3rem;
-  }
-}
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .login-form-wrapper {
-    background: rgba(31, 41, 55, 0.95);
-  }
-  
-  .login-title {
-    color: white;
-  }
-  
-  .form-input {
-    background: rgba(55, 65, 81, 0.5);
-    border-color: rgba(75, 85, 99, 0.5);
-    color: white;
-  }
-  
-  .form-input::placeholder {
-    color: rgba(156, 163, 175, 0.8);
+  .intro-card h1 {
+    font-size: clamp(1.7rem, 8vw, 2.3rem);
   }
 }
 </style>
