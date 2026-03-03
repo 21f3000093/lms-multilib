@@ -1,222 +1,227 @@
 <template>
-  <div class="booking-container">
-    <div class="header-section">
-      <h2 class="page-title">All Student Bookings</h2>
-      <p class="page-subtitle">Manage and view all student registrations</p>
-    </div>
+  <main class="student-list-page">
+    <div class="mesh-layer" aria-hidden="true"></div>
 
-    <!-- Enhanced Filters Section -->
-    <div class="filters-section">
-      <div class="search-container">
-        <div class="search-input-wrapper">
-          <!-- <span class="search-icon">🔍</span> -->
-          <input 
-            type="text" 
-            v-model="searchName" 
-            placeholder="🔍 Search by name or seat number..." 
-            class="search-input"
-          />
-          <button 
-            v-if="searchName" 
-            @click="searchName = ''" 
-            class="clear-search"
-          >
-            ✕
-          </button>
-        </div>
+    <section class="section-shell hero">
+      <div>
+        <p class="kicker">Student Registry</p>
+        <h1>
+          Student
+          <span class="gradient-text">Bookings</span>
+        </h1>
+        <p class="hero-subtitle">Search, filter, and manage student records with seat and shift visibility in one place.</p>
       </div>
 
-      <div class="filter-group">
-        <div class="filter-item">
-          <label for="shift-filter">Shift Filter</label>
+      <div class="quick-stats">
+        <article class="glass-card stat-card">
+          <p class="stat-label">Total</p>
+          <p class="stat-value">{{ students.length }}</p>
+        </article>
+        <article class="glass-card stat-card">
+          <p class="stat-label">Active</p>
+          <p class="stat-value">{{ activeCount }}</p>
+        </article>
+        <article class="glass-card stat-card">
+          <p class="stat-label">Left</p>
+          <p class="stat-value">{{ leftCount }}</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section-shell glass-card filters-card">
+      <div class="search-wrap">
+        <Search class="search-icon" aria-hidden="true" />
+        <input
+          type="text"
+          v-model="searchName"
+          placeholder="Search by name or seat number"
+          class="search-input"
+        />
+        <button v-if="searchName" @click="searchName = ''" class="clear-search" type="button" aria-label="Clear search">
+          <X class="clear-icon" aria-hidden="true" />
+        </button>
+      </div>
+
+      <div class="filters-row">
+        <label class="filter-item" for="shift-filter">
+          <span>Shift</span>
           <select id="shift-filter" v-model="shiftFilter" class="filter-select">
             <option value="">All Shifts</option>
-            <option value="1">🌅 Morning Shift</option>
-            <option value="2">☀️ Afternoon Shift</option>
-            <option value="3">🌙 Evening Shift</option>
+            <option value="1">Shift 1</option>
+            <option value="2">Shift 2</option>
+            <option value="3">Shift 3</option>
           </select>
-        </div>
+        </label>
 
-        <div class="results-count">
-          <span class="count-badge">{{ filteredStudents.length }} students</span>
+        <label class="filter-item" for="status-filter">
+          <span>Status</span>
+          <select id="status-filter" v-model="statusFilter" class="filter-select">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="left">Left</option>
+          </select>
+        </label>
+
+        <div class="results-chip">
+          <Filter class="chip-icon" aria-hidden="true" />
+          <span>{{ filteredStudents.length }} results</span>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Desktop Table View -->
-    <div class="table-container desktop-view">
-      <table class="student-table">
-        <thead>
-          <tr>
-            <th>Student Details</th>
-            <th>Contact</th>
-            <th>Seat</th>
-            <th>Shifts</th>
-            <th>Fees</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(student) in filteredStudents" :key="student.id" class="student-row">
-            <td class="student-info">
-              <router-link :to="`/students/${student.id}`" class="student-link">
-                <div class="student-avatar">
-                  {{ student.name.charAt(0).toUpperCase() }}
-                </div>
-                <div class="student-details">
-                  <span class="student-name">{{ student.name }}</span>
-                  <!-- <span class="student-id">ID: {{ student.id }}</span> -->
-                </div>
-              </router-link>
-            </td>
-            
-            <td class="contact-cell">
-              <span class="contact-number">{{ student.contact }}</span>
-            </td>
-            
-            <td class="seat-cell">
-              <span class="seat-badge" v-if="student.seat?.seat_number">
-                {{ student.seat.seat_number }}
-              </span>
-              <span class="no-seat" v-else>Not assigned</span>
-            </td>
-            
-            <td class="shifts-cell">
-              <div class="shift-indicators">
-                <span class="shift-badge" :class="{ active: student.shift1, inactive: !student.shift1 }">
-                  <span class="shift-icon">🌅</span>
-                  <span class="shift-label">M</span>
-                </span>
-                <span class="shift-badge" :class="{ active: student.shift2, inactive: !student.shift2 }">
-                  <span class="shift-icon">☀️</span>
-                  <span class="shift-label">A</span>
-                </span>
-                <span class="shift-badge" :class="{ active: student.shift3, inactive: !student.shift3 }">
-                  <span class="shift-icon">🌙</span>
-                  <span class="shift-label">E</span>
-                </span>
-              </div>
-            </td>
-            
-            <td class="fees-cell">
-              <span class="fee-amount">₹{{ formatAmount(student.custom_fees ?? student.total_fee) }}</span>
-            </td>
-            
-            <td class="actions-cell">
-              <div class="action-buttons">
-                <button class="action-btn edit-btn" @click="editStudent(student)" title="Edit Student">
-                  <span class="btn-icon">✏️</span>
-                  <span class="btn-text">Edit</span>
-                </button>
-                <button
-                  v-if="student.status === 'active'"
-                  class="action-btn delete-btn"
-                  @click="markLeft(student.id)"
-                  title="Delete Student"
-                >
-                  <span class="btn-icon">🗑️</span>
-                  <span class="btn-text">Delete</span>
-                </button>
-                <span v-else class="status-left">
-                  <span class="left-icon">👋</span>
-                  Left
-                </span>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <section class="section-shell table-shell glass-card desktop-view">
+      <div class="table-wrap">
+        <table class="student-table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Contact</th>
+              <th>Seat</th>
+              <th>Shifts</th>
+              <th>Fee</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="student in filteredStudents" :key="student.id" class="student-row">
+              <td>
+                <router-link :to="`/students/${student.id}`" class="student-link">
+                  <span class="avatar">{{ student.name.charAt(0).toUpperCase() }}</span>
+                  <div>
+                    <p class="name">{{ student.name }}</p>
+                    <p class="id-text">ID: {{ student.id }}</p>
+                  </div>
+                </router-link>
+              </td>
 
-    <!-- Mobile Card View -->
-    <div class="mobile-view">
-      <div 
-        v-for="student in filteredStudents" 
-        :key="student.id" 
-        class="student-card"
-      >
-        <div class="card-header">
+              <td>
+                <span class="mono">{{ student.contact }}</span>
+              </td>
+
+              <td>
+                <span v-if="student.seat?.seat_number" class="seat-pill">{{ student.seat.seat_number }}</span>
+                <span v-else class="muted">Not assigned</span>
+              </td>
+
+              <td>
+                <div class="shift-pills">
+                  <span class="shift-pill" :class="{ active: student.shift1, inactive: !student.shift1 }">
+                    <Sunrise class="shift-icon" aria-hidden="true" />
+                    <span>S1</span>
+                  </span>
+                  <span class="shift-pill" :class="{ active: student.shift2, inactive: !student.shift2 }">
+                    <Sun class="shift-icon" aria-hidden="true" />
+                    <span>S2</span>
+                  </span>
+                  <span class="shift-pill" :class="{ active: student.shift3, inactive: !student.shift3 }">
+                    <MoonStar class="shift-icon" aria-hidden="true" />
+                    <span>S3</span>
+                  </span>
+                </div>
+              </td>
+
+              <td>
+                <span class="fee-amount">₹{{ formatAmount(student.custom_fees ?? student.total_fee) }}</span>
+              </td>
+
+              <td>
+                <span class="status-pill" :class="student.status === 'active' ? 'status-active' : 'status-left'">
+                  {{ student.status === 'active' ? 'Active' : 'Left' }}
+                </span>
+              </td>
+
+              <td>
+                <div class="actions">
+                  <button class="action-btn edit-btn" @click="editStudent(student)" type="button">
+                    <PenLine class="action-icon" aria-hidden="true" />
+                    <span>Edit</span>
+                  </button>
+                  <button
+                    v-if="student.status === 'active'"
+                    class="action-btn delete-btn"
+                    @click="markLeft(student.id)"
+                    type="button"
+                  >
+                    <Trash2 class="action-icon" aria-hidden="true" />
+                    <span>Delete</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section-shell mobile-view">
+      <article v-for="student in filteredStudents" :key="student.id" class="glass-card mobile-card">
+        <header class="card-head">
           <router-link :to="`/students/${student.id}`" class="student-link">
-            <div class="student-avatar mobile">
-              {{ student.name.charAt(0).toUpperCase() }}
-            </div>
-            <div class="student-info-mobile">
-              <h3 class="student-name-mobile">{{ student.name }}</h3>
-              <p class="student-contact">{{ student.contact }}</p>
+            <span class="avatar">{{ student.name.charAt(0).toUpperCase() }}</span>
+            <div>
+              <p class="name">{{ student.name }}</p>
+              <p class="mono">{{ student.contact }}</p>
             </div>
           </router-link>
-          
-          <div class="seat-info-mobile">
-            <span class="seat-badge mobile" v-if="student.seat?.seat_number">
-              Seat {{ student.seat.seat_number }}
-            </span>
-            <span class="no-seat mobile" v-else>No Seat</span>
+          <span v-if="student.seat?.seat_number" class="seat-pill">Seat {{ student.seat.seat_number }}</span>
+          <span v-else class="muted">No Seat</span>
+        </header>
+
+        <div class="mobile-row">
+          <p class="row-label">Shifts</p>
+          <div class="shift-pills">
+            <span class="shift-pill" :class="{ active: student.shift1, inactive: !student.shift1 }">S1</span>
+            <span class="shift-pill" :class="{ active: student.shift2, inactive: !student.shift2 }">S2</span>
+            <span class="shift-pill" :class="{ active: student.shift3, inactive: !student.shift3 }">S3</span>
           </div>
         </div>
 
-        <div class="card-body">
-          <div class="shifts-section-mobile">
-            <h4>Enrolled Shifts</h4>
-            <div class="shift-indicators mobile">
-              <span class="shift-badge mobile" :class="{ active: student.shift1, inactive: !student.shift1 }">
-                <span class="shift-icon">🌅</span>
-                <span class="shift-name">Morning</span>
-              </span>
-              <span class="shift-badge mobile" :class="{ active: student.shift2, inactive: !student.shift2 }">
-                <span class="shift-icon">☀️</span>
-                <span class="shift-name">Afternoon</span>
-              </span>
-              <span class="shift-badge mobile" :class="{ active: student.shift3, inactive: !student.shift3 }">
-                <span class="shift-icon">🌙</span>
-                <span class="shift-name">Evening</span>
-              </span>
-            </div>
-          </div>
-
-          <div class="fees-section-mobile">
-            <span class="fees-label">Total Fees:</span>
-            <span class="fee-amount mobile">₹{{ formatAmount(student.custom_fees ?? student.total_fee) }}</span>
-          </div>
+        <div class="mobile-row">
+          <p class="row-label">Fee</p>
+          <p class="fee-amount">₹{{ formatAmount(student.custom_fees ?? student.total_fee) }}</p>
         </div>
 
-        <div class="card-footer">
-          <div class="action-buttons mobile">
-            <button class="action-btn edit-btn mobile" @click="editStudent(student)">
-              <!-- <span class="btn-icon">✏️</span> -->
-              <span class="btn-text">Edit</span>
+        <div class="mobile-row footer-row">
+          <span class="status-pill" :class="student.status === 'active' ? 'status-active' : 'status-left'">
+            {{ student.status === 'active' ? 'Active' : 'Left' }}
+          </span>
+
+          <div class="actions">
+            <button class="action-btn edit-btn" @click="editStudent(student)" type="button">
+              <PenLine class="action-icon" aria-hidden="true" />
+              <span>Edit</span>
             </button>
             <button
               v-if="student.status === 'active'"
-              class="action-btn delete-btn mobile"
+              class="action-btn delete-btn"
               @click="markLeft(student.id)"
+              type="button"
             >
-              <!-- <span class="btn-icon">🗑️</span> -->
-              <span class="btn-text">Delete</span>
+              <UserX class="action-icon" aria-hidden="true" />
+              <span>Delete</span>
             </button>
-            <span v-else class="status-left mobile">
-              <!-- <span class="left-icon">👋</span> -->
-              Left
-            </span>
           </div>
         </div>
-      </div>
-    </div>
+      </article>
+    </section>
 
-    <!-- No Results State -->
-    <div v-if="filteredStudents.length === 0" class="no-results">
-      <div class="no-results-icon">📭</div>
+    <section v-if="filteredStudents.length === 0" class="section-shell empty-state glass-card">
+      <Users class="empty-icon" aria-hidden="true" />
       <h3>No Students Found</h3>
-      <p v-if="searchName || shiftFilter">Try adjusting your search criteria or filters.</p>
+      <p v-if="searchName || shiftFilter || statusFilter">Try adjusting search or filters.</p>
       <p v-else>No students have been registered yet.</p>
-    </div>
+    </section>
 
-    <!-- Modal for Student Form -->
     <div v-if="editingStudent" class="modal-overlay" @click.self="editingStudent = null">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>✏️ Edit Student</h3>
-          <button class="modal-close" @click="editingStudent = null">✕</button>
-        </div>
+      <div class="modal-content glass-card">
+        <header class="modal-head">
+          <h3>Edit Student</h3>
+          <button class="modal-close" @click="editingStudent = null" type="button" aria-label="Close modal">
+            <X class="modal-close-icon" aria-hidden="true" />
+          </button>
+        </header>
+
         <div class="modal-body">
           <StudentForm
             :existingStudent="editingStudent"
@@ -226,20 +231,41 @@
         </div>
       </div>
     </div>
-  </div>
+  </main>
 </template>
 
 <script>
-
-/* eslint-disable */
-
-import API from '../api';
-import StudentForm from './StudentForm.vue';
-import { useToast } from 'vue-toast-notification';
-import 'vue-toast-notification/dist/theme-sugar.css';
+import {
+  Filter,
+  MoonStar,
+  PenLine,
+  Search,
+  Sun,
+  Sunrise,
+  Trash2,
+  UserX,
+  Users,
+  X,
+} from 'lucide-vue-next'
+import API from '../api'
+import StudentForm from './StudentForm.vue'
+import { useToast } from 'vue-toast-notification'
+import 'vue-toast-notification/dist/theme-sugar.css'
 
 export default {
-  components: { StudentForm },
+  components: {
+    Filter,
+    MoonStar,
+    PenLine,
+    Search,
+    StudentForm,
+    Sun,
+    Sunrise,
+    Trash2,
+    UserX,
+    Users,
+    X,
+  },
   data() {
     return {
       students: [],
@@ -247,13 +273,13 @@ export default {
       searchName: '',
       shiftFilter: '',
       statusFilter: '',
-      loading: false
-    };
+      loading: false,
+    }
   },
-  
+
   setup() {
-    const toast = useToast();
-    
+    const toast = useToast()
+
     const showSuccess = (message, options = {}) => {
       toast.success(message, {
         position: 'top',
@@ -265,820 +291,681 @@ export default {
         draggablePercent: 0.6,
         showCloseButtonOnHover: false,
         hideProgressBar: true,
-        closeButton: "button",
+        closeButton: 'button',
         icon: true,
         rtl: false,
         style: {
-          backgroundColor: '#667eea',
+          backgroundColor: '#0ea5e9',
           color: '#fff',
-          borderRadius: '12px'
-        },       
-        ...options
-      });
-    };
-    
+          borderRadius: '12px',
+        },
+        ...options,
+      })
+    }
+
     const showError = (message) => {
       toast.error(message, {
         style: {
           backgroundColor: '#dc2626',
           color: '#fff',
-          borderRadius: '12px'
-        }
-      });
-    };
-    
+          borderRadius: '12px',
+        },
+      })
+    }
+
     return {
       showSuccess,
-      showError
-    };
-  },
-
-  methods: {
-    async fetchStudents() {
-      this.loading = true;
-      try {
-        const res = await API.get('/students/');
-        this.students = res.data;
-      } catch (err) {
-        this.showError('Failed to fetch students: ' + (err.response?.data?.detail || err.message));
-      } finally {
-        this.loading = false;
-      }
-    },
-    
-    async markLeft(id) {
-      if (confirm("⚠️ Are you sure you want to delete this student? This action cannot be undone.")) {
-        try {
-          await API.put(`/students/${id}/mark-left`);
-          this.showSuccess("✅ Student deleted successfully!");
-          this.fetchStudents();
-        } catch (err) {
-          this.showError("❌ Error: " + (err.response?.data?.detail || err.message));
-        }
-      }
-    },
-    
-    editStudent(student) {
-      this.editingStudent = { ...student };
-    },
-    
-    handleUpdate() {
-      this.editingStudent = null;
-      this.fetchStudents();
-      // this.showSuccess("✅ Student updated successfully!");
-    },
-    
-    formatAmount(amount) {
-      return amount ? amount.toLocaleString('en-IN') : '0';
+      showError,
     }
   },
 
   computed: {
     filteredStudents() {
-      return this.students.filter(student => {
-        const search = this.searchName.trim().toLowerCase();
+      return this.students.filter((student) => {
+        const search = this.searchName.trim().toLowerCase()
 
-        const matchesName = student.name.toLowerCase().includes(search);
-        const seatNum = student.seat?.seat_number ? String(student.seat.seat_number) : '';
-        const matchesSeat = seatNum.includes(search);
+        const matchesName = student.name.toLowerCase().includes(search)
+        const seatNum = student.seat?.seat_number ? String(student.seat.seat_number) : ''
+        const matchesSeat = seatNum.includes(search)
 
         const matchesShift =
           this.shiftFilter === '' ||
           (this.shiftFilter === '1' && student.shift1) ||
           (this.shiftFilter === '2' && student.shift2) ||
-          (this.shiftFilter === '3' && student.shift3);
+          (this.shiftFilter === '3' && student.shift3)
 
         const matchesStatus =
-          this.statusFilter === '' || student.status === this.statusFilter;
+          this.statusFilter === '' || student.status === this.statusFilter
 
-        return (matchesName || matchesSeat) && matchesShift && matchesStatus;
-      });
-    }
+        return (matchesName || matchesSeat) && matchesShift && matchesStatus
+      })
+    },
+    activeCount() {
+      return this.students.filter((student) => student.status === 'active').length
+    },
+    leftCount() {
+      return this.students.filter((student) => student.status !== 'active').length
+    },
+  },
+
+  methods: {
+    async fetchStudents() {
+      this.loading = true
+      try {
+        const res = await API.get('/students/')
+        this.students = res.data
+      } catch (err) {
+        this.showError('Failed to fetch students: ' + (err.response?.data?.detail || err.message))
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async markLeft(id) {
+      if (confirm('Are you sure you want to delete this student? This action cannot be undone.')) {
+        try {
+          await API.put(`/students/${id}/mark-left`)
+          this.showSuccess('Student deleted successfully!')
+          this.fetchStudents()
+        } catch (err) {
+          this.showError('Error: ' + (err.response?.data?.detail || err.message))
+        }
+      }
+    },
+
+    editStudent(student) {
+      this.editingStudent = { ...student }
+    },
+
+    handleUpdate() {
+      this.editingStudent = null
+      this.fetchStudents()
+    },
+
+    formatAmount(amount) {
+      return amount ? amount.toLocaleString('en-IN') : '0'
+    },
   },
 
   created() {
-    this.fetchStudents();
-  }
-};
+    this.fetchStudents()
+  },
+}
 </script>
 
 <style scoped>
-.booking-container {
-  min-height: 100vh;
-  /* background: linear-gradient(90deg, #7e00d0 0%, #007bff 100%); */
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  padding-top: 3.5rem;
-}
+.student-list-page {
+  --surface: rgba(148, 163, 184, 0.03);
+  --surface-border: rgba(255, 255, 255, 0.03);
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
 
-.header-section {
-  text-align: center;
-  margin-bottom: 2rem;
-  color: white;
-}
-
-.page-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.page-subtitle {
-  font-size: 1.1rem;
-  opacity: 0.9;
-  font-weight: 300;
-  margin: 0;
-}
-
-.filters-section {
-  max-width: 1200px;
-  margin: 0 auto 2rem auto;
-  background: rgba(255,255,255,0.95);
-  padding: 24px;
-  border-radius: 20px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-  backdrop-filter: blur(10px);
-}
-
-.search-container {
-  margin-bottom: 20px;
-}
-
-.search-input-wrapper {
   position: relative;
-  max-width: 500px;
+  min-height: 100vh;
+  padding: 6.7rem 0 2.8rem;
+  color: var(--text-primary);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.mesh-layer {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(45rem 24rem at 10% 15%, rgba(34, 211, 238, 0.14), transparent 70%),
+    radial-gradient(40rem 24rem at 86% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
+    radial-gradient(36rem 22rem at 65% 88%, rgba(14, 165, 233, 0.11), transparent 70%),
+    linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
+  filter: saturate(115%);
+  animation: mesh-drift 18s ease-in-out infinite alternate;
+}
+
+.section-shell {
+  width: min(1240px, calc(100% - 2rem));
   margin: 0 auto;
 }
 
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.kicker {
+  margin: 0;
+  display: inline-flex;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #cbd5e1;
+  background: rgba(148, 163, 184, 0.07);
+}
+
+.hero h1 {
+  margin: 0.9rem 0 0;
+  font-size: clamp(1.9rem, 4.4vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, #22d3ee, #3b82f6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero-subtitle {
+  margin: 0.75rem 0 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 58ch;
+}
+
+.quick-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+  width: min(360px, 100%);
+}
+
+.glass-card {
+  border: 1px solid var(--surface-border);
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.stat-card {
+  border-radius: 14px;
+  padding: 0.75rem;
+}
+
+.stat-label {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.stat-value {
+  margin: 0.32rem 0 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.filters-card {
+  margin-top: 0.85rem;
+  border-radius: 16px;
+  padding: 0.8rem;
+}
+
+.search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.72);
+}
+
+.search-wrap:focus-within {
+  border-color: rgba(34, 211, 238, 0.62);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.16);
+}
+
 .search-icon {
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 1.2rem;
-  color: #9ca3af;
-  pointer-events: none;
+  width: 1rem;
+  height: 1rem;
+  margin-left: 0.75rem;
+  color: #94a3b8;
+  flex-shrink: 0;
 }
 
 .search-input {
   width: 100%;
-  padding: 16px 16px 16px 10px;
-  border: 2px solid #e1e5e9;
-  border-radius: 12px;
-  outline: none;
-  font-size: 16px;
-  transition: all 0.3s ease;
-  background: white;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #f8fafc;
+  font-size: 0.95rem;
+  padding: 0.72rem;
 }
 
-.search-input:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+.search-input::placeholder {
+  color: #94a3b8;
 }
 
 .clear-search {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: #f3f4f6;
-  border: none;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  cursor: pointer;
-  display: flex;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 0;
+  margin-right: 0.3rem;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  background: rgba(148, 163, 184, 0.18);
+  color: #e2e8f0;
+  cursor: pointer;
 }
 
-.clear-search:hover {
-  background: #e5e7eb;
+.clear-icon {
+  width: 0.94rem;
+  height: 0.94rem;
 }
 
-.filter-group {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
+.filters-row {
+  margin-top: 0.65rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.62rem;
+  align-items: end;
 }
 
 .filter-item {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: grid;
+  gap: 0.34rem;
 }
 
-.filter-item label {
+.filter-item span {
+  color: #cbd5e1;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: #374151;
-  font-size: 0.9rem;
 }
 
 .filter-select {
-  padding: 12px 16px;
-  border: 2px solid #e1e5e9;
-  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.72);
+  color: #f8fafc;
+  min-height: 42px;
+  padding: 0.45rem 0.6rem;
   outline: none;
-  font-size: 14px;
-  background: white;
-  cursor: pointer;
-  transition: border-color 0.3s ease;
-  min-width: 180px;
 }
 
 .filter-select:focus {
-  border-color: #667eea;
+  border-color: rgba(34, 211, 238, 0.62);
 }
 
-.results-count {
-  margin-left: auto;
+.filter-select option {
+  color: #0f172a;
 }
 
-.count-badge {
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 0.9rem;
+.results-chip {
+  min-height: 42px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 12px;
+  background: rgba(148, 163, 184, 0.1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.42rem;
+  color: #e2e8f0;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  font-size: 0.86rem;
 }
 
-.table-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  background: rgba(255,255,255,0.95);
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-  backdrop-filter: blur(10px);
+.chip-icon {
+  width: 0.92rem;
+  height: 0.92rem;
+  color: #67e8f9;
+}
+
+.table-shell {
+  margin-top: 0.85rem;
+  border-radius: 16px;
+  padding: 0.75rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
 }
 
 .student-table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 980px;
 }
 
 .student-table th {
-  background: #764ba2;
-  /* background: linear-gradient(45deg, #667eea, #764ba2); */
-  color: white;
-  padding: 20px 16px;
-  text-align: center;
-  font-weight: 600;
-  font-size: 0.95rem;
-  border: none;
-}
-
-.student-row {
-  transition: all 0.3s ease;
-  animation: slideIn 0.6s ease-out forwards;
-  opacity: 0;
-}
-
-.student-row:hover {
-  background: #f8faff;
-  transform: scale(1.01);
-}
-
-.student-row:nth-child(even) {
-  background: rgba(102, 126, 234, 0.02);
+  text-align: left;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.26);
+  padding: 0.64rem 0.55rem;
 }
 
 .student-table td {
-  padding: 16px;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 0.64rem 0.55rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+  color: #e2e8f0;
+  font-size: 0.9rem;
   vertical-align: middle;
 }
 
-.student-info {
-  min-width: 200px;
+.student-row:hover {
+  background: rgba(148, 163, 184, 0.07);
 }
 
 .student-link {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 0.5rem;
   text-decoration: none;
   color: inherit;
-  transition: all 0.3s ease;
 }
 
-.student-link:hover {
-  transform: translateX(4px);
-}
-
-.student-avatar {
-  width: 45px;
-  height: 45px;
+.avatar {
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 1.2rem;
+  display: inline-grid;
+  place-items: center;
+  font-weight: 800;
+  background: linear-gradient(90deg, #0ea5e9, #3b82f6);
+  color: #fff;
   flex-shrink: 0;
 }
 
-.student-details {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.student-name {
-  font-weight: 600;
-  color: #1f2937;
+.name {
+  margin: 0;
+  font-weight: 700;
   text-transform: uppercase;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
 }
 
-.student-id {
-  font-size: 0.8rem;
-  color: #6b7280;
-
+.id-text {
+  margin: 0.18rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
 }
 
-.contact-number {
-  font-family: 'Monaco', 'Menlo', monospace;
-  color: #374151;
-  font-weight: 500;
+.mono {
+  font-family: Monaco, Menlo, monospace;
 }
 
-.seat-badge {
-  background: linear-gradient(45deg, #10b981, #059669);
-  color: white;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  display: inline-block;
+.muted {
+  color: var(--text-secondary);
 }
 
-.no-seat {
-  color: #9ca3af;
-  font-style: italic;
+.seat-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  padding: 0.3rem 0.58rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: rgba(16, 185, 129, 0.2);
+  color: #a7f3d0;
 }
 
-.shift-indicators {
+.shift-pills {
   display: flex;
-  gap: 6px;
+  gap: 0.38rem;
   flex-wrap: wrap;
 }
 
-.shift-badge {
-  display: flex;
+.shift-pill {
+  border-radius: 999px;
+  padding: 0.22rem 0.5rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 8px;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
+  gap: 0.2rem;
 }
 
-.shift-badge.active {
-  background: linear-gradient(45deg, #10b981, #059669);
-  color: white;
-  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+.shift-pill.active {
+  background: rgba(16, 185, 129, 0.22);
+  color: #a7f3d0;
 }
 
-.shift-badge.inactive {
-  background: #f3f4f6;
-  color: #9ca3af;
+.shift-pill.inactive {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
 }
 
 .shift-icon {
-  font-size: 0.9rem;
-}
-
-.shift-label {
-  font-weight: 700;
-  min-width: 12px;
+  width: 0.8rem;
+  height: 0.8rem;
 }
 
 .fee-amount {
   font-weight: 700;
-  color: #dc2626;
-  font-size: 1.1rem;
-  font-family: 'Monaco', 'Menlo', monospace;
+  color: #fecaca;
+  font-family: Monaco, Menlo, monospace;
 }
 
-.action-buttons {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.action-btn {
-  display: flex;
+.status-pill {
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  min-width: 80%;
   justify-content: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
-.edit-btn {
-  background: linear-gradient(45deg, #3b82f6, #764ba2);
-  color: white;
-}
-
-.edit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-}
-
-.delete-btn {
-  background: linear-gradient(45deg, #dc2626, #b91c1c);
-  color: white;
-}
-
-.delete-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+.status-active {
+  background: rgba(16, 185, 129, 0.2);
+  color: #a7f3d0;
 }
 
 .status-left {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fde68a;
+}
+
+.actions {
   display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  min-height: 34px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  padding: 0.35rem 0.55rem;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  color: #9ca3af;
-  font-style: italic;
-  font-weight: 500;
-  padding: 8px 12px;
-  background: #f9fafb;
-  border-radius: 8px;
+  gap: 0.3rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
-.no-results {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: white;
-  max-width: 500px;
-  margin: 0 auto;
+.action-icon {
+  width: 0.84rem;
+  height: 0.84rem;
 }
 
-.no-results-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
+.edit-btn {
+  background: rgba(14, 165, 233, 0.2);
+  border-color: rgba(14, 165, 233, 0.34);
+  color: #bae6fd;
 }
 
-.no-results h3 {
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
+.delete-btn {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(239, 68, 68, 0.34);
+  color: #fecaca;
 }
 
-.no-results p {
-  opacity: 0.9;
-  line-height: 1.5;
-}
-
-/* Mobile View */
 .mobile-view {
   display: none;
-  gap: 20px;
+  margin-top: 0.8rem;
+  gap: 0.58rem;
 }
 
-.student-card {
-  background: rgba(255,255,255,0.95);
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
+.mobile-card {
+  border-radius: 14px;
+  padding: 0.68rem;
 }
 
-.student-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-}
-
-.card-header {
+.card-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
-  padding-bottom: 16px;
-  border-bottom: 2px solid #f3f4f6;
+  gap: 0.5rem;
 }
 
-.student-avatar.mobile {
-  width: 50px;
-  height: 50px;
-  font-size: 1.4rem;
+.mobile-row {
+  margin-top: 0.58rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.student-info-mobile {
-  flex: 1;
-  margin-left: 12px;
-}
-
-.student-name-mobile {
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin: 0 0 4px 0;
-  color: #1f2937;
-  text-transform: uppercase;
-}
-
-.student-contact {
+.row-label {
   margin: 0;
-  color: #6b7280;
-  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
 }
 
-.seat-badge.mobile {
-  font-size: 0.8rem;
-  padding: 6px 12px;
-  white-space: nowrap;
-  margin: 10px;
+.footer-row {
+  align-items: flex-end;
 }
 
-.no-seat.mobile {
-  font-size: 0.8rem;
-  padding: 4px 8px;
-  background: #f3f4f6;
-  border-radius: 12px;
+.empty-state {
+  margin-top: 0.85rem;
+  border-radius: 16px;
+  padding: 1.1rem;
+  text-align: center;
 }
 
-.card-body {
-  margin-bottom: 0px;
+.empty-icon {
+  width: 1.9rem;
+  height: 1.9rem;
+  color: #67e8f9;
 }
 
-.shifts-section-mobile h4 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #374151;
-  margin: 0 0 8px 0;
+.empty-state h3 {
+  margin: 0.55rem 0 0;
 }
 
-.shift-indicators.mobile {
-  gap: 8px;
-  justify-content: center;
+.empty-state p {
+  margin: 0.4rem 0 0;
+  color: var(--text-secondary);
 }
 
-.shift-badge.mobile {
-  padding: 8px 12px;
-  min-width: unset;
-}
-
-.shift-name {
-  font-weight: 600;
-  font-size: 0.8rem;
-}
-
-.fees-section-mobile {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 16px;
-  padding: 12px;
-  background: #f8faff;
-  border-radius: 8px;
-}
-
-.fees-label {
-  font-weight: 600;
-  color: #374151;
-}
-
-.fee-amount.mobile {
-  font-size: 1.2rem;
-}
-
-.card-footer {
-  padding-top: 16px;
-  border-top: 2px solid #f3f4f6;
-}
-
-.action-buttons.mobile {
-  justify-content: stretch;
-}
-
-.action-btn.mobile {
-  flex: 1;
-  min-width: unset;
-}
-
-/* Modal Styles */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  /* z-index: 9999; */
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0);
+  inset: 0;
+  z-index: 1400;
+  background: rgba(2, 6, 23, 0.72);
+  backdrop-filter: blur(5px);
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(4px);
-  overflow: auto;
+  padding: 0.6rem;
 }
 
 .modal-content {
-  background: rgba(255, 255, 255, 0);
-  border-radius: 20px;
-  max-width: 600px;
-  width: 90%;
-  max-height: 90vh;
-  /* overflow: auto; */
-  /* box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); */
-  animation: modalSlideIn 0.3s ease-out;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  margin-bottom: 4rem;
+  width: min(980px, 100%);
+  max-height: min(90vh, 980px);
+  border-radius: 16px;
+  overflow: auto;
 }
 
-.modal-header {
-  display: none;
-  align-items: center;
+.modal-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
   justify-content: space-between;
-  padding: 24px 24px 16px 24px;
-  border-bottom: 2px solid #f3f4f6;
+  align-items: center;
+  padding: 0.75rem;
+  background: rgba(15, 23, 42, 0.86);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
 }
 
-.modal-header h3 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1f2937;
+.modal-head h3 {
   margin: 0;
+  font-size: 1rem;
 }
 
 .modal-close {
-  background: #f3f4f6;
-  border: none;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  cursor: pointer;
-  display: flex;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: rgba(148, 163, 184, 0.1);
+  color: #e2e8f0;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
-  transition: all 0.3s ease;
+  cursor: pointer;
 }
 
-.modal-close:hover {
-  background: #e5e7eb;
-  transform: scale(1.1);
+.modal-close-icon {
+  width: 0.94rem;
+  height: 0.94rem;
 }
 
 .modal-body {
-  padding: 0px;
+  padding: 0.75rem;
 }
 
-/* Animations */
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+@keyframes mesh-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  100% {
+    transform: translate3d(-1.5%, 1.2%, 0) scale(1.04);
   }
 }
 
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9) translateY(-20px);
+@media (max-width: 1100px) {
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
   }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
+
+  .quick-stats {
+    width: 100%;
+  }
+
+  .filters-row {
+    grid-template-columns: 1fr;
   }
 }
 
-.student-row:nth-child(1) { animation-delay: 0.1s; }
-.student-row:nth-child(2) { animation-delay: 0.2s; }
-.student-row:nth-child(3) { animation-delay: 0.3s; }
-.student-row:nth-child(4) { animation-delay: 0.4s; }
-.student-row:nth-child(5) { animation-delay: 0.5s; }
-
-/* Responsive Design */
-@media (max-width: 1024px) {
+@media (max-width: 920px) {
   .desktop-view {
     display: none;
   }
 
-  .search-input {
-    width: 85%;
-  }
-  
   .mobile-view {
-    display: flex;
-    flex-direction: column;
-    max-width: 800px;
-    margin: 0 auto;
+    display: grid;
   }
 }
 
-@media (max-width: 768px) {
-  .booking-container {
-    padding: 16px;
-    padding-top: 4rem;
-  }
-  
-  .page-title {
-    font-size: 2rem;
+@media (max-width: 767px) {
+  .student-list-page {
+    padding-top: 5.4rem;
   }
 
-  .search-input {
-    width: 85%;
+  .section-shell {
+    width: min(1240px, calc(100% - 1rem));
   }
-  
-  .filters-section {
-    padding: 20px;
+
+  .quick-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-  
-  .filter-group {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1rem;
-  }
-  
-  .filter-select {
-    min-width: unset;
+
+  .modal-content {
     width: 100%;
-  }
-  
-  .results-count {
-    margin-left: 0;
-    text-align: center;
-  }
-  
-  .student-card {
-    padding: 16px;
-  }
-  
-  .card-header {
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  
-  .student-link {
-    width: 100%;
-  }
-  
-  .seat-info-mobile {
-    align-self: flex-end;
-  }
-  
-  .shift-indicators.mobile {
-    flex-wrap: wrap;
-  }
-  
-  .action-buttons.mobile {
-    flex-direction: row;
-    gap: 8px;
-  }
-
-  .modal-body {
-  padding: 0px;
-  padding-bottom: 3rem;
-}
-}
-
-@media (max-width: 480px) {
-  
-  .search-input {
-    font-size: 16px; /* Prevent zoom on iOS */
-  }
-  .search-input {
-    width: 85%;
-  }
-  
-  .student-avatar.mobile {
-    width: 40px;
-    height: 40px;
-    font-size: 1.2rem;
-  }
-  
-  .student-name-mobile {
-    font-size: 1.1rem;
-  }
-  
-  .shift-badge.mobile {
-    padding: 6px 8px;
-    font-size: 0.75rem;
+    max-height: 92vh;
   }
 }
 </style>
