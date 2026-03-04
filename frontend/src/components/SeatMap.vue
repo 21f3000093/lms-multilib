@@ -1,138 +1,152 @@
 <template>
-  <div class="seat-map-container">
-    <!-- Header -->
-    <div class="header">
-      <h2>Seat Map Viewer</h2>
-      <p>View and manage seat assignments</p>
-    </div>
+  <main class="seat-map-page">
+    <div class="mesh-layer" aria-hidden="true"></div>
 
-    <!-- Filters -->
-    <div class="filters">
-      <div class="shift-filters">
-        <h3>Select Shifts</h3>
-        <div class="checkboxes">
-          <label :class="{ active: selectedShifts.includes('1') }">
-            <input type="checkbox" value="1" v-model="selectedShifts" />
-            🌅 Shift 1
-          </label>
-          <label :class="{ active: selectedShifts.includes('2') }">
-            <input type="checkbox" value="2" v-model="selectedShifts" />
-            ☀️ Shift 2
-          </label>
-          <label :class="{ active: selectedShifts.includes('3') }">
-            <input type="checkbox" value="3" v-model="selectedShifts" />
-            🌙 Shift 3
-          </label>
+    <section class="section-shell hero">
+      <div>
+        <p class="kicker">Seat Operations</p>
+        <h1>
+          Live
+          <span class="gradient-text">Seat Map</span>
+        </h1>
+        <p class="hero-subtitle">Filter shifts, inspect occupancy, and open seat-level details instantly.</p>
+      </div>
+    </section>
+
+    <section class="section-shell glass-card filters-card">
+      <div class="filter-head">
+        <h2>Filters</h2>
+      </div>
+
+      <div class="filter-grid">
+        <div class="shift-group">
+          <p class="group-label">Select Shifts</p>
+          <div class="shift-pills">
+            <label class="shift-pill" :class="{ active: selectedShifts.includes('1') }">
+              <input type="checkbox" value="1" v-model="selectedShifts" />
+              Shift 1
+            </label>
+            <label class="shift-pill" :class="{ active: selectedShifts.includes('2') }">
+              <input type="checkbox" value="2" v-model="selectedShifts" />
+              Shift 2
+            </label>
+            <label class="shift-pill" :class="{ active: selectedShifts.includes('3') }">
+              <input type="checkbox" value="3" v-model="selectedShifts" />
+              Shift 3
+            </label>
+          </div>
         </div>
+
+        <label class="empty-only" :class="{ active: onlyEmpty }">
+          <input type="checkbox" v-model="onlyEmpty" />
+          Show only empty seats
+        </label>
+
+        <button @click="fetchSeats" :disabled="selectedShifts.length === 0" class="btn btn-solid" type="button">
+          {{ loading ? 'Loading...' : 'Apply Filters' }}
+        </button>
       </div>
+    </section>
 
-      <label class="empty-seats" :class="{ active: onlyEmpty }">
-        <input type="checkbox" v-model="onlyEmpty" />
-        Show Only Empty Seats
-      </label>
+    <section class="section-shell legend-row">
+      <span class="legend-pill">
+        <span class="dot dot-empty"></span>
+        Available
+      </span>
+      <span class="legend-pill">
+        <span class="dot dot-filled"></span>
+        Occupied
+      </span>
+      <span class="legend-pill">
+        {{ filteredSeats.length }} seats
+      </span>
+    </section>
 
-      <button @click="fetchSeats" :disabled="selectedShifts.length === 0" class="apply-btn">
-        {{ loading ? '⏳ Loading...' : 'Apply Filters' }}
-      </button>
-    </div>
-
-    <!-- Legend -->
-    <div class="legend">
-      <div class="legend-item">
-        <span class="available">❌</span> Available
-      </div>
-      <div class="legend-item">
-        <span class="occupied">✅</span> Occupied
-      </div>
-    </div>
-
-    <!-- Seat Count -->
-    <!-- <div class="seat-count">
-      {{ filteredSeats.length }} seats
-    </div> -->
-
-    <!-- Loading -->
-    <div v-if="loading" class="loading">
-      <div class="spinner">⏳</div>
+    <section v-if="loading" class="section-shell glass-card loading-card">
+      <div class="loader"></div>
       <p>Loading seats...</p>
-    </div>
+    </section>
 
-    <!-- Seat Grid -->
-    <div v-else-if="filteredSeats.length > 0" class="seat-grid">
-      <div 
-        v-for="seat in filteredSeats" 
-        :key="seat.seat_number" 
-        class="seat-card"
+    <section v-else-if="filteredSeats.length > 0" class="section-shell seat-grid">
+      <article
+        v-for="seat in filteredSeats"
+        :key="seat.seat_number"
+        class="glass-card seat-card"
         @click="openSeatDetails(seat.seat_number)"
       >
-        <div class="seat-number">{{ seat.seat_number }}</div>
-        <div class="shifts">
-          <span v-for="(status, index) in seat.shifts" :key="index">
-            {{ status ? '✅' : '❌' }}
+        <div class="seat-top">
+          <p class="seat-title">Seat {{ seat.seat_number }}</p>
+          <p class="seat-subtitle">Tap for details</p>
+        </div>
+
+        <div class="seat-shifts">
+          <span
+            v-for="(status, index) in seat.shifts"
+            :key="index"
+            class="shift-status"
+            :class="status ? 'is-filled' : 'is-empty'"
+          >
+            S{{ index + 1 }}
           </span>
         </div>
-        <!-- <div class="click-hint">Details</div> -->
-      </div>
-    </div>
+      </article>
+    </section>
 
-    <!-- Empty State -->
-    <div v-else class="empty-state">
-      <div class="empty-icon">🪑</div>
+    <section v-else class="section-shell glass-card empty-state">
       <h3>No Seats Found</h3>
-      <p v-if="selectedShifts.length === 0">Please select at least one shift</p>
-      <p v-else-if="onlyEmpty">No empty seats available</p>
-      <p v-else>No seats match your filters</p>
-    </div>
+      <p v-if="selectedShifts.length === 0">Please select at least one shift.</p>
+      <p v-else-if="onlyEmpty">No empty seats available for selected filters.</p>
+      <p v-else>No seats match the selected filters.</p>
+    </section>
 
-    <!-- Seat Details Modal -->
     <SeatDetailsModal
       :show="showSeatModal"
       :seatData="selectedSeatData"
       :loading="loadingSeatDetails"
-      @close="closeSeatModal" 
+      @close="closeSeatModal"
     />
-  </div>
+  </main>
 </template>
 
 <script>
-import API from '../api';
-import SeatDetailsModal from './SeatDetailsModal.vue';
-import { useToast } from 'vue-toast-notification';
-import 'vue-toast-notification/dist/theme-sugar.css';
+import API from '../api'
+import SeatDetailsModal from './SeatDetailsModal.vue'
+import { useToast } from 'vue-toast-notification'
+import 'vue-toast-notification/dist/theme-sugar.css'
 
 export default {
   components: {
-    SeatDetailsModal
+    SeatDetailsModal,
   },
 
   setup() {
-    const toast = useToast();
-    
+    const toast = useToast()
+
     const showSuccess = (message) => {
       toast.success(message, {
         position: 'top',
         timeout: 2000,
         style: {
-          backgroundColor: '#667eea',
+          backgroundColor: '#0ea5e9',
           color: '#fff',
-          borderRadius: '8px'
-        }
-      });
-    };
-    
+          borderRadius: '8px',
+        },
+      })
+    }
+
     const showError = (message) => {
       toast.error(message, {
         style: {
           backgroundColor: '#dc2626',
           color: '#fff',
-          borderRadius: '8px'
-        }
-      });
-    };
-    
-    return { showSuccess, showError };
+          borderRadius: '8px',
+        },
+      })
+    }
+
+    return { showSuccess, showError }
   },
-    
+
   data() {
     return {
       selectedShifts: ['1', '2', '3'],
@@ -141,361 +155,366 @@ export default {
       showSeatModal: false,
       selectedSeatData: null,
       loadingSeatDetails: false,
-      loading: false
-    };
+      loading: false,
+    }
   },
 
   computed: {
     filteredSeats() {
-      return this.seats || [];
-    }
+      return this.seats || []
+    },
   },
 
   mounted() {
-    this.fetchSeats();
+    this.fetchSeats()
   },
-    
+
   methods: {
     async fetchSeats() {
       if (this.selectedShifts.length === 0) {
-        this.showError("Please select at least one shift");
-        return;
+        this.showError('Please select at least one shift')
+        return
       }
 
-      this.loading = true;
+      this.loading = true
       try {
-        const response = await API.get("/seats/view", {
+        const response = await API.get('/seats/view', {
           params: {
             shifts: this.selectedShifts.sort(),
             only_empty: this.onlyEmpty,
-            library_id: localStorage.getItem('library_id')
-          }          
-        });
-        this.seats = response.data;
-        // this.showSuccess(`Loaded ${this.seats.length} seats`);
+            library_id: localStorage.getItem('library_id'),
+          },
+        })
+        this.seats = response.data
       } catch (err) {
-        console.error("Failed to fetch seats:", err);
-        this.showError("Failed to fetch seats");
-        this.seats = [];
+        console.error('Failed to fetch seats:', err)
+        this.showError('Failed to fetch seats')
+        this.seats = []
       } finally {
-        this.loading = false;
+        this.loading = false
       }
     },
 
     async openSeatDetails(seatNumber) {
-      this.loadingSeatDetails = true;
-      this.showSeatModal = true;
-      this.selectedSeatData = null;
+      this.loadingSeatDetails = true
+      this.showSeatModal = true
+      this.selectedSeatData = null
 
       try {
-        const response = await API.get(`/seats/${seatNumber}/details`);
-        this.selectedSeatData = response.data;
+        const response = await API.get(`/seats/${seatNumber}/details`)
+        this.selectedSeatData = response.data
       } catch (err) {
-        console.error("Failed to fetch seat details:", err);
-        this.showError("Failed to load seat details");
-        this.closeSeatModal();
+        console.error('Failed to fetch seat details:', err)
+        this.showError('Failed to load seat details')
+        this.closeSeatModal()
       } finally {
-        this.loadingSeatDetails = false;
+        this.loadingSeatDetails = false
       }
     },
 
     closeSeatModal() {
-      this.showSeatModal = false;
-      this.selectedSeatData = null;
-    }
-  }
-};
+      this.showSeatModal = false
+      this.selectedSeatData = null
+    },
+  },
+}
 </script>
 
 <style scoped>
-.seat-map-container {
+.seat-map-page {
+  --surface: rgba(148, 163, 184, 0.03);
+  --surface-border: rgba(255, 255, 255, 0.03);
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+
+  position: relative;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
-  padding-top: 3rem;
-  font-family: "Inter", sans-serif;
+  padding: 6.7rem 0 2.8rem;
+  color: var(--text-primary);
+  overflow: hidden;
+  isolation: isolate;
 }
 
-.header {
-  text-align: center;
-  margin-bottom: 24px;
-  color: white;
+.mesh-layer {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(45rem 24rem at 10% 15%, rgba(34, 211, 238, 0.14), transparent 70%),
+    radial-gradient(40rem 24rem at 86% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
+    radial-gradient(36rem 22rem at 65% 88%, rgba(14, 165, 233, 0.11), transparent 70%),
+    linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
+  filter: saturate(115%);
+  animation: mesh-drift 18s ease-in-out infinite alternate;
 }
 
-.header h2 {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.header p {
-  font-size: 1rem;
-  opacity: 0.9;
-  margin: 0;
-}
-
-.filters {
-  background: white;
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 20px;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-}
-
-.shift-filters h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 12px;
-}
-
-.checkboxes {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.checkboxes label,
-.empty-seats {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 500;
-  background: white;
-}
-
-.checkboxes label:hover,
-.empty-seats:hover {
-  border-color: #667eea;
-}
-
-.checkboxes label.active,
-.empty-seats.active {
-  border-color: #667eea;
-  background: rgba(102, 126, 234, 0.316);
-}
-
-.checkboxes input,
-.empty-seats input {
-  display: none;
-}
-
-.empty-seats {
-  margin-bottom: 16px;
-  width: 100%;
-  box-sizing: border-box;
-  justify-content: center;
-}
-
-.apply-btn {
-  width: 100%;
-  padding: 12px 20px;
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.apply-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.apply-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.legend {
-  display: flex;
-  justify-content: center;
-  gap: 24px;
-  margin-bottom: 12px;
-  color: white;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-}
-
-.available,
-.occupied {
-  font-size: 1.2rem;
-}
-
-.seat-count {
-  text-align: center;
-  color: white;
-  font-weight: 600;
-  margin-bottom: 20px;
-  background: rgba(255,255,255,0.2);
-  display: inline-block;
-  padding: 8px 16px;
-  border-radius: 20px;
-  margin-left: 50%;
-  transform: translateX(-50%);
-}
-
-.loading {
-  text-align: center;
-  color: white;
-  padding: 40px;
-}
-
-.spinner {
-  font-size: 3rem;
-  margin-bottom: 16px;
-  animation: spin 2s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.seat-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 16px;
-  max-width: 1000px;
+.section-shell {
+  width: min(1240px, calc(100% - 2rem));
   margin: 0 auto;
 }
 
-.seat-card {
-  background: white;
+.hero h1 {
+  margin: 0.9rem 0 0;
+  font-size: clamp(1.9rem, 4.4vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.kicker {
+  margin: 0;
+  display: inline-flex;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #cbd5e1;
+  background: rgba(148, 163, 184, 0.07);
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, #22d3ee, #3b82f6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero-subtitle {
+  margin: 0.75rem 0 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 58ch;
+}
+
+.glass-card {
+  border: 1px solid var(--surface-border);
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.filters-card,
+.loading-card,
+.empty-state {
+  margin-top: 0.9rem;
+  border-radius: 16px;
+  padding: 0.9rem;
+}
+
+.filter-head h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.filter-grid {
+  margin-top: 0.65rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.group-label {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.shift-pills {
+  margin-top: 0.4rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.shift-pill,
+.empty-only {
+  border: 1px solid rgba(148, 163, 184, 0.3);
   border-radius: 12px;
-  padding: 16px;
-  text-align: center;
+  background: rgba(15, 23, 42, 0.72);
+  color: #e2e8f0;
+  min-height: 40px;
+  padding: 0.35rem 0.65rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.shift-pill.active,
+.empty-only.active {
+  border-color: rgba(34, 211, 238, 0.65);
+  box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.3);
+}
+
+.shift-pill input,
+.empty-only input {
+  display: none;
+}
+
+.btn {
+  min-height: 42px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  padding: 0.5rem 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-solid {
+  background: linear-gradient(90deg, #0ea5e9, #3b82f6);
+  box-shadow: 0 14px 28px rgba(59, 130, 246, 0.28);
+  color: #fff;
+}
+
+.legend-row {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.legend-pill {
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(15, 23, 42, 0.58);
+  color: #dbeafe;
+  padding: 0.3rem 0.58rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dot-empty {
+  background: #60a5fa;
+}
+
+.dot-filled {
+  background: #22c55e;
+}
+
+.loading-card,
+.empty-state {
+  text-align: center;
+  display: grid;
+  place-items: center;
+  gap: 0.35rem;
+}
+
+.loader {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px solid rgba(148, 163, 184, 0.4);
+  border-top-color: #22d3ee;
+  animation: spin 1s linear infinite;
+}
+
+.seat-grid {
+  margin-top: 0.9rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 0.6rem;
+}
+
+.seat-card {
+  border-radius: 14px;
+  padding: 0.72rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
 .seat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  border-color: rgba(34, 211, 238, 0.5);
 }
 
-.seat-number {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 12px;
-}
-
-.shifts {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  font-size: 1.2rem;
-}
-
-.click-hint {
-  font-size: 0.8rem;
-  color: #666;
-  border-top: 1px solid #f0f0f0;
-  padding-top: 8px;
-}
-
-.empty-state {
-  text-align: center;
-  color: white;
-  padding: 60px 20px;
-}
-
-.empty-icon {
-  font-size: 4rem;
-  margin-bottom: 16px;
-}
-
-.empty-state h3 {
-  font-size: 1.5rem;
-  margin-bottom: 8px;
-  font-weight: 600;
-}
-
-.empty-state p {
-  opacity: 0.9;
+.seat-title {
+  margin: 0;
   font-size: 1rem;
+  font-weight: 800;
 }
 
-/* Mobile Responsive */
-@media (max-width: 768px) {
-  .seat-map-container {
-    padding: 12px;
-    padding-top: 3.5rem;
-  }
+.seat-subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+}
 
-  .header h2 {
-    font-size: 1.8rem;
-  }
+.seat-shifts {
+  margin-top: 0.58rem;
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
 
-  .filters {
-    padding: 16px;
-    margin-bottom: 16px;
-  }
+.shift-status {
+  border-radius: 999px;
+  padding: 0.2rem 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
 
-  .checkboxes {
-    flex-direction: row;
-    align-content: center;
-  }
+.shift-status.is-filled {
+  background: rgba(16, 185, 129, 0.2);
+  color: #a7f3d0;
+}
 
-  .checkboxes label {
-    width: fit-content;
-    justify-content: center;
-  }
+.shift-status.is-empty {
+  background: rgba(59, 130, 246, 0.2);
+  color: #bfdbfe;
+}
 
-  .seat-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 12px;
+@keyframes mesh-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
   }
-
-  .seat-card {
-    padding: 12px;
-  }
-
-  .legend {
-    
-    flex-direction: row;
-    gap: 2rem;
-    align-items: center;
+  100% {
+    transform: translate3d(-1.5%, 1.2%, 0) scale(1.04);
   }
 }
 
-@media (max-width: 480px) {
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 767px) {
+  .seat-map-page {
+    padding-top: 5.4rem;
+  }
+
+  .section-shell {
+    width: min(1240px, calc(100% - 1rem));
+  }
+
   .seat-grid {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
 
-  .seat-card {
-    padding: 10px;
-  }
-
-  .seat-number {
-    font-size: 1rem;
-  }
-
-  .shifts {
-    font-size: 1.1rem;
+@media (max-width: 500px) {
+  .seat-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>
