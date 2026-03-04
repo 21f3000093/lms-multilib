@@ -13,7 +13,7 @@
           Manage students, seat allocation, payments, reminders, and analytics from a single secure workspace.
         </p>
 
-        <div class="intro-points">
+        <!-- <div class="intro-points">
           <div class="point">
             <ShieldCheck class="point-icon" aria-hidden="true" />
             Role-based access
@@ -26,7 +26,7 @@
             <BarChart3 class="point-icon" aria-hidden="true" />
             Real-time visibility
           </div>
-        </div>
+        </div> -->
       </article>
 
       <article class="form-card">
@@ -99,13 +99,13 @@ import { ref } from 'vue'
 import {
   AlertCircle,
   ArrowRight,
-  BarChart3,
+  // BarChart3,
   Eye,
   EyeOff,
   LoaderCircle,
   Lock,
-  ShieldCheck,
-  Sparkles,
+  // ShieldCheck,
+  // Sparkles, 
   User,
 } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
@@ -227,7 +227,7 @@ const login = async () => {
   font-family: Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   color: var(--text-primary);
   background: var(--bg);
-  padding: 6.7rem 1rem 2rem;
+  padding: 4rem 1rem 2rem;
 }
 
 .mesh-layer {
@@ -247,7 +247,7 @@ const login = async () => {
   width: min(1080px, 100%);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* grid-template-columns: 1fr 1fr; */
   gap: 1.1rem;
 }
 
@@ -506,7 +506,7 @@ const login = async () => {
 
 @media (max-width: 767px) {
   .login-page {
-    padding-top: 5.4rem;
+    padding-top: 2rem;
     padding-bottom: 1.5rem;
   }
 

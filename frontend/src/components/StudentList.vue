@@ -90,7 +90,7 @@
                   <span class="avatar">{{ student.name.charAt(0).toUpperCase() }}</span>
                   <div>
                     <p class="name">{{ student.name }}</p>
-                    <p class="id-text">ID: {{ student.id }}</p>
+                    <!-- <p class="id-text">ID: {{ student.id }}</p> -->
                   </div>
                 </router-link>
               </td>
@@ -402,7 +402,7 @@ export default {
 
   position: relative;
   min-height: 100vh;
-  padding: 6.7rem 0 2.8rem;
+  padding: 2rem 2rem 2.8rem 2rem;
   color: var(--text-primary);
   overflow: hidden;
   isolation: isolate;
@@ -647,6 +647,7 @@ export default {
   color: #e2e8f0;
   font-size: 0.9rem;
   vertical-align: middle;
+  text-align: left;
 }
 
 .student-row:hover {
@@ -867,14 +868,15 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.6rem;
+  padding: 6rem 1rem 1rem 17rem;
 }
 
 .modal-content {
-  width: min(980px, 100%);
+  width: min(980px, 90%);
   max-height: min(90vh, 980px);
   border-radius: 16px;
-  overflow: auto;
+  padding: 0rem 2rem;
+  overflow-y: scroll;
 }
 
 .modal-head {
@@ -925,7 +927,7 @@ export default {
   }
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1080px) {
   .hero {
     flex-direction: column;
     align-items: flex-start;
@@ -937,6 +939,17 @@ export default {
 
   .filters-row {
     grid-template-columns: 1fr;
+  }
+
+  .modal-overlay {
+    padding: 5rem 1rem 0rem 1rem;
+  }
+
+  .modal-content {
+    width: 100%;
+    max-height: 80vh;
+    /* padding: 5rem 1rem 5rem 1rem; */
+    margin: 0rem 0rem 5rem 0rem;
   }
 }
 
@@ -952,7 +965,9 @@ export default {
 
 @media (max-width: 767px) {
   .student-list-page {
-    padding-top: 5.4rem;
+    padding-top: 2rem;
+    padding-bottom: 5rem;
+    padding-inline: 1rem;
   }
 
   .section-shell {
@@ -965,7 +980,8 @@ export default {
 
   .modal-content {
     width: 100%;
-    max-height: 92vh;
+    max-height: 80vh;
+    padding-inline: 0rem;
   }
 }
 </style>

@@ -77,12 +77,12 @@ body, html, #app {
   z-index: 1;
   margin-left: var(--sidebar-width);
   transition: margin-left 0.3s ease;
-  padding-top: calc(var(--topbar-height) + 6px);
+  padding-top: calc(var(--topbar-height));
 }
 
 .app-content.no-sidebar {
   margin-left: 0;
-  padding-top: calc(var(--topbar-height) + 6px);
+  padding-top: calc(var(--topbar-height));
 }
 
 #app {

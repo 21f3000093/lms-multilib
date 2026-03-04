@@ -648,6 +648,7 @@ export default {
 .shift-card.selected {
   border-color: rgba(34, 211, 238, 0.75);
   box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.35);
+  background-color: #00ffff1c;
 }
 
 .shift-card input[type='checkbox'] {

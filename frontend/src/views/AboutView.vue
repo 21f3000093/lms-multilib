@@ -4,17 +4,24 @@
 
     <section class="hero section-shell">
       <div class="hero-copy reveal" data-stagger="0">
-        <p class="kicker">Trusted By Multi-Library Teams</p>
+        <p class="kicker">Trusted By 100+ Libraries</p>
         <h1>
           The <span class="gradient-text">Operating System</span>
           for modern study centers
         </h1>
         <p class="hero-subtitle">
-          Smart Library App helps teams manage students, seats, payments, and operations from one enterprise-grade dashboard.
+          Smart Library App helps you to manage students, seats, payments, and operations from one enterprise-grade dashboard.
         </p>
 
         <div class="hero-actions">
-          <a class="btn btn-solid magnetic" href="mailto:shubham.libraryapp@gmail.com" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
+          <a 
+            class="btn btn-solid magnetic" 
+            href="https://wa.me/919024600138?text=Hi%20Shubham!%20I'd%20like%20to%20book%20a%20demo%20for%20the%20Library%20App." 
+            target="_blank" 
+            rel="noopener noreferrer"
+            @mousemove="onMagneticMove" 
+            @mouseleave="onMagneticLeave"
+          >
             Book a Demo
           </a>
           <a class="btn btn-ghost magnetic" href="tel:+919024600138" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
@@ -71,7 +78,13 @@
         </p>
 
         <div class="cta-actions">
-          <a class="btn btn-solid magnetic" href="mailto:shubham.libraryapp@gmail.com" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
+          <a class="btn btn-solid magnetic" 
+            href="https://wa.me/919024600138?text=Hi%20Shubham!%20I'd%20like%20to%20start%20a%20conversation%20about%20the%20Smart%20Library%20project." 
+            target="_blank" 
+            rel="noopener noreferrer"
+            @mousemove="onMagneticMove" 
+            @mouseleave="onMagneticLeave"
+          >
             Start Conversation
           </a>
           <router-link class="btn btn-ghost magnetic" to="/pricing-plans" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
@@ -98,9 +111,9 @@ const pageRoot = ref(null)
 let observer = null
 
 const stats = [
-  { value: '99.95%', label: 'Platform Uptime', stagger: 1 },
-  { value: '10k+', label: 'Students Managed', stagger: 2 },
-  { value: '250+', label: 'Libraries Enabled', stagger: 3 },
+  { value: '100%', label: 'Platform Uptime', stagger: 1 },
+  { value: '9k+', label: 'Students Managed', stagger: 2 },
+  { value: '50+', label: 'Libraries Enabled', stagger: 3 },
   { value: '35%', label: 'Faster Admin Ops', stagger: 4 },
 ]
 
@@ -207,7 +220,7 @@ onBeforeUnmount(() => {
 
   position: relative;
   min-height: 100vh;
-  padding: 5rem 0 4rem;
+  padding: 2rem 2rem 4rem;
   color: var(--text-primary);
   background: var(--bg);
   font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -274,7 +287,7 @@ onBeforeUnmount(() => {
 .section-header p,
 .cta-card p {
   margin: 1.1rem 0 0;
-  max-width: 62ch;
+  /* max-width: 62ch; */
   color: var(--text-secondary);
   line-height: 1.6;
   text-wrap: balance;
@@ -286,6 +299,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 0.8rem;
+  justify-content: center;
 }
 
 .hero-visual {
@@ -559,7 +573,7 @@ onBeforeUnmount(() => {
 
 @media (max-width: 767px) {
   .about-page {
-    padding-top: 6rem;
+    padding: 2rem 1rem;
   }
 
   .bento-grid {

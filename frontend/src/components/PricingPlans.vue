@@ -618,7 +618,7 @@ onBeforeUnmount(() => {
 }
 
 .calculator-card input {
-  width: 100%;
+  width: 95%;
   margin-top: 0.45rem;
   padding: 0.82rem 0.85rem;
   border-radius: 12px;
@@ -1113,6 +1113,10 @@ onBeforeUnmount(() => {
   .cta-card,
   .calculator-card {
     padding: 1.2rem;
+  }
+
+  .calculator-card input{
+    width: 90%;
   }
 }
 </style>

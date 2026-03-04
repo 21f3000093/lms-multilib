@@ -294,7 +294,7 @@ export default {
 
   position: relative;
   min-height: 100vh;
-  padding: 6.7rem 0 2.8rem;
+  padding: 2rem 2rem 2.8rem;
   color: var(--text-primary);
   overflow: hidden;
   isolation: isolate;
@@ -407,6 +407,7 @@ export default {
 .table-card {
   border-radius: 16px;
   padding: 1rem;
+  overflow: auto;
 }
 
 .card-header h2,
@@ -430,7 +431,7 @@ export default {
 
 .grid-form input,
 .grid-form select {
-  width: 100%;
+  width: 95%;
   border: 1px solid rgba(148, 163, 184, 0.3);
   border-radius: 12px;
   background: rgba(15, 23, 42, 0.72);
@@ -619,7 +620,7 @@ tbody tr:hover {
 
 @media (max-width: 767px) {
   .superadmin-page {
-    padding-top: 5.4rem;
+    padding-top: 2rem;
   }
 
   .section-shell {
@@ -640,7 +641,7 @@ tbody tr:hover {
   }
 
   .table-head {
-    flex-direction: column;
+    flex-direction: row;
   }
 }
 </style>
