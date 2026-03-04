@@ -1,269 +1,214 @@
 <template>
-  <div class="payments-container">
-    <!-- Header -->
-    <div class="header-section">
-      <h2 class="page-title">Monthly Payment Management</h2>
-      <p class="page-subtitle">Track and manage student fee payments</p>
-    </div>
+  <main class="monthly-payments-page">
+    <div class="mesh-layer" aria-hidden="true"></div>
 
-    <!-- Controls Section -->
-    <div class="controls-section">
-      <div class="month-controls">
-        <div class="month-selector">
-          <label for="month-input">Select Month</label>
-          <input 
+    <section class="section-shell hero">
+      <div>
+        <p class="kicker">Billing Desk</p>
+        <h1>
+          Monthly
+          <span class="gradient-text">Payments</span>
+        </h1>
+        <p class="hero-subtitle">Track fee status, mark payments, generate records, and issue receipts in one workflow.</p>
+      </div>
+    </section>
+
+    <section class="section-shell controls-card glass-card">
+      <div class="control-grid">
+        <label class="field-wrap" for="month-input">
+          <span class="field-label">Select Month</span>
+          <input
             id="month-input"
-            type="month" 
-            v-model="selectedMonth" 
-            class="month-input"
+            type="month"
+            v-model="selectedMonth"
+            class="field-input month-input"
           />
-        </div>
-        
-        <button @click="generatePayments" :disabled="loading" class="generate-btn">
-          <span v-if="loading" class="btn-icon spinner">⏳</span>
-          <!-- <span v-else class="btn-icon">➕</span> -->
-          <span class="btn-text">{{ loading ? 'Generating...' : 'Generate Records' }}</span>
+        </label>
+
+        <button @click="generatePayments" :disabled="loading" class="btn btn-solid" type="button">
+          {{ loading ? 'Generating...' : 'Generate Records' }}
         </button>
 
-        <router-link to="/reminders" class="reminder-link">
-          <button class="reminder-btn">
-            <span class="btn-icon">🔔</span>
-            <span class="btn-text">Send Reminders</span>
-          </button>
-        </router-link>
+        <router-link to="/reminders" class="btn btn-emerald reminder-link">Send Reminders</router-link>
       </div>
 
-      <!-- Filters -->
-      <div class="filters">
-        <div class="search-wrapper">
-          <span class="search-icon">🔍</span>
-          <input 
-            type="text" 
-            v-model="searchTerm" 
-            placeholder="Search by name or seat number..." 
-            class="search-input"
+      <div class="filter-grid">
+        <label class="field-wrap" for="payment-search">
+          <span class="field-label">Search</span>
+          <input
+            id="payment-search"
+            type="text"
+            v-model="searchTerm"
+            placeholder="Search by student or seat"
+            class="field-input"
           />
-        </div>
-        
-        <select v-model="statusFilter" class="status-filter">
-          <option value="">All Payments</option>
-          <option value="paid">✅ Paid Only</option>
-          <option value="unpaid">❌ Unpaid Only</option>
-        </select>
-      </div>
-    </div>
+        </label>
 
-    <!-- Summary Cards -->
-    <div class="summary-cards">
-      <div class="summary-card paid">
-        <div class="card-icon">✅</div>
-        <div class="card-content">
-          <div class="card-number">{{ paidCount }}</div>
-          <div class="card-label">Paid</div>
-        </div>
+        <label class="field-wrap" for="status-filter">
+          <span class="field-label">Status</span>
+          <select id="status-filter" v-model="statusFilter" class="field-input">
+            <option value="">All Payments</option>
+            <option value="paid">Paid Only</option>
+            <option value="unpaid">Unpaid Only</option>
+          </select>
+        </label>
       </div>
-      
-      <div class="summary-card unpaid">
-        <div class="card-icon">❌</div>
-        <div class="card-content">
-          <div class="card-number">{{ unpaidCount }}</div>
-          <div class="card-label">Unpaid</div>
-        </div>
-      </div>
-      
-      <div class="summary-card total">
-        <div class="card-icon">💰</div>
-        <div class="card-content">
-          <div class="card-number">₹{{ totalAmount }}</div>
-          <div class="card-label">Total</div>
-        </div>
-      </div>
+    </section>
 
-      <div class="summary-card collected">
-        <div class="card-icon">💳</div>
-        <div class="card-content">
-          <div class="card-number">₹{{ collectedAmount }}</div>
-          <div class="card-label">Collected</div>
-        </div>
-      </div>
-    </div>
+    <section class="section-shell summary-grid">
+      <article class="glass-card stat-card">
+        <p class="stat-label">Paid</p>
+        <p class="stat-value">{{ paidCount }}</p>
+      </article>
+      <article class="glass-card stat-card">
+        <p class="stat-label">Unpaid</p>
+        <p class="stat-value">{{ unpaidCount }}</p>
+      </article>
+      <article class="glass-card stat-card">
+        <p class="stat-label">Total Amount</p>
+        <p class="stat-value">₹{{ totalAmount }}</p>
+      </article>
+      <article class="glass-card stat-card">
+        <p class="stat-label">Collected</p>
+        <p class="stat-value">₹{{ collectedAmount }}</p>
+      </article>
+    </section>
 
-    <!-- Desktop Table View -->
-    <div v-if="filteredPayments.length > 0" class="table-container desktop-view">
-      <table class="payments-table">
-        <thead>
-          <tr>
-            <th>Student Details</th>
-            <th>Seat</th>
-            <th>Amount</th>
-            <th>Joining Date</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="payment in filteredPayments" :key="payment.id" class="payment-row">
-            <td class="student-info">
-              <router-link :to="`/students/${payment.student.id}`" class="student-link">
-                <div class="student-avatar">
-                  {{ payment.student.name.charAt(0).toUpperCase() }}
-                </div>
-                <div class="student-details">
+    <section v-if="loading" class="section-shell glass-card loading-card">
+      <div class="loader"></div>
+      <p>Loading payment records...</p>
+    </section>
+
+    <section v-else-if="filteredPayments.length > 0" class="section-shell glass-card table-card desktop-view">
+      <div class="table-wrap">
+        <table class="payments-table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Seat</th>
+              <th>Amount</th>
+              <th>Joining Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="payment in filteredPayments" :key="payment.id">
+              <td>
+                <router-link :to="`/students/${payment.student.id}`" class="student-link">
+                  <span class="avatar">{{ payment.student.name.charAt(0).toUpperCase() }}</span>
                   <span class="student-name">{{ payment.student.name }}</span>
+                </router-link>
+              </td>
+              <td>
+                <span v-if="payment.student.seat?.seat_number" class="seat-pill">{{ payment.student.seat.seat_number }}</span>
+                <span v-else class="muted">—</span>
+              </td>
+              <td>
+                <span class="amount">₹{{ formatAmount(payment.amount) }}</span>
+              </td>
+              <td>{{ formatDate(payment.student.date_of_joining) }}</td>
+              <td>
+                <span class="status-pill" :class="payment.paid ? 'status-paid' : 'status-unpaid'">
+                  {{ payment.paid ? 'Paid' : 'Unpaid' }}
+                </span>
+              </td>
+              <td>
+                <div class="actions">
+                  <button
+                    @click="togglePaid(payment)"
+                    class="action-btn"
+                    :class="payment.paid ? 'action-warning' : 'action-success'"
+                    type="button"
+                  >
+                    {{ payment.paid ? 'Mark Unpaid' : 'Mark Paid' }}
+                  </button>
+                  <button @click="deletePayment(payment)" class="action-btn action-danger" type="button">Delete</button>
+                  <button @click="viewReceipt(payment)" class="action-btn action-receipt" :disabled="!payment.paid" type="button">Receipt</button>
                 </div>
-              </router-link>
-            </td>
-            
-            <td class="seat-cell">
-              <span class="seat-badge" v-if="payment.student.seat?.seat_number">
-                {{ payment.student.seat.seat_number }}
-              </span>
-              <span class="no-seat" v-else>—</span>
-            </td>
-            
-            <td class="amount-cell">
-              <span class="amount">₹{{ formatAmount(payment.amount) }}</span>
-            </td>
-            
-            <td class="date-cell">
-              <span class="date">{{ formatDate(payment.student.date_of_joining) }}</span>
-            </td>
-            
-            <td class="status-cell">
-              <span class="status-badge" :class="{ paid: payment.paid, unpaid: !payment.paid }">
-                <span class="status-icon">{{ payment.paid ? '✅' : '❌' }}</span>
-                <span class="status-text">{{ payment.paid ? 'Paid' : 'Unpaid' }}</span>
-              </span>
-            </td>
-            
-            <td class="actions-cell">
-              <div class="action-buttons">
-                <button 
-                  @click="togglePaid(payment)" 
-                  class="action-btn toggle-btn"
-                  :class="{ paid: payment.paid, unpaid: !payment.paid }"
-                >
-                  <!-- <span class="btn-icon">{{ payment.paid ? '↩️' : '✅' }}</span> -->
-                  <span class="btn-text">{{ payment.paid ? 'Mark Unpaid' : 'Mark Paid' }}</span>
-                </button>
-                
-                <button @click="deletePayment(payment)" class="action-btn delete-btn">
-                  <!-- <span class="btn-icon">🗑️</span> -->
-                  <span class="btn-text">Delete</span>
-                </button>
-                <button @click="viewReceipt(payment)" class="action-btn receipt-btn" :disabled="!payment.paid">
-                  <span class="btn-text">Receipt</span>
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-    <!-- Mobile Card View -->
-    <div class="mobile-view">
-      <div 
-        v-for="payment in filteredPayments" 
-        :key="payment.id" 
-        class="payment-card"
+    <section v-else class="section-shell glass-card empty-state">
+      <h3>No Payment Records Found</h3>
+      <p v-if="searchTerm || statusFilter">Try adjusting search or filter values.</p>
+      <p v-else>Click "Generate Records" to create payment records for this month.</p>
+    </section>
+
+    <section v-if="!loading && filteredPayments.length > 0" class="section-shell mobile-view">
+      <article
+        v-for="payment in filteredPayments"
+        :key="payment.id"
+        class="glass-card payment-card"
       >
-        <div class="card-header">
+        <header class="card-head">
           <router-link :to="`/students/${payment.student.id}`" class="student-link">
-            <div class="student-avatar mobile">
-              {{ payment.student.name.charAt(0).toUpperCase() }}
-            </div>
-            <div class="student-info-mobile">
-              <h3 class="student-name-mobile">{{ payment.student.name }}</h3>
-              <p class="student-details-mobile">
-                Seat: {{ payment.student.seat?.seat_number || 'Not assigned' }}
-              </p>
+            <span class="avatar">{{ payment.student.name.charAt(0).toUpperCase() }}</span>
+            <div>
+              <p class="student-name">{{ payment.student.name }}</p>
+              <p class="muted">Seat: {{ payment.student.seat?.seat_number || 'Not assigned' }}</p>
             </div>
           </router-link>
-          
-          <div class="status-badge mobile" :class="{ paid: payment.paid, unpaid: !payment.paid }">
-            <span class="status-icon">{{ payment.paid ? '✅' : '❌' }}</span>
-            <span class="status-text">{{ payment.paid ? 'Paid' : 'Unpaid' }}</span>
+          <span class="status-pill" :class="payment.paid ? 'status-paid' : 'status-unpaid'">
+            {{ payment.paid ? 'Paid' : 'Unpaid' }}
+          </span>
+        </header>
+
+        <div class="detail-grid">
+          <div class="detail-row">
+            <span class="muted">Amount</span>
+            <span class="amount">₹{{ formatAmount(payment.amount) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="muted">Joining Date</span>
+            <span>{{ formatDate(payment.student.date_of_joining) }}</span>
           </div>
         </div>
 
-        <div class="card-body">
-          <div class="payment-details">
-            <div class="detail-row">
-              <span class="detail-label">Amount:</span>
-              <span class="detail-value amount">₹{{ formatAmount(payment.amount) }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Joining Date:</span>
-              <span class="detail-value">{{ formatDate(payment.student.date_of_joining) }}</span>
-            </div>
-          </div>
+        <div class="actions mobile-actions">
+          <button
+            @click="togglePaid(payment)"
+            class="action-btn"
+            :class="payment.paid ? 'action-warning' : 'action-success'"
+            type="button"
+          >
+            {{ payment.paid ? 'Mark Unpaid' : 'Mark Paid' }}
+          </button>
+          <button @click="deletePayment(payment)" class="action-btn action-danger" type="button">Delete</button>
+          <button @click="viewReceipt(payment)" class="action-btn action-receipt" :disabled="!payment.paid" type="button">Receipt</button>
         </div>
+      </article>
+    </section>
 
-        <div class="card-footer">
-          <div class="action-buttons mobile">
-            <button 
-              @click="togglePaid(payment)" 
-              class="action-btn toggle-btn mobile"
-              :class="{ paid: payment.paid, unpaid: !payment.paid }"
-            >
-              <!-- <span class="btn-icon">{{ payment.paid ? '↩️' : '✅' }}</span> -->
-              <span class="btn-text">{{ payment.paid ? 'Mark Unpaid' : 'Mark Paid' }}</span>
-            </button>
-            <button @click="deletePayment(payment)" class="action-btn delete-btn mobile">
-              <!-- <span class="btn-icon">🗑️</span> -->
-              <span class="btn-text">Delete</span>
-            </button>
-            <button @click="viewReceipt(payment)" class="action-btn receipt-btn mobile" :disabled="!payment.paid">
-              <span class="btn-text">Receipt</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Empty State -->
-    <div v-if="filteredPayments.length === 0 && !loading" class="empty-state">
-      <div class="empty-icon">💳</div>
-      <h3>No Payment Records Found</h3>
-      <p v-if="searchTerm || statusFilter">Try adjusting your search criteria or filters.</p>
-      <p v-else>Click "Generate Records" to create payment records for this month.</p>
-    </div>
-
-    <!-- Loading State -->
-    <div v-if="loading" class="loading-state">
-      <div class="loading-spinner">⏳</div>
-      <p>Loading payment records...</p>
-    </div>
-
-    <!-- Confirmation Modal -->
     <ConfirmationModal
       :show="showConfirmationModal"
-      title="Payment Confirmed! 🎉"
+      title="Payment Confirmed"
       :message="`Send confirmation message to ${selectedPayment?.student?.name.toUpperCase()}?`"
       @whatsapp="sendWhatsAppConfirmation"
       @sms="sendSMSConfirmation"
       @cancel="closeModal"
     />
-  </div>
+  </main>
 </template>
 
 <script>
-import API from '../api';
-import { useToast } from 'vue-toast-notification';
-import 'vue-toast-notification/dist/theme-sugar.css';
-import ConfirmationModal from './ConfirmationModal.vue';
-
-
+import API from '../api'
+import { useToast } from 'vue-toast-notification'
+import 'vue-toast-notification/dist/theme-sugar.css'
+import ConfirmationModal from './ConfirmationModal.vue'
 
 export default {
   components: {
-    ConfirmationModal
+    ConfirmationModal,
   },
 
   setup() {
-    const toast = useToast();
-    
+    const toast = useToast()
+
     const showSuccess = (message, options = {}) => {
       toast.success(message, {
         position: 'top',
@@ -275,37 +220,37 @@ export default {
         draggablePercent: 0.6,
         showCloseButtonOnHover: false,
         hideProgressBar: true,
-        closeButton: "button",
+        closeButton: 'button',
         icon: true,
         rtl: false,
         style: {
-          backgroundColor: '#667eea',
+          backgroundColor: '#0ea5e9',
           color: '#fff',
-          borderRadius: '12px'
-        },       
-        ...options
-      });
-    };
-    
+          borderRadius: '12px',
+        },
+        ...options,
+      })
+    }
+
     const showError = (message) => {
       toast.error(message, {
         style: {
           backgroundColor: '#dc2626',
           color: '#fff',
-          borderRadius: '12px'
-        }
-      });
-    };
-    
+          borderRadius: '12px',
+        },
+      })
+    }
+
     return {
       showSuccess,
-      showError
-    };
+      showError,
+    }
   },
 
   data() {
-    const today = new Date();
-    const defaultMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    const today = new Date()
+    const defaultMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
     return {
       selectedMonth: defaultMonth,
       payments: [],
@@ -313,913 +258,632 @@ export default {
       statusFilter: '',
       showConfirmationModal: false,
       selectedPayment: null,
-      loading: false
-    };
+      loading: false,
+    }
   },
 
   computed: {
     filteredPayments() {
-      return this.payments.filter(payment => {
-        const search = this.searchTerm.trim().toLowerCase();
-        const matchesName = payment.student.name.toLowerCase().includes(search);
-        const seatNum = payment.student.seat?.seat_number ? String(payment.student.seat.seat_number) : '';
-        const matchesSeat = seatNum.includes(search);
+      return this.payments.filter((payment) => {
+        const search = this.searchTerm.trim().toLowerCase()
+        const matchesName = payment.student.name.toLowerCase().includes(search)
+        const seatNum = payment.student.seat?.seat_number ? String(payment.student.seat.seat_number) : ''
+        const matchesSeat = seatNum.includes(search)
 
         const matchesStatus =
           this.statusFilter === '' ||
           (this.statusFilter === 'paid' && payment.paid) ||
-          (this.statusFilter === 'unpaid' && !payment.paid);
+          (this.statusFilter === 'unpaid' && !payment.paid)
 
-        return (matchesName || matchesSeat) && matchesStatus;
-      });
+        return (matchesName || matchesSeat) && matchesStatus
+      })
     },
 
     paidCount() {
-      return this.filteredPayments.filter(p => p.paid).length;
+      return this.filteredPayments.filter((payment) => payment.paid).length
     },
 
     unpaidCount() {
-      return this.filteredPayments.filter(p => !p.paid).length;
+      return this.filteredPayments.filter((payment) => !payment.paid).length
     },
 
     totalAmount() {
-      return this.filteredPayments.reduce((sum, p) => sum + p.amount, 0).toLocaleString('en-IN');
+      return this.filteredPayments.reduce((sum, payment) => sum + payment.amount, 0).toLocaleString('en-IN')
     },
 
     collectedAmount() {
-      return this.filteredPayments.filter(p => p.paid).reduce((sum, p) => sum + p.amount, 0).toLocaleString('en-IN');
-    }
+      return this.filteredPayments
+        .filter((payment) => payment.paid)
+        .reduce((sum, payment) => sum + payment.amount, 0)
+        .toLocaleString('en-IN')
+    },
   },
 
   mounted() {
-    this.fetchPayments();
+    this.fetchPayments()
   },
 
   watch: {
     selectedMonth: {
       handler: 'fetchPayments',
-      immediate: false
-    }
+      immediate: false,
+    },
   },
 
   methods: {
     async fetchPayments() {
-      this.loading = true;
+      this.loading = true
       try {
-        const res = await API.get(`/monthly-payments/${this.selectedMonth}`);
-        this.payments = res.data;
+        const res = await API.get(`/monthly-payments/${this.selectedMonth}`)
+        this.payments = res.data
       } catch (err) {
-        this.showError('Error fetching monthly payments');
+        this.showError('Error fetching monthly payments')
       } finally {
-        this.loading = false;
+        this.loading = false
       }
     },
 
     async togglePaid(payment) {
       try {
-        const res = await API.put(`/monthly-payments/toggle/${payment.id}`);
-        payment.paid = res.data.paid;
-        
+        const res = await API.put(`/monthly-payments/toggle/${payment.id}`)
+        payment.paid = res.data.paid
+
         if (payment.paid) {
-          this.showSuccess('✅ Payment marked as paid!');
-          this.showConfirmationModal = true;
-          this.selectedPayment = payment;
+          this.showSuccess('Payment marked as paid!')
+          this.showConfirmationModal = true
+          this.selectedPayment = payment
         } else {
-          this.showSuccess('↩️ Payment marked as unpaid');
+          this.showSuccess('Payment marked as unpaid')
         }
       } catch (err) {
-        this.showError('❌ Failed to toggle status');
+        this.showError('Failed to toggle status')
       }
     },
 
     sendWhatsAppConfirmation() {
-      this.sendPaymentConfirmation(this.selectedPayment);
-      this.closeModal();
+      this.sendPaymentConfirmation(this.selectedPayment)
+      this.closeModal()
     },
 
     sendSMSConfirmation() {
-      this.sendSMS(this.selectedPayment);
-      this.closeModal();
+      this.sendSMS(this.selectedPayment)
+      this.closeModal()
     },
 
     closeModal() {
-      this.showConfirmationModal = false;
-      this.selectedPayment = null;
+      this.showConfirmationModal = false
+      this.selectedPayment = null
     },
 
     sendPaymentConfirmation(payment) {
-      const libraryName = localStorage.getItem('library_name') || "Your Library";
-      const monthDate = new Date(this.selectedMonth + '-01');
-      const monthName = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-      
-      const msg = `Dear ${payment.student.name},\n` +
-                  `We have received your library fee of ₹${payment.amount} for ${monthName}.\n` +
-                  `Your payment has been successfully recorded.\n\n` +
-                  `Thanks,\n${libraryName}`;
-      
-      const phone = "91" + payment.student.contact.replace(/^0+/, "");
-      const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
-      window.open(url, "_blank");
-      this.showSuccess('📱 WhatsApp confirmation sent!');
+      const libraryName = localStorage.getItem('library_name') || 'Your Library'
+      const monthDate = new Date(this.selectedMonth + '-01')
+      const monthName = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+
+      const msg =
+        `Dear ${payment.student.name},\n` +
+        `We have received your library fee of ₹${payment.amount} for ${monthName}.\n` +
+        `Your payment has been successfully recorded.\n\n` +
+        `Thanks,\n${libraryName}`
+
+      const phone = '91' + payment.student.contact.replace(/^0+/, '')
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`
+      window.open(url, '_blank')
+      this.showSuccess('WhatsApp confirmation sent!')
     },
 
     sendSMS(payment) {
-      const libraryName = localStorage.getItem('library_name') || "Your Library";
-      const monthDate = new Date(this.selectedMonth + '-01');
-      const monthName = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-      
-      const msg = `Dear ${payment.student.name},\n` +
-                  `We have received your library fee of ₹${payment.amount} for ${monthName}.\n` +
-                  `Your payment has been successfully recorded.\n\n` +
-                  `Thanks,\n${libraryName}`;
-      
-      const phone = payment.student.contact.replace(/^(\+91|91)/, "");
-      const url = `sms:${phone}?body=${encodeURIComponent(msg)}`;
-      window.open(url, "_blank");
-      this.showSuccess('💬 SMS confirmation sent!');
+      const libraryName = localStorage.getItem('library_name') || 'Your Library'
+      const monthDate = new Date(this.selectedMonth + '-01')
+      const monthName = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+
+      const msg =
+        `Dear ${payment.student.name},\n` +
+        `We have received your library fee of ₹${payment.amount} for ${monthName}.\n` +
+        `Your payment has been successfully recorded.\n\n` +
+        `Thanks,\n${libraryName}`
+
+      const phone = payment.student.contact.replace(/^(\+91|91)/, '')
+      const url = `sms:${phone}?body=${encodeURIComponent(msg)}`
+      window.open(url, '_blank')
+      this.showSuccess('SMS confirmation sent!')
     },
 
     async deletePayment(payment) {
-      if (!confirm('⚠️ Are you sure you want to delete this payment record?')) return;
-      
+      if (!confirm('Are you sure you want to delete this payment record?')) return
+
       try {
-        await API.delete(`/monthly-payments/${payment.id}`);
-        this.payments = this.payments.filter(p => p.id !== payment.id);
-        this.showSuccess('✅ Payment record deleted successfully');
+        await API.delete(`/monthly-payments/${payment.id}`)
+        this.payments = this.payments.filter((entry) => entry.id !== payment.id)
+        this.showSuccess('Payment record deleted successfully')
       } catch (err) {
-        this.showError('❌ Error deleting payment');
+        this.showError('Error deleting payment')
       }
     },
 
     async generatePayments() {
-      this.loading = true;
+      this.loading = true
       try {
-        const monthDate = new Date(this.selectedMonth + '-01');
-        const monthName = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-        await API.post(`/generate-monthly-payments/${this.selectedMonth}`);
-        this.showSuccess(`✅ Payment records generated for ${monthName}`);
-        this.fetchPayments();
+        const monthDate = new Date(this.selectedMonth + '-01')
+        const monthName = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+        await API.post(`/generate-monthly-payments/${this.selectedMonth}`)
+        this.showSuccess(`Payment records generated for ${monthName}`)
+        this.fetchPayments()
       } catch (err) {
-        this.showError('❌ Error generating payment records');
+        this.showError('Error generating payment records')
       } finally {
-        this.loading = false;
+        this.loading = false
       }
     },
 
     formatDate(dateString) {
-      const date = new Date(dateString);
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = String(date.getFullYear()).slice(-2);
-      return `${day}-${month}-${year}`;
+      const date = new Date(dateString)
+      const day = String(date.getDate()).padStart(2, '0')
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const year = String(date.getFullYear()).slice(-2)
+      return `${day}-${month}-${year}`
     },
 
     formatAmount(amount) {
-      return amount.toLocaleString('en-IN');
+      return amount.toLocaleString('en-IN')
     },
 
     viewReceipt(payment) {
       if (!payment.paid) {
-        this.showError('❌ Payment not marked as paid yet');
-        return;
+        this.showError('Payment not marked as paid yet')
+        return
       }
-      this.$router.push(`/receipts/${payment.id}`);
-    }
-
-  }
-};
+      this.$router.push(`/receipts/${payment.id}`)
+    },
+  },
+}
 </script>
 
 <style scoped>
-.payments-container {
+.monthly-payments-page {
+  --surface: rgba(148, 163, 184, 0.03);
+  --surface-border: rgba(255, 255, 255, 0.03);
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+
+  position: relative;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  padding-top: 2rem;
+  padding: 2rem 2rem 2.8rem;
+  color: var(--text-primary);
+  overflow: hidden;
+  isolation: isolate;
 }
 
-.header-section {
-  text-align: center;
-  margin-bottom: 2rem;
-  color: white;
+.mesh-layer {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(45rem 24rem at 10% 15%, rgba(34, 211, 238, 0.14), transparent 70%),
+    radial-gradient(40rem 24rem at 86% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
+    radial-gradient(36rem 22rem at 65% 88%, rgba(14, 165, 233, 0.11), transparent 70%),
+    linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
+  filter: saturate(115%);
+  animation: mesh-drift 18s ease-in-out infinite alternate;
 }
 
-.page-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  padding-top: 2rem;
+.section-shell {
+  width: min(1240px, calc(100% - 2rem));
+  margin: 0 auto;
 }
 
-.page-subtitle {
-  font-size: 1.1rem;
-  opacity: 0.9;
-  font-weight: 300;
+.hero h1 {
+  margin: 0.9rem 0 0;
+  font-size: clamp(1.9rem, 4.4vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.kicker {
   margin: 0;
+  display: inline-flex;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #cbd5e1;
+  background: rgba(148, 163, 184, 0.07);
 }
 
-.controls-section {
-  max-width: 1000px;
-  margin: 0 auto 2rem auto;
-  background: rgba(255,255,255,0.95);
-  padding: 24px;
-  border-radius: 20px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-  backdrop-filter: blur(10px);
+.gradient-text {
+  background: linear-gradient(90deg, #22d3ee, #3b82f6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
-.month-controls {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 20px;
+.hero-subtitle {
+  margin: 0.75rem 0 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  /* max-width: 62ch; */
+}
+
+.glass-card {
+  border: 1px solid var(--surface-border);
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.controls-card,
+.table-card,
+.loading-card,
+.empty-state {
+  margin-top: 0.9rem;
+  border-radius: 16px;
+  padding: 0.9rem;
+}
+
+.control-grid,
+.filter-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.6rem;
   align-items: end;
 }
 
-.month-selector {
-  flex: 1;
-  width:-webkit-fill-available;
+.filter-grid {
+  grid-template-columns: 1fr 1fr;
+  margin-top: 0.6rem;
 }
 
-.month-selector label {
-  display: block;
+.field-wrap {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.field-label {
+  color: #cbd5e1;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: #374151;
-  margin-bottom: 8px;
-  font-size: 0.95rem;
+}
+
+.field-input {
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.72);
+  color: #f8fafc;
+  /* min-height: 42px; */
+  padding: 0.5rem 0.7rem;
+  outline: none;
+}
+
+.field-input:focus {
+  border-color: rgba(34, 211, 238, 0.62);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.16);
+}
+
+.field-input option {
+  color: #0f172a;
 }
 
 .month-input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid #e1e5e9;
-  border-radius: 8px;
-  outline: none;
-  font-size: 16px;
-  transition: border-color 0.3s ease;
-  box-sizing: border-box;
+  color-scheme: dark;
 }
 
-.month-input:focus {
-  border-color: #667eea;
+.month-input::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.35) saturate(0.25);
+  opacity: 0.95;
 }
 
-.generate-btn,
-.reminder-btn {
-  display: flex;
+.btn {
+  min-height: 42px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  /* padding: 0.5rem 0.75rem; */
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
+  justify-content: center;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap;
+  text-decoration: none;
+  color: #fff;
 }
 
-.generate-btn {
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  color: white;
-}
-
-.generate-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.generate-btn:disabled {
-  opacity: 0.6;
+.btn:disabled {
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
-.reminder-link {
-  text-decoration: none;
+.btn-solid {
+  background: linear-gradient(90deg, #0ea5e9, #3b82f6);
+  box-shadow: 0 14px 28px rgba(59, 130, 246, 0.28);
 }
 
-.reminder-btn {
-  background: linear-gradient(45deg, #10b981, #059669);
-  color: white;
+.btn-emerald {
+  background: linear-gradient(90deg, #22c55e, #16a34a);
 }
 
-.reminder-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-}
-
-.btn-icon {
-  font-size: 1.1rem;
-}
-
-.spinner {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.filters {
-  display: flex;
-  gap: 16px;
-  padding-top: 16px;
-  border-top: 2px solid #f3f4f6;
-}
-
-.search-wrapper {
-  position: relative;
-  flex: 1;
-}
-
-.search-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 1.1rem;
-  color: #9ca3af;
-  pointer-events: none;
-}
-
-.search-input {
-  width: 100%;
-  padding: 12px 16px 12px 40px;
-  border: 2px solid #e1e5e9;
-  border-radius: 8px;
-  outline: none;
-  font-size: 16px;
-  transition: border-color 0.3s ease;
-  box-sizing: border-box;
-}
-
-.search-input:focus {
-  border-color: #667eea;
-}
-
-.status-filter {
-  padding: 12px 16px;
-  border: 2px solid #e1e5e9;
-  border-radius: 8px;
-  outline: none;
-  font-size: 16px;
-  background: white;
-  cursor: pointer;
-  transition: border-color 0.3s ease;
-  min-width: 160px;
-}
-
-.status-filter:focus {
-  border-color: #667eea;
-}
-
-.summary-cards {
+.summary-grid {
+  margin-top: 0.85rem;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  max-width: 1000px;
-  margin: 0 auto 2rem auto;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.6rem;
 }
 
-.summary-card {
-  background: rgba(255,255,255,0.95);
-  border-radius: 16px;
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
+.stat-card {
+  border-radius: 14px;
+  padding: 0.75rem;
 }
 
-.summary-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+.stat-label {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
 }
 
-.card-icon {
-  font-size: 1.5rem;
-  /* width: 50px; */
-  /* height: 50px; */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-}
-
-.summary-card.paid .card-icon {
-  background: rgba(16, 185, 129, 0.1);
-  color: #059669;
-}
-
-.summary-card.unpaid .card-icon {
-  background: rgba(220, 38, 38, 0.1);
-  color: #dc2626;
-}
-
-.summary-card.total .card-icon {
-  background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
-}
-
-.summary-card.collected .card-icon {
-  background: rgba(245, 158, 11, 0.1);
-  color: #d97706;
-}
-
-.card-content {
-  flex: 1;
-}
-
-.card-number {
+.stat-value {
+  margin: 0.32rem 0 0;
   font-size: 1.3rem;
   font-weight: 800;
-  color: #1f2937;
-  line-height: 1;
 }
 
-.card-label {
-  font-size: 0.9rem;
-  color: #6b7280;
-  margin-top: 4px;
-}
-
-.table-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  background: rgba(255,255,255,0.95);
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-  backdrop-filter: blur(10px);
+.table-wrap {
+  overflow-x: auto;
 }
 
 .payments-table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 980px;
 }
 
 .payments-table th {
-  /* background: linear-gradient(45deg, #667eea, #764ba2); */
-  color: white;
-  padding: 20px 16px;
   text-align: left;
-  font-weight: 600;
-  font-size: 0.95rem;
-  border: none;
-}
-thead{
-    background: linear-gradient(45deg, #667eea, #764ba2);
-
-}
-
-.payment-row {
-  transition: all 0.3s ease;
-  animation: slideIn 0.6s ease-out forwards;
-  opacity: 0;
-}
-
-.payment-row:hover {
-  background: #f8faff;
-  transform: scale(1.01);
-}
-
-.payment-row:nth-child(even) {
-  background: rgba(102, 126, 234, 0.02);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.26);
+  padding: 0.64rem 0.55rem;
 }
 
 .payments-table td {
-  padding: 16px;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 0.64rem 0.55rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+  color: #e2e8f0;
+  font-size: 0.9rem;
   vertical-align: middle;
+  text-align: left;
 }
 
-.student-info {
-  min-width: 200px;
+.payments-table tbody tr:hover {
+  background: rgba(148, 163, 184, 0.07);
 }
 
 .student-link {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
-  text-decoration: none;
+  gap: 0.52rem;
   color: inherit;
-  transition: all 0.3s ease;
+  text-decoration: none;
 }
 
-.student-link:hover {
-  transform: translateX(4px);
-}
-
-.student-avatar {
-  width: 45px;
-  height: 45px;
+.avatar {
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 1.2rem;
+  display: inline-grid;
+  place-items: center;
+  font-weight: 800;
+  background: linear-gradient(90deg, #0ea5e9, #3b82f6);
+  color: #fff;
   flex-shrink: 0;
 }
 
-.student-details {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
 .student-name {
-  font-weight: 600;
-  color: #1f2937;
+  margin: 0;
+  font-weight: 700;
   text-transform: uppercase;
-  font-size: 0.95rem;
-}
-
-.student-id {
-  font-size: 0.8rem;
-  color: #6b7280;
-}
-
-.seat-badge {
-  background: linear-gradient(45deg, #10b981, #059669);
-  color: white;
-  padding: 6px 12px;
-  border-radius: 20px;
   font-size: 0.85rem;
-  font-weight: 600;
-  display: inline-block;
 }
 
-.no-seat {
-  color: #9ca3af;
-  font-style: italic;
+.seat-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  background: rgba(16, 185, 129, 0.2);
+  color: #a7f3d0;
+}
+
+.muted {
+  color: var(--text-secondary);
+  margin: 0;
 }
 
 .amount {
   font-weight: 700;
-  color: #dc2626;
-  font-size: 1.1rem;
-  font-family: 'Monaco', 'Menlo', monospace;
+  color: #fecaca;
+  font-family: Monaco, Menlo, monospace;
 }
 
-.date {
-  color: #374151;
-  font-weight: 500;
-}
-
-.status-badge {
-  display: flex;
+.status-pill {
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
   justify-content: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
-.status-badge.paid {
-  background: rgba(16, 185, 129, 0.1);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+.status-paid {
+  background: rgba(16, 185, 129, 0.2);
+  color: #a7f3d0;
 }
 
-.status-badge.unpaid {
-  background: rgba(220, 38, 38, 0.1);
-  color: #dc2626;
-  border: 1px solid rgba(220, 38, 38, 0.3);
+.status-unpaid {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fecaca;
 }
 
-.status-icon {
-  font-size: 1rem;
-}
-
-.action-buttons {
+.actions {
   display: flex;
-  gap: 8px;
-  /* flex-wrap: wrap; */
+  flex-wrap: wrap;
+  gap: 0.35rem;
 }
 
 .action-btn {
-  display: flex;
+  min-height: 32px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  padding: 0.3rem 0.5rem;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  min-width: 100px;
   justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
 }
 
-.toggle-btn.paid {
-  background: linear-gradient(45deg, #f59e0b, #d97706);
-  color: white;
-}
-
-.toggle-btn.unpaid {
-  background: linear-gradient(45deg, #10b981, #059669);
-  color: white;
-}
-
-.delete-btn {
-  background: linear-gradient(45deg, #dc2626, #b91c1c);
-  color: white;
-}
-
-.action-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
-
-.action-btn.receipt-btn {
-  background-color: #10b981;
-  color: white;
-}
-
-.action-btn.receipt-btn:disabled {
-  background-color: #cbd5e0;
+.action-btn:disabled {
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
-.action-btn.receipt-btn:hover:not(:disabled) {
-  background-color: #059669;
+.action-success {
+  background: rgba(16, 185, 129, 0.2);
+  color: #a7f3d0;
+  border-color: rgba(16, 185, 129, 0.36);
 }
 
+.action-warning {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fde68a;
+  border-color: rgba(245, 158, 11, 0.36);
+}
 
-/* Mobile View */
+.action-danger {
+  background: rgba(239, 68, 68, 0.16);
+  color: #fecaca;
+  border-color: rgba(239, 68, 68, 0.36);
+}
+
+.action-receipt {
+  background: rgba(59, 130, 246, 0.2);
+  color: #bfdbfe;
+  border-color: rgba(59, 130, 246, 0.36);
+}
+
+.loading-card,
+.empty-state {
+  display: grid;
+  place-items: center;
+  gap: 0.35rem;
+  text-align: center;
+}
+
+.loader {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px solid rgba(148, 163, 184, 0.4);
+  border-top-color: #22d3ee;
+  animation: spin 1s linear infinite;
+}
+
 .mobile-view {
   display: none;
-  gap: 20px;
-  max-width: 800px;
-  margin: 0 auto;
+  margin-top: 0.85rem;
+  gap: 0.55rem;
 }
 
 .payment-card {
-  background: rgba(255,255,255,0.95);
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
+  border-radius: 14px;
+  padding: 0.7rem;
 }
 
-.payment-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-}
-
-.card-header {
+.card-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 16px;
-  padding-bottom: 16px;
-  border-bottom: 2px solid #f3f4f6;
+  gap: 0.5rem;
 }
 
-.student-avatar.mobile {
-  width: 50px;
-  height: 50px;
-  font-size: 1.4rem;
-}
-
-.student-info-mobile {
-  flex: 1;
-  margin-left: 12px;
-}
-
-.student-name-mobile {
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin: 0 0 4px 0;
-  color: #1f2937;
-  text-transform: uppercase;
-}
-
-.student-details-mobile {
-  margin: 0;
-  color: #2b2c30;
-  font-size: 0.9rem;
-}
-
-.status-badge.mobile {
-  font-size: 0.8rem;
-  padding: 6px 10px;
-}
-
-.card-body {
-  margin-bottom: 16px;
-}
-
-.payment-details {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.detail-grid {
+  margin-top: 0.55rem;
+  display: grid;
+  gap: 0.45rem;
 }
 
 .detail-row {
+  border-radius: 10px;
+  background: rgba(148, 163, 184, 0.12);
+  padding: 0.45rem 0.55rem;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
-  background: #f8faff;
-  border-radius: 8px;
+  gap: 0.55rem;
 }
 
-.detail-label {
-  font-weight: 600;
-  color: #374151;
+.mobile-actions {
+  margin-top: 0.55rem;
 }
 
-.detail-value {
-  font-weight: 500;
-  color: #1f2937;
-}
-
-.detail-value.amount {
-  color: #dc2626;
-  font-weight: 700;
-}
-
-.card-footer {
-  padding-top: 16px;
-  border-top: 2px solid #f3f4f6;
-}
-
-.action-buttons.mobile {
-  flex-direction: row;
-  gap: 8px;
-}
-
-.action-btn.mobile {
-  width: 100%;
-  min-width: unset;
-}
-
-.empty-state,
-.loading-state {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: white;
-}
-
-.empty-icon,
-.loading-spinner {
-  font-size: 4rem;
-  margin-bottom: 1rem;
-}
-
-.loading-spinner {
-  animation: bounce 2s infinite;
-}
-
-@keyframes bounce {
-  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-10px); }
-  60% { transform: translateY(-5px); }
-}
-
-.empty-state h3 {
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-}
-
-.empty-state p {
-  opacity: 0.9;
-  line-height: 1.5;
-}
-
-/* Animations */
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+@keyframes mesh-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
   }
+  100% {
+    transform: translate3d(-1.5%, 1.2%, 0) scale(1.04);
+  }
+}
+
+@keyframes spin {
   to {
-    opacity: 1;
-    transform: translateY(0);
+    transform: rotate(360deg);
   }
 }
 
-.payment-row:nth-child(1) { animation-delay: 0.1s; }
-.payment-row:nth-child(2) { animation-delay: 0.2s; }
-.payment-row:nth-child(3) { animation-delay: 0.3s; }
-.payment-row:nth-child(4) { animation-delay: 0.4s; }
-.payment-row:nth-child(5) { animation-delay: 0.5s; }
+@media (max-width: 1100px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 
-/* Responsive Design */
-@media (max-width: 1024px) {
+  .control-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 920px) {
   .desktop-view {
     display: none;
   }
 
-  .payments-container {
-    padding: 16px;
-    padding-top: 1rem;
-  }
-
-  .page-title {
-    font-size: 2rem;
-    padding-top: 3rem;
-  }
-  
   .mobile-view {
-    display: flex;
-    flex-direction: column;
+    display: grid;
   }
 }
 
-@media (max-width: 768px) {
-  .payments-container {
-    padding: 16px;
-    padding-top: 1rem;
-  }
-  
-  .page-title {
-    font-size: 2rem;
-    padding-top: 3rem;
-  }
-  
-  .controls-section {
-    padding: 20px;
-  }
-  
-  .month-controls {
-    flex-direction: column;
-    gap: 12px;
+@media (max-width: 767px) {
+  .monthly-payments-page {
+    padding-top: 2rem;
+    padding-bottom: 5rem;
+    padding-inline: 1rem;
   }
 
-  .reminder-link {
-    text-decoration: none;
-    width: 100%;
-}
-  
-  .generate-btn,
-  .reminder-btn {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .filters {
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  .search-input,
-  .status-filter {
-    width: 100%;
-  }
-  
-  .summary-cards {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .payment-card {
-    padding: 16px;
-  }
-}
-
-@media (max-width: 480px) {
-  .summary-card {
-    /* grid-template-columns: repeat(2, 1fr); */
-    /* grid-template-columns: repeat(auto-fill, minmax(30%, 1fr)); */
-    /* overflow-x: auto; */
-    gap: 0px;
-    padding: 12px;
-  }
-  
-  .card-header {
-    flex-direction: row;
-    gap: 12px;
-    text-align: center;
-  }
-  
-  .student-info-mobile {
-    margin-left: 0;
-    text-align: center;
-  }
-  
-  .detail-row {
-    flex-direction: row;
-    gap: 4px;
-    text-align: center;
+  .section-shell {
+    width: min(1240px, calc(100% - 1rem));
   }
 
-  .card-icon {
-    /* display: none; */
-    font-size: 1.2rem;
-    width: fit-content;
+  .filter-grid{
+    grid-template-columns: 1fr;
+  }
+  
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 </style>

@@ -1,19 +1,20 @@
-<!-- ConfirmationModal.vue -->
 <template>
   <div v-if="show" class="modal-overlay" @click="onCancel">
     <div class="modal-content" @click.stop>
-      <div class="modal-header">
+      <header class="modal-header">
         <h3>{{ title }}</h3>
-        <!-- <button @click="onCancel" class="close-btn">&times;</button> -->
-      </div>
+        <button type="button" class="close-btn" @click="onCancel" aria-label="Close">×</button>
+      </header>
+
       <div class="modal-body">
         <p>{{ message }}</p>
       </div>
-      <div class="modal-footer">
-        <button @click="onConfirm" class="btn btn-whatsapp">WhatsApp</button>
-        <button @click="onSMS" class="btn btn-sms">SMS</button>
-        <button @click="onCancel" class="btn btn-secondary">{{ cancelText }}</button>
-      </div>
+
+      <footer class="modal-footer">
+        <button type="button" @click="onConfirm" class="btn btn-whatsapp">WhatsApp</button>
+        <button type="button" @click="onSMS" class="btn btn-sms">SMS</button>
+        <button type="button" @click="onCancel" class="btn btn-secondary">{{ cancelText }}</button>
+      </footer>
     </div>
   </div>
 </template>
@@ -24,127 +25,117 @@ export default {
     show: Boolean,
     title: { type: String, default: 'Confirmation' },
     message: String,
-    cancelText: { type: String, default: 'Cancel' }
+    cancelText: { type: String, default: 'Cancel' },
   },
+  emits: ['whatsapp', 'sms', 'cancel'],
   methods: {
     onConfirm() {
-      this.$emit('whatsapp');
+      this.$emit('whatsapp')
     },
     onSMS() {
-      this.$emit('sms');
+      this.$emit('sms')
     },
     onCancel() {
-      this.$emit('cancel');
-    }
-  }
+      this.$emit('cancel')
+    },
+  },
 }
 </script>
 
 <style scoped>
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  inset: 0;
+  z-index: 1600;
+  background: rgba(2, 6, 23, 0.72);
+  backdrop-filter: blur(5px);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  padding: 0.75rem;
 }
 
 .modal-content {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  max-width: 400px;
-  width: 90%;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: min(520px, 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(15, 23, 42, 0.92);
+  color: #e2e8f0;
+  box-shadow: 0 24px 48px rgba(2, 6, 23, 0.45);
 }
 
-.modal-footer {
+.modal-header {
+  padding: 0.85rem 0.9rem;
   display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin-top: 20px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.22);
 }
 
-.btn {
-  padding: 10px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 700;
+}
+
+.close-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  background: rgba(148, 163, 184, 0.12);
+  color: #e2e8f0;
   font-size: 1rem;
-  width: 30%;
-  
-}
-.btn:hover {  
-  transform: scale(1.03);  
+  cursor: pointer;
 }
 
-.btn-whatsapp { background: #1b9648; color: white; }
-.btn-sms { background: #007bff; color: white; }
-.btn-secondary { background: #6c757d; color: white; }
-
-@media(max-width: 786px){
-
-  .modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 8px;
-  padding: 10px;
-  padding-bottom: 30px;
-  max-width: 90%;
-  width: 85%;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  height: auto;
+.modal-body {
+  padding: 0.9rem;
 }
 
 .modal-body p {
-  font-size: 1.1rem;
-  
+  margin: 0;
+  color: #cbd5e1;
+  line-height: 1.6;
 }
 
 .modal-footer {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  justify-content: center;
-  margin-top: 20px;
+  padding: 0 0.9rem 0.9rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
 }
 
 .btn {
-  padding: 12px 16px;
-  border: none;
-  border-radius: 10px;
+  min-height: 40px;
+  border-radius: 11px;
+  border: 1px solid transparent;
+  font-weight: 700;
   cursor: pointer;
-  font-weight: bold;
-  font-size: medium;
-  width: 70%;
-  margin: auto;
-  
-}
-.btn:hover {  
-  transform: scale(1.03);  
+  color: #fff;
 }
 
-    
+.btn-whatsapp {
+  background: linear-gradient(90deg, #22c55e, #16a34a);
 }
 
+.btn-sms {
+  background: linear-gradient(90deg, #0ea5e9, #3b82f6);
+}
 
+.btn-secondary {
+  background: rgba(148, 163, 184, 0.16);
+  border-color: rgba(148, 163, 184, 0.35);
+  color: #e2e8f0;
+}
 
+@media (max-width: 600px) {
+  .modal-content {
+    border-radius: 14px;
+  }
+
+  .modal-footer {
+    grid-template-columns: 1fr;
+  }
+}
 </style>
