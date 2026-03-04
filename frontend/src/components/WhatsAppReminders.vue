@@ -1,188 +1,159 @@
 <template>
-  <div class="reminders-container">
-    <!-- Header -->
-    <div class="header-section">
-      <h2 class="page-title">Pending Fee Reminders</h2>
-      <p class="page-subtitle">Send payment reminders to students with pending fees</p>
-    </div>
+  <main class="reminders-page">
+    <div class="mesh-layer" aria-hidden="true"></div>
 
-    <!-- Controls Section -->
-    <div class="controls-section">
-      <div class="month-controls">
-        <div class="month-selector">
-          <label for="month-input">Select Month</label>
-          <input 
+    <section class="section-shell hero">
+      <div>
+        <p class="kicker">Communication Desk</p>
+        <h1>
+          Fee
+          <span class="gradient-text">Reminders</span>
+        </h1>
+        <p class="hero-subtitle">Review unpaid students for the selected month and send reminders through WhatsApp or SMS.</p>
+      </div>
+    </section>
+
+    <section class="section-shell controls-card glass-card">
+      <div class="control-grid">
+        <label class="field-wrap" for="month-input">
+          <span class="field-label">Select Month</span>
+          <input
             id="month-input"
-            type="month" 
-            v-model="selectedMonth" 
-            class="month-input"
+            type="month"
+            v-model="selectedMonth"
+            class="field-input month-input"
           />
-        </div>
-        
-        <button @click="$router.back()" class="control-btn back-btn">
-          <!-- <span class="btn-icon">←</span> -->
-          <span class="btn-text">Back</span>
-        </button>
-        
-        <button @click="fetchReminders" :disabled="loading" class="control-btn refresh-btn">
-          <span v-if="loading" class="btn-icon spinner">⏳</span>
-          <!-- <span v-else class="btn-icon">🔄</span> -->
-          <span class="btn-text">{{ loading ? 'Loading...' : 'Refresh' }}</span>
+        </label>
+
+        <button @click="$router.back()" class="btn btn-ghost" type="button">Back</button>
+        <button @click="fetchReminders" :disabled="loading" class="btn btn-solid" type="button">
+          {{ loading ? 'Loading...' : 'Refresh' }}
         </button>
       </div>
-    </div>
+    </section>
 
-    <!-- Summary Card -->
-    <div class="summary-card" v-if="pendingList.length > 0">
-      <div class="summary-content">
-        <div class="summary-icon">⚠️</div>
-        <div class="summary-info">
-          <div class="summary-number">{{ pendingList.length }}</div>
-          <div class="summary-label">Students with pending fees</div>
-        </div>
-        <div class="summary-amount">
-          <div class="amount-number">₹{{ totalPendingAmount }}</div>
-          <div class="amount-label">Total Pending</div>
-        </div>
-      </div>
-    </div>
+    <section v-if="pendingList.length > 0" class="section-shell summary-grid">
+      <article class="glass-card stat-card">
+        <p class="stat-label">Pending Students</p>
+        <p class="stat-value">{{ pendingList.length }}</p>
+      </article>
+      <article class="glass-card stat-card">
+        <p class="stat-label">Total Pending</p>
+        <p class="stat-value">₹{{ totalPendingAmount }}</p>
+      </article>
+    </section>
 
-    <!-- Desktop Table View -->
-    <div v-if="pendingList.length > 0" class="table-container desktop-view">
-      <table class="reminders-table">
-        <thead>
-          <tr>
-            <th>Student Details</th>
-            <th>Phone</th>
-            <th>Amount</th>
-            <th>Month</th>
-            <th>Due Date</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="student in pendingList" :key="student.phone" class="reminder-row">
-            <td class="student-info">
-              <router-link :to="`/students/${student.student_id}`" class="student-link">
-                <div class="student-avatar">
-                  {{ student.student_name.charAt(0).toUpperCase() }}
-                </div>
-                <div class="student-details">
+    <section v-if="loading" class="section-shell glass-card loading-card">
+      <div class="loader"></div>
+      <p>Loading pending reminders...</p>
+    </section>
+
+    <section v-else-if="pendingList.length > 0" class="section-shell glass-card table-card desktop-view">
+      <div class="table-wrap">
+        <table class="reminders-table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Phone</th>
+              <th>Amount</th>
+              <th>Month</th>
+              <th>Due Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="student in pendingList" :key="student.phone">
+              <td>
+                <router-link :to="`/students/${student.student_id}`" class="student-link">
+                  <span class="avatar">{{ student.student_name.charAt(0).toUpperCase() }}</span>
                   <span class="student-name">{{ student.student_name }}</span>
-                </div>
-              </router-link>
-            </td>
-            
-            <td class="phone-cell">
-              <span class="phone-number">{{ student.phone }}</span>
-            </td>
-            
-            <td class="amount-cell">
-              <span class="amount">₹{{ formatAmount(student.amount) }}</span>
-            </td>
-            
-            <td class="month-cell">
-              <span class="month">{{ formatMonth(student.month) }}</span>
-            </td>
-            
-            <td class="date-cell">
-              <span class="due-date" :class="{ overdue: isOverdue(student.due_date) }">
-                {{ formatDate(student.due_date) }}
-              </span>
-            </td>
-            
-            <td class="action-cell">
-              <button @click="openReminderModal(student)" class="action-btn reminder-btn">
-                <span class="btn-icon">💬</span>
-                <span class="btn-text">Send Reminder</span>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+                </router-link>
+              </td>
+              <td class="mono">{{ student.phone }}</td>
+              <td class="amount">₹{{ formatAmount(student.amount) }}</td>
+              <td>{{ formatMonth(student.month) }}</td>
+              <td>
+                <span class="due-pill" :class="{ overdue: isOverdue(student.due_date) }">
+                  {{ formatDate(student.due_date) }}
+                </span>
+              </td>
+              <td>
+                <button @click="openReminderModal(student)" class="action-btn action-success" type="button">
+                  Send Reminder
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-    <!-- Mobile Card View -->
-    <div class="mobile-view">
-      <div 
-        v-for="student in pendingList" 
-        :key="student.phone" 
-        class="reminder-card"
+    <section v-else class="section-shell glass-card empty-state">
+      <h3>No Pending Reminders</h3>
+      <p>All students have paid their fees on time for {{ formatMonth(selectedMonth) }}.</p>
+    </section>
+
+    <section v-if="!loading && pendingList.length > 0" class="section-shell mobile-view">
+      <article
+        v-for="student in pendingList"
+        :key="student.phone"
+        class="glass-card reminder-card"
       >
-        <div class="card-header">
+        <header class="card-head">
           <router-link :to="`/students/${student.student_id}`" class="student-link">
-            <div class="student-avatar mobile">
-              {{ student.student_name.charAt(0).toUpperCase() }}
-            </div>
-            <div class="student-info-mobile">
-              <h3 class="student-name-mobile">{{ student.student_name }}</h3>
-              <p class="student-details-mobile">
-                {{ student.phone }} | ₹{{ formatAmount(student.amount) }}
-              </p>
+            <span class="avatar">{{ student.student_name.charAt(0).toUpperCase() }}</span>
+            <div>
+              <p class="student-name">{{ student.student_name }}</p>
+              <p class="mono muted">{{ student.phone }}</p>
             </div>
           </router-link>
-          
-          <div class="due-badge" :class="{ overdue: isOverdue(student.due_date) }">
-            <span class="due-icon">{{ isOverdue(student.due_date) ? '⚠️' : '📅' }}</span>
-            <span class="due-text">{{ formatDate(student.due_date) }}</span>
+          <span class="due-pill" :class="{ overdue: isOverdue(student.due_date) }">
+            {{ formatDate(student.due_date) }}
+          </span>
+        </header>
+
+        <div class="detail-grid">
+          <div class="detail-row">
+            <span class="muted">Amount</span>
+            <span class="amount">₹{{ formatAmount(student.amount) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="muted">Month</span>
+            <span>{{ formatMonth(student.month) }}</span>
           </div>
         </div>
 
-        <div class="card-body">
-          <div class="month-info">
-            <span class="month-label">For Month:</span>
-            <span class="month-value">{{ formatMonth(student.month) }}</span>
-          </div>
-        </div>
+        <button @click="openReminderModal(student)" class="action-btn action-success mobile-action" type="button">
+          Send Reminder
+        </button>
+      </article>
+    </section>
 
-        <div class="card-footer">
-          <button @click="openReminderModal(student)" class="action-btn reminder-btn mobile">
-            <span class="btn-icon">💬</span>
-            <span class="btn-text">Send Reminder</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Empty State -->
-    <div v-if="pendingList.length === 0 && !loading" class="empty-state">
-      <div class="empty-icon">✅</div>
-      <h3>No Pending Reminders</h3>
-      <p>All students have paid their fees on time for {{ formatMonth(selectedMonth) }}!</p>
-    </div>
-
-    <!-- Loading State -->
-    <div v-if="loading" class="loading-state">
-      <div class="loading-spinner">⏳</div>
-      <p>Loading pending reminders...</p>
-    </div>
-
-    <!-- Fee Reminder Modal -->
     <ConfirmationModal
       :show="showReminderModal"
-      title="Send Fee Reminder 💰"
+      title="Send Fee Reminder"
       :message="`Send payment reminder to ${selectedStudent?.student_name?.toUpperCase()}?`"
       @whatsapp="sendReminderWhatsApp"
       @sms="sendReminderSMS"
-      @cancel="closeReminderModal" 
+      @cancel="closeReminderModal"
     />
-  </div>
+  </main>
 </template>
 
 <script>
-import API from '../api';
-import ConfirmationModal from './ConfirmationModal.vue';
-import { useToast } from 'vue-toast-notification';
-import 'vue-toast-notification/dist/theme-sugar.css';
+import API from '../api'
+import ConfirmationModal from './ConfirmationModal.vue'
+import { useToast } from 'vue-toast-notification'
+import 'vue-toast-notification/dist/theme-sugar.css'
 
 export default {
   components: {
-    ConfirmationModal
+    ConfirmationModal,
   },
 
   setup() {
-    const toast = useToast();
-    
+    const toast = useToast()
+
     const showSuccess = (message, options = {}) => {
       toast.success(message, {
         position: 'top',
@@ -194,738 +165,531 @@ export default {
         draggablePercent: 0.6,
         showCloseButtonOnHover: false,
         hideProgressBar: true,
-        closeButton: "button",
+        closeButton: 'button',
         icon: true,
         rtl: false,
         style: {
-          backgroundColor: '#667eea',
+          backgroundColor: '#0ea5e9',
           color: '#fff',
-          borderRadius: '12px'
-        },       
-        ...options
-      });
-    };
-    
+          borderRadius: '12px',
+        },
+        ...options,
+      })
+    }
+
     const showError = (message) => {
       toast.error(message, {
         style: {
           backgroundColor: '#dc2626',
           color: '#fff',
-          borderRadius: '12px'
-        }
-      });
-    };
-    
+          borderRadius: '12px',
+        },
+      })
+    }
+
     return {
       showSuccess,
-      showError
-    };
+      showError,
+    }
   },
 
   data() {
-    const today = new Date();
-    const defaultMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    const today = new Date()
+    const defaultMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
     return {
       selectedMonth: defaultMonth,
       pendingList: [],
       showReminderModal: false,
       selectedStudent: null,
-      loading: false
-    };
+      loading: false,
+    }
   },
 
   computed: {
     totalPendingAmount() {
-      return this.pendingList.reduce((sum, student) => sum + student.amount, 0).toLocaleString('en-IN');
-    }
+      return this.pendingList.reduce((sum, student) => sum + student.amount, 0).toLocaleString('en-IN')
+    },
   },
-  
+
   methods: {
     async fetchReminders() {
-      this.loading = true;
+      this.loading = true
       try {
-        const res = await API.get(`/reminders/pending-fees/${this.selectedMonth}`);
-        this.pendingList = res.data;
-        // if (this.pendingList.length > 0) {
-        //   this.showSuccess(`📋 Found ${this.pendingList.length} pending reminders`);
-        // }
+        const res = await API.get(`/reminders/pending-fees/${this.selectedMonth}`)
+        this.pendingList = res.data
       } catch (err) {
-        this.showError("❌ Failed to fetch reminders: " + (err.response?.data?.detail || err.message));
+        this.showError('Failed to fetch reminders: ' + (err.response?.data?.detail || err.message))
       } finally {
-        this.loading = false;
+        this.loading = false
       }
     },
 
     openReminderModal(student) {
-      this.selectedStudent = student;
-      this.showReminderModal = true;
+      this.selectedStudent = student
+      this.showReminderModal = true
     },
 
     closeReminderModal() {
-      this.showReminderModal = false;
-      this.selectedStudent = null;
+      this.showReminderModal = false
+      this.selectedStudent = null
     },
 
     sendReminderWhatsApp() {
-      const message = this.generateReminderMessage();
-      const phone = "91" + this.selectedStudent.phone.replace(/^0+/, "");
-      const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-      window.open(url, "_blank");
-      this.closeReminderModal();
-      this.showSuccess('📱 WhatsApp reminder sent!');
+      const message = this.generateReminderMessage()
+      const phone = '91' + this.selectedStudent.phone.replace(/^0+/, '')
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
+      window.open(url, '_blank')
+      this.closeReminderModal()
+      this.showSuccess('WhatsApp reminder sent!')
     },
 
     sendReminderSMS() {
-      const message = this.generateReminderMessage();
-      const phone = this.selectedStudent.phone.replace(/^(\+91|91)/, "");
-      const url = `sms:${phone}?body=${encodeURIComponent(message)}`;
-      window.open(url, "_blank");
-      this.closeReminderModal();
-      this.showSuccess('💬 SMS reminder sent!');
+      const message = this.generateReminderMessage()
+      const phone = this.selectedStudent.phone.replace(/^(\+91|91)/, '')
+      const url = `sms:${phone}?body=${encodeURIComponent(message)}`
+      window.open(url, '_blank')
+      this.closeReminderModal()
+      this.showSuccess('SMS reminder sent!')
     },
 
     generateReminderMessage() {
-      const libraryName = localStorage.getItem('library_name') || "Your Library";
-      const monthDate = new Date(this.selectedStudent.month + '-01');
-      const monthName = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-      
-      return `Dear ${this.selectedStudent.student_name},\n` +
-             `Your library fee of Rs.${this.selectedStudent.amount} for ${monthName} was due on ${this.selectedStudent.due_date}.\n` +
-             `Please pay it as soon as possible to avoid disruption.\n\n` +
-             `Thanks,\n${libraryName}`;
+      const libraryName = localStorage.getItem('library_name') || 'Your Library'
+      const monthDate = new Date(this.selectedStudent.month + '-01')
+      const monthName = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+
+      return (
+        `Dear ${this.selectedStudent.student_name},\n` +
+        `Your library fee of Rs.${this.selectedStudent.amount} for ${monthName} was due on ${this.selectedStudent.due_date}.\n` +
+        `Please pay it as soon as possible to avoid disruption.\n\n` +
+        `Thanks,\n${libraryName}`
+      )
     },
 
     formatAmount(amount) {
-      return amount.toLocaleString('en-IN');
+      return amount.toLocaleString('en-IN')
     },
 
     formatDate(dateString) {
-      if (!dateString) return 'N/A';
-      const date = new Date(dateString);
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = String(date.getFullYear()).slice(-2);
-      return `${day}-${month}-${year}`;
+      if (!dateString) return 'N/A'
+      const date = new Date(dateString)
+      const day = String(date.getDate()).padStart(2, '0')
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const year = String(date.getFullYear()).slice(-2)
+      return `${day}-${month}-${year}`
     },
 
     formatMonth(monthString) {
       if (monthString && monthString.includes('-')) {
-        const [year, month] = monthString.split('-');
-        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        return `${monthNames[parseInt(month) - 1]} ${year}`;
+        const [year, month] = monthString.split('-')
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        return `${monthNames[parseInt(month) - 1]} ${year}`
       }
-      return monthString;
+      return monthString
     },
 
     isOverdue(dueDateString) {
-      if (!dueDateString) return false;
-      const dueDate = new Date(dueDateString);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return dueDate < today;
-    }
+      if (!dueDateString) return false
+      const dueDate = new Date(dueDateString)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      return dueDate < today
+    },
   },
 
   created() {
-    this.fetchReminders();
+    this.fetchReminders()
   },
 
   watch: {
     selectedMonth: {
       handler: 'fetchReminders',
-      immediate: false
-    }
-  }
-};
+      immediate: false,
+    },
+  },
+}
 </script>
 
 <style scoped>
-.reminders-container {
+.reminders-page {
+  --surface: rgba(148, 163, 184, 0.03);
+  --surface-border: rgba(255, 255, 255, 0.03);
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+
+  position: relative;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  padding-top: 3rem;
+  padding: 6.7rem 0 2.8rem;
+  color: var(--text-primary);
+  overflow: hidden;
+  isolation: isolate;
 }
 
-.header-section {
-  text-align: center;
-  margin-bottom: 24px;
-  color: white;
+.mesh-layer {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(45rem 24rem at 10% 15%, rgba(34, 211, 238, 0.14), transparent 70%),
+    radial-gradient(40rem 24rem at 86% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
+    radial-gradient(36rem 22rem at 65% 88%, rgba(14, 165, 233, 0.11), transparent 70%),
+    linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
+  filter: saturate(115%);
+  animation: mesh-drift 18s ease-in-out infinite alternate;
 }
 
-.page-title {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.section-shell {
+  width: min(1240px, calc(100% - 2rem));
+  margin: 0 auto;
 }
 
-.page-subtitle {
-  font-size: 1rem;
-  opacity: 0.9;
-  font-weight: 300;
+.hero h1 {
+  margin: 0.9rem 0 0;
+  font-size: clamp(1.9rem, 4.4vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.kicker {
   margin: 0;
+  display: inline-flex;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #cbd5e1;
+  background: rgba(148, 163, 184, 0.07);
 }
 
-.controls-section {
-  max-width: 800px;
-  margin: 0 auto 20px auto;
-  background: rgba(255,255,255,0.95);
-  padding: 20px;
+.gradient-text {
+  background: linear-gradient(90deg, #22d3ee, #3b82f6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero-subtitle {
+  margin: 0.75rem 0 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 62ch;
+}
+
+.glass-card {
+  border: 1px solid var(--surface-border);
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.controls-card,
+.table-card,
+.loading-card,
+.empty-state {
+  margin-top: 0.9rem;
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  backdrop-filter: blur(10px);
+  padding: 0.9rem;
 }
 
-.month-controls {
-  display: flex;
-  gap: 12px;
+.control-grid {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.6rem;
   align-items: end;
 }
 
-.month-selector {
-  flex: 1;
-  width: -webkit-fill-available;
+.field-wrap {
+  display: grid;
+  gap: 0.35rem;
 }
 
-.month-selector label {
-  display: block;
+.field-label {
+  color: #cbd5e1;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: #374151;
-  margin-bottom: 8px;
-  font-size: 0.9rem;
+}
+
+.field-input {
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.72);
+  color: #f8fafc;
+  min-height: 42px;
+  padding: 0.5rem 0.7rem;
+  outline: none;
+}
+
+.field-input:focus {
+  border-color: rgba(34, 211, 238, 0.62);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.16);
 }
 
 .month-input {
-  width: 100%;
-  padding: 12px;
-  border: 2px solid #e1e5e9;
-  border-radius: 8px;
-  outline: none;
-  font-size: 16px;
-  transition: border-color 0.3s ease;
-  box-sizing: border-box;
+  color-scheme: dark;
 }
 
-.month-input:focus {
-  border-color: #667eea;
+.month-input::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.35) saturate(0.25);
+  opacity: 0.95;
 }
 
-.control-btn {
-  display: flex;
+.btn {
+  min-height: 42px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  padding: 0.5rem 0.75rem;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 12px 16px;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
+  justify-content: center;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-  color: white;
 }
 
-.back-btn {
-  background: linear-gradient(45deg, #6b7280, #4b5563);
-}
-
-.back-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
-}
-
-.refresh-btn {
-  background: linear-gradient(45deg, #667eea, #764ba2);
-}
-
-.refresh-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.refresh-btn:disabled {
-  opacity: 0.6;
+.btn:disabled {
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
-.btn-icon {
-  font-size: 1rem;
+.btn-solid {
+  background: linear-gradient(90deg, #0ea5e9, #3b82f6);
+  box-shadow: 0 14px 28px rgba(59, 130, 246, 0.28);
+  color: #fff;
 }
 
-.spinner {
-  animation: spin 1s linear infinite;
+.btn-ghost {
+  background: rgba(148, 163, 184, 0.08);
+  border-color: rgba(148, 163, 184, 0.32);
+  color: #e2e8f0;
 }
 
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+.summary-grid {
+  margin-top: 0.85rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
 }
 
-.summary-card {
-  max-width: 800px;
-  margin: 0 auto 20px auto;
-  background: rgba(255,255,255,0.95);
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  backdrop-filter: blur(10px);
+.stat-card {
+  border-radius: 14px;
+  padding: 0.75rem;
 }
 
-.summary-content {
-  display: flex;
-  align-items: center;
-  gap: 20px;
+.stat-label {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
 }
 
-.summary-icon {
-  font-size: 1.8rem;
-  width: 50px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(220, 38, 38, 0.1);
-  border-radius: 12px;
-  flex-shrink: 0;
-}
-
-.summary-info {
-  flex: 1;
-}
-
-.summary-number {
-  font-size: 1.8rem;
+.stat-value {
+  margin: 0.32rem 0 0;
+  font-size: 1.3rem;
   font-weight: 800;
-  color: #1f2937;
-  line-height: 1;
 }
 
-.summary-label {
-  font-size: 0.9rem;
-  color: #363b45;
-  margin-top: 4px;
-}
-
-.summary-amount {
-  text-align: right;
-}
-
-.amount-number {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #dc2626;
-  line-height: 1;
-}
-
-.amount-label {
-  font-size: 0.85rem;
-  color: #363b45;
-  margin-top: 4px;
-}
-
-.table-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  background: rgba(255,255,255,0.95);
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  backdrop-filter: blur(10px);
+.table-wrap {
+  overflow-x: auto;
 }
 
 .reminders-table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 920px;
 }
 
 .reminders-table th {
-  /* background: linear-gradient(45deg, #667eea, #764ba2); */
-  color: white;
-  padding: 16px 12px;
   text-align: left;
-  font-weight: 600;
-  font-size: 0.9rem;
-  border: none;
-}
-
-.reminders-table thead{
-  background: linear-gradient(45deg, #667eea, #764ba2);
-}
-
-.reminder-row {
-  transition: all 0.3s ease;
-  animation: slideIn 0.6s ease-out forwards;
-  opacity: 0;
-}
-
-.reminder-row:hover {
-  background: #f8faff;
-}
-
-.reminder-row:nth-child(even) {
-  background: rgba(102, 126, 234, 0.02);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.26);
+  padding: 0.64rem 0.55rem;
 }
 
 .reminders-table td {
-  padding: 12px;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 0.64rem 0.55rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+  color: #e2e8f0;
+  font-size: 0.9rem;
   vertical-align: middle;
 }
 
-.student-info {
-  min-width: 180px;
+.reminders-table tbody tr:hover {
+  background: rgba(148, 163, 184, 0.07);
 }
 
 .student-link {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  text-decoration: none;
+  gap: 0.52rem;
   color: inherit;
-  transition: all 0.3s ease;
+  text-decoration: none;
 }
 
-.student-link:hover {
-  transform: translateX(4px);
-}
-
-.student-avatar {
+.avatar {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 1rem;
+  display: inline-grid;
+  place-items: center;
+  font-weight: 800;
+  background: linear-gradient(90deg, #0ea5e9, #3b82f6);
+  color: #fff;
   flex-shrink: 0;
 }
 
-.student-details {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
 .student-name {
-  font-weight: 600;
-  color: #1f2937;
+  margin: 0;
+  font-weight: 700;
   text-transform: uppercase;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
-.student-id {
-  font-size: 0.75rem;
-  color: #6b7280;
+.mono {
+  font-family: Monaco, Menlo, monospace;
 }
 
-.phone-number {
-  font-family: 'Monaco', 'Menlo', monospace;
-  color: #374151;
-  font-weight: 500;
+.muted {
+  color: var(--text-secondary);
+  margin: 0;
 }
 
 .amount {
   font-weight: 700;
-  color: #dc2626;
-  font-size: 1rem;
+  color: #fecaca;
+  font-family: Monaco, Menlo, monospace;
 }
 
-.month {
-  color: #374151;
-  font-weight: 500;
-  font-size: 0.85rem;
-}
-
-.due-date {
-  color: #374151;
-  font-weight: 500;
-  font-size: 0.85rem;
-}
-
-.due-date.overdue {
-  color: #dc2626;
+.due-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.22rem 0.58rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
   font-weight: 700;
+  background: rgba(16, 185, 129, 0.2);
+  color: #a7f3d0;
+}
+
+.due-pill.overdue {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fecaca;
 }
 
 .action-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 8px;
+  min-height: 34px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 700;
   cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  min-width: 120px;
-  justify-content: center;
 }
 
-.reminder-btn {
-  background: linear-gradient(45deg, #10b981, #059669);
-  color: white;
+.action-success {
+  background: rgba(16, 185, 129, 0.2);
+  color: #a7f3d0;
+  border-color: rgba(16, 185, 129, 0.36);
 }
 
-.reminder-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+.loading-card,
+.empty-state {
+  display: grid;
+  place-items: center;
+  gap: 0.35rem;
+  text-align: center;
 }
 
-/* Mobile View */
+.loader {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px solid rgba(148, 163, 184, 0.4);
+  border-top-color: #22d3ee;
+  animation: spin 1s linear infinite;
+}
+
 .mobile-view {
   display: none;
-  gap: 12px;
-  max-width: 600px;
-  margin: 0 auto;
+  margin-top: 0.85rem;
+  gap: 0.55rem;
 }
 
 .reminder-card {
-  background: rgba(255,255,255,0.95);
-  border-radius: 12px;
-  padding: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
+  border-radius: 14px;
+  padding: 0.7rem;
 }
 
-.reminder-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-}
-
-.card-header {
+.card-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 10px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #f3f4f6;
+  gap: 0.5rem;
 }
 
-.student-avatar.mobile {
-  width: 40px;
-  height: 40px;
-  font-size: 1.1rem;
+.detail-grid {
+  margin-top: 0.55rem;
+  display: grid;
+  gap: 0.45rem;
 }
 
-.student-info-mobile {
-  flex: 1;
-  margin-left: 10px;
-}
-
-.student-name-mobile {
-  font-size: 1rem;
-  font-weight: 700;
-  margin: 0 0 4px 0;
-  color: #1f2937;
-  text-transform: uppercase;
-}
-
-.student-details-mobile {
-  margin: 0;
-  color: #333;
-  font-size: 0.85rem;
-}
-
-.due-badge {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  background: rgba(16, 185, 129, 0.1);
-  color: #059669;
-}
-
-.due-badge.overdue {
-  background: rgba(220, 38, 38, 0.1);
-  color: #dc2626;
-}
-
-.due-icon {
-  font-size: 0.9rem;
-}
-
-.card-body {
-  margin-bottom: 10px;
-}
-
-.month-info {
+.detail-row {
+  border-radius: 10px;
+  background: rgba(148, 163, 184, 0.12);
+  padding: 0.45rem 0.55rem;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
-  background: #f8faff;
-  border-radius: 8px;
+  gap: 0.55rem;
 }
 
-.month-label {
-  font-weight: 600;
-  color: #374151;
-  font-size: 0.85rem;
-}
-
-.month-value {
-  font-weight: 500;
-  color: #1f2937;
-  font-size: 0.85rem;
-}
-
-.card-footer {
-  padding-top: 10px;
-  border-top: 1px solid #f3f4f6;
-}
-
-.action-btn.mobile {
+.mobile-action {
   width: 100%;
-  font-size: 0.9rem;
-  padding: 10px 16px;
+  margin-top: 0.55rem;
 }
 
-.empty-state,
-.loading-state {
-  text-align: center;
-  padding: 40px 20px;
-  color: white;
-}
-
-.empty-icon,
-.loading-spinner {
-  font-size: 3rem;
-  margin-bottom: 16px;
-}
-
-.loading-spinner {
-  animation: bounce 2s infinite;
-}
-
-@keyframes bounce {
-  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-8px); }
-  60% { transform: translateY(-4px); }
-}
-
-.empty-state h3 {
-  font-size: 1.3rem;
-  margin-bottom: 8px;
-  font-weight: 600;
-}
-
-.empty-state p {
-  opacity: 0.9;
-  line-height: 1.5;
-}
-
-/* Animations */
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(15px);
+@keyframes mesh-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
   }
+  100% {
+    transform: translate3d(-1.5%, 1.2%, 0) scale(1.04);
+  }
+}
+
+@keyframes spin {
   to {
-    opacity: 1;
-    transform: translateY(0);
+    transform: rotate(360deg);
   }
 }
 
-.reminder-row:nth-child(1) { animation-delay: 0.1s; }
-.reminder-row:nth-child(2) { animation-delay: 0.2s; }
-.reminder-row:nth-child(3) { animation-delay: 0.3s; }
-.reminder-row:nth-child(4) { animation-delay: 0.4s; }
-.reminder-row:nth-child(5) { animation-delay: 0.5s; }
+@media (max-width: 1100px) {
+  .control-grid {
+    grid-template-columns: 1fr;
+  }
+}
 
-/* Responsive Design */
-@media (max-width: 1024px) {
+@media (max-width: 920px) {
   .desktop-view {
     display: none;
   }
-  
+
   .mobile-view {
-    display: flex;
-    flex-direction: column;
+    display: grid;
   }
 }
 
-@media (max-width: 768px) {
-  .reminders-container {
-    padding: 12px;
-    padding-top: 3.5rem;
-  }
-  
-  .page-title {
-    font-size: 1.8rem;
-  }
-  
-  .controls-section {
-    padding: 16px;
-    margin-bottom: 16px;
-  }
-  
-  .month-controls {
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .control-btn {
-    width: 100%;
-    height: 44px;
-    justify-content: center;
-    font-size: 16px;
-  }
-  
-  .summary-card {
-    padding: 16px;
-    margin-bottom: 16px;
-  }
-  
-  .summary-content {
-    flex-direction: row;
-    text-align: center;
-    gap: 12px;
-  }
-  
-  .summary-amount {
-    text-align: center;
-  }
-  
-  .reminder-card {
-    padding: 10px;
-  }
-  
-  .card-header {
-    margin-bottom: 8px;
-    padding-bottom: 8px;
-  }
-  
-  .card-footer {
-    padding-top: 8px;
-  }
-}
-
-@media (max-width: 480px) {
-  .reminders-container {
-    padding: 10px;
-    padding-top: 3.5rem;
+@media (max-width: 767px) {
+  .reminders-page {
+    padding-top: 5.4rem;
   }
 
-  .card-header {
-    flex-direction: row;
-    gap: 8px;
-    text-align: center;
+  .section-shell {
+    width: min(1240px, calc(100% - 1rem));
   }
-  
-  .student-info-mobile {
-    margin-left: 0;
-    text-align: center;
+
+  .summary-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>
