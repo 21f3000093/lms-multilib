@@ -1,46 +1,33 @@
 <template>
-  <div class="receipt-page">
-    <!-- Loading State -->
-    <div v-if="loading" class="loading-state">
-      <div class="loading-spinner">⏳</div>
+  <main class="receipt-page">
+    <div class="mesh-layer" aria-hidden="true"></div>
+
+    <section v-if="loading" class="section-shell glass-card loading-card">
+      <div class="loader"></div>
       <p>Loading receipt...</p>
-    </div>
+    </section>
 
-    <!-- Main Content -->
     <template v-else-if="payment">
-      <!-- Print/Download Controls -->
-      <div class="controls no-print">
-        <button @click="printReceipt" class="action-btn print-btn">
-          <!-- <span class="btn-icon">🖨️</span> -->
-          <span class="btn-text">Print Receipt</span>
-        </button>
-        <button @click="downloadPDF" class="action-btn download-btn">
-          <!-- <span class="btn-icon">📥</span> -->
-          <span class="btn-text">Download PDF</span>
-        </button>
-        <router-link to="/monthly-payments" class="back-btn">
-          <!-- <span class="btn-icon">←</span> -->
-          <span class="btn-text">Back to Payments</span>
-        </router-link>
-      </div>
+      <section class="section-shell controls no-print">
+        <button @click="printReceipt" class="action-btn print-btn" type="button">Print Receipt</button>
+        <button @click="downloadPDF" class="action-btn download-btn" type="button">Download PDF</button>
+        <router-link to="/monthly-payments" class="action-btn back-btn">Back to Payments</router-link>
+      </section>
 
-      <!-- Receipt Content - Optimized for PDF -->
-      <div id="receipt-content" class="receipt-wrapper">
-        <div class="receipt-container">
-          <!-- Header with Border -->
-          <div class="receipt-header">
+      <section id="receipt-content" class="section-shell receipt-wrapper">
+        <article class="receipt-container">
+          <header class="receipt-header">
             <div class="company-info">
               <h1 class="company-name">{{ libraryName }}</h1>
               <p class="company-address" v-if="libraryAddress">{{ libraryAddress }}</p>
-              <p class="company-contact" v-if="libraryContact">📞 {{ libraryContact }}</p>
+              <p class="company-contact" v-if="libraryContact">Contact: {{ libraryContact }}</p>
             </div>
             <div class="receipt-title-box">
               <h2 class="receipt-title">PAYMENT RECEIPT</h2>
             </div>
-          </div>
+          </header>
 
-          <!-- Receipt Info Section -->
-          <div class="receipt-info-section">
+          <section class="receipt-info-section">
             <div class="info-grid">
               <div class="info-item">
                 <span class="info-label">Receipt No:</span>
@@ -55,10 +42,9 @@
                 <span class="info-value">{{ formatMonth(payment.month) }}</span>
               </div>
             </div>
-          </div>
+          </section>
 
-          <!-- Student Details Section -->
-          <div class="section-box">
+          <section class="section-box">
             <h3 class="section-title">Student Details</h3>
             <div class="detail-grid">
               <div class="detail-row">
@@ -74,10 +60,9 @@
                 <span class="detail-value">{{ payment.student.seat.seat_number }}</span>
               </div>
             </div>
-          </div>
+          </section>
 
-          <!-- Payment Details Table -->
-          <div class="section-box">
+          <section class="section-box">
             <h3 class="section-title">Payment Details</h3>
             <table class="payment-table">
               <thead>
@@ -99,57 +84,41 @@
                 </tr>
               </tfoot>
             </table>
-          </div>
+          </section>
 
-          <!-- Payment Status Badge -->
-          <div class="status-section">
+          <section class="status-section">
             <div class="status-badge" :class="payment.paid ? 'paid-badge' : 'unpaid-badge'">
-              <span class="status-icon">{{ payment.paid ? '✓' : '×' }}</span>
-              <span class="status-text">{{ payment.paid ? 'PAID' : 'UNPAID' }}</span>
+              {{ payment.paid ? 'PAID' : 'UNPAID' }}
             </div>
-          </div>
+          </section>
 
-          <!-- Footer -->
-          <div class="receipt-footer">
-            <div class="thank-you-message">
-              <p>Thank you for your payment!</p>
-              <!-- <p class="footer-note">This is a computer-generated receipt and does not require a physical signature.</p> -->
+          <footer class="receipt-footer">
+            <p>Thank you for your payment!</p>
+            <div class="signature-line">
+              <span>_____________________</span>
+              <p>Authorized Signature</p>
             </div>
-            <div class="signature-section">
-              <div class="signature-line">
-                <span>_____________________</span>
-                <p class="signature-label">Authorized Signature</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Watermark -->
-          <!-- <div class="receipt-watermark" v-if="payment.paid">PAID</div> -->
-        </div>
-      </div>
+          </footer>
+        </article>
+      </section>
     </template>
 
-    <!-- Error State -->
-    <div v-else class="empty-state">
-      <div class="empty-icon">❌</div>
+    <section v-else class="section-shell glass-card empty-state">
       <h3>Receipt Not Found</h3>
       <p>Unable to load the payment receipt.</p>
-      <router-link to="/monthly-payments" class="back-btn">
-        <!-- <span class="btn-icon">←</span> -->
-        <span class="btn-text">Back to Payments</span>
-      </router-link>
-    </div>
-  </div>
+      <router-link to="/monthly-payments" class="action-btn back-btn">Back to Payments</router-link>
+    </section>
+  </main>
 </template>
 
 <script>
-import API from '../api';
-import { useToast } from 'vue-toast-notification';
-import html2pdf from 'html2pdf.js';
+import API from '../api'
+import { useToast } from 'vue-toast-notification'
+import html2pdf from 'html2pdf.js'
 
 export default {
   setup() {
-    const toast = useToast();
+    const toast = useToast()
     return {
       showSuccess: (message) => toast.success(message, {
         position: 'top',
@@ -157,8 +126,8 @@ export default {
         style: {
           backgroundColor: '#10b981',
           color: '#fff',
-          borderRadius: '12px'
-        }
+          borderRadius: '12px',
+        },
       }),
       showError: (message) => toast.error(message, {
         position: 'top',
@@ -166,10 +135,10 @@ export default {
         style: {
           backgroundColor: '#dc2626',
           color: '#fff',
-          borderRadius: '12px'
-        }
-      })
-    };
+          borderRadius: '12px',
+        },
+      }),
+    }
   },
 
   data() {
@@ -178,613 +147,438 @@ export default {
       libraryName: '',
       libraryAddress: '',
       libraryContact: '',
-      loading: true
-    };
+      loading: true,
+    }
   },
 
   mounted() {
-    this.loadLibraryInfo();
-    this.fetchPayment();
+    this.loadLibraryInfo()
+    this.fetchPayment()
   },
 
   methods: {
     loadLibraryInfo() {
-      this.libraryName = localStorage.getItem('library_name') || 'Library Name';
-      this.libraryAddress = localStorage.getItem('library_address') || '';
-      this.libraryContact = localStorage.getItem('library_contact') || '';
+      this.libraryName = localStorage.getItem('library_name') || 'Library Name'
+      this.libraryAddress = localStorage.getItem('library_address') || ''
+      this.libraryContact = localStorage.getItem('library_contact') || ''
     },
 
     async fetchPayment() {
-      this.loading = true;
+      this.loading = true
       try {
-        const paymentId = this.$route.params.paymentId;
-        const res = await API.get(`/monthly-payments/single/${paymentId}`);
-        this.payment = res.data;
+        const paymentId = this.$route.params.paymentId
+        const res = await API.get(`/monthly-payments/single/${paymentId}`)
+        this.payment = res.data
       } catch (err) {
-        console.error('Error loading receipt:', err);
-        this.showError('Error loading receipt');
+        console.error('Error loading receipt:', err)
+        this.showError('Error loading receipt')
         setTimeout(() => {
-          this.$router.push('/monthly-payments');
-        }, 5000);
+          this.$router.push('/monthly-payments')
+        }, 5000)
       } finally {
-        this.loading = false;
+        this.loading = false
       }
     },
 
     printReceipt() {
-      window.print();
-
+      window.print()
     },
 
     async downloadPDF() {
-      const element = document.getElementById('receipt-content');
-      
-      // High-quality PDF options
+      const element = document.getElementById('receipt-content')
+
       const opt = {
         margin: [8, 8, 8, 8],
         filename: `Receipt_${String(this.payment.id).padStart(6, '0')}_${this.payment.month}.pdf`,
-        image: { 
-          type: 'jpeg', 
-          quality: 0.98 
+        image: {
+          type: 'jpeg',
+          quality: 0.98,
         },
-        html2canvas: { 
-          scale: 2.5, // Higher scale for better quality
+        html2canvas: {
+          scale: 2.5,
           useCORS: true,
           letterRendering: true,
-          logging: false
+          logging: false,
         },
-        jsPDF: { 
-          unit: 'mm', 
-          format: 'a4', 
+        jsPDF: {
+          unit: 'mm',
+          format: 'a4',
           orientation: 'portrait',
-          compress: true
+          compress: true,
         },
-        pagebreak: { 
-          mode: ['avoid-all', 'css', 'legacy'] 
-        }
-      };
-      
+        pagebreak: {
+          mode: ['avoid-all', 'css', 'legacy'],
+        },
+      }
+
       try {
-        this.showSuccess('⏳ Generating PDF...');
-        await html2pdf().set(opt).from(element).save();
-        this.showSuccess('✅ Receipt downloaded successfully');
+        this.showSuccess('Generating PDF...')
+        await html2pdf().set(opt).from(element).save()
+        this.showSuccess('Receipt downloaded successfully')
       } catch (error) {
-        console.error('PDF download error:', error);
-        this.showError('❌ Error downloading PDF');
+        console.error('PDF download error:', error)
+        this.showError('Error downloading PDF')
       }
     },
 
     formatDate(date) {
-      const d = new Date(date);
-      const day = String(d.getDate()).padStart(2, '0');
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const year = d.getFullYear();
-      return `${day}/${month}/${year}`;
+      const d = new Date(date)
+      const day = String(d.getDate()).padStart(2, '0')
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const year = d.getFullYear()
+      return `${day}/${month}/${year}`
     },
 
     formatMonth(monthStr) {
-      const date = new Date(monthStr + '-01');
-      return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      const date = new Date(monthStr + '-01')
+      return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     },
 
     formatAmount(amount) {
-      return amount.toLocaleString('en-IN');
-    }
-  }
-};
+      return Number(amount || 0).toLocaleString('en-IN')
+    },
+  },
+}
 </script>
 
 <style scoped>
-* {
-  box-sizing: border-box;
-}
-
 .receipt-page {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 20px;
+  position: relative;
   min-height: 100vh;
-  background: #f5f5f500;
-  padding-top: 6rem;
+  padding: 6.7rem 0 2.8rem;
+  color: #e2e8f0;
+  overflow: hidden;
+  isolation: isolate;
 }
 
-/* Loading and Error States */
-.loading-state, .empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 20px;
+.mesh-layer {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(45rem 24rem at 10% 15%, rgba(34, 211, 238, 0.14), transparent 70%),
+    radial-gradient(40rem 24rem at 86% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
+    radial-gradient(36rem 22rem at 65% 88%, rgba(14, 165, 233, 0.11), transparent 70%),
+    linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
+  filter: saturate(115%);
+  animation: mesh-drift 18s ease-in-out infinite alternate;
+}
+
+.section-shell {
+  width: min(980px, calc(100% - 2rem));
+  margin: 0 auto;
+}
+
+.glass-card {
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  background: rgba(148, 163, 184, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.loading-card,
+.empty-state {
+  border-radius: 16px;
+  padding: 1rem;
   text-align: center;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  display: grid;
+  place-items: center;
+  gap: 0.35rem;
 }
 
-.loading-spinner {
-  font-size: 48px;
-  animation: spin 2s linear infinite;
+.loader {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px solid rgba(148, 163, 184, 0.4);
+  border-top-color: #22d3ee;
+  animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.empty-icon {
-  font-size: 64px;
-  margin-bottom: 20px;
-}
-
-.empty-state h3 {
-  font-size: 24px;
-  color: #1f2937;
-  margin: 10px 0;
-}
-
-.empty-state p {
-  color: #6b7280;
-  margin-bottom: 30px;
-}
-
-/* Controls */
 .controls {
   display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-  justify-content: center;
+  gap: 0.6rem;
   flex-wrap: wrap;
+  margin-bottom: 0.9rem;
 }
 
-.action-btn, .back-btn {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
+.action-btn {
+  min-height: 42px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  padding: 0.5rem 0.75rem;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  font-size: 15px;
-  font-weight: 600;
+  justify-content: center;
+  font-weight: 700;
+  cursor: pointer;
   text-decoration: none;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
 .print-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.print-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.35);
+  color: #bfdbfe;
 }
 
 .download-btn {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-}
-
-.download-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.35);
+  color: #a7f3d0;
 }
 
 .back-btn {
-  background: #e5e7eb;
-  color: #374151;
+  background: rgba(148, 163, 184, 0.16);
+  border-color: rgba(148, 163, 184, 0.35);
+  color: #e2e8f0;
 }
 
-.back-btn:hover {
-  background: #d1d5db;
-}
-
-/* Receipt Wrapper */
 .receipt-wrapper {
-  background: white;
-  padding: 0;
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
 }
 
 .receipt-container {
   position: relative;
-  padding: 30px;
-  background: white;
-  font-family: 'Arial', 'Helvetica', sans-serif;
+  padding: 24px;
+  background: #fff;
   color: #1f2937;
-  line-height: 1.5;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
 }
 
-/* Header */
 .receipt-header {
-  margin-bottom: 20px;
-  padding-bottom: 12px;
-  border-bottom: 3px solid #667eea;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 3px solid #3b82f6;
 }
 
 .company-info {
   text-align: center;
-  margin-bottom: 20px;
 }
 
 .company-name {
-  font-size: 32px;
-  font-weight: 700;
-  color: #1f2937;
-  margin: 0 0 8px 0;
-  letter-spacing: 0.5px;
+  margin: 0;
+  font-size: 30px;
+  font-weight: 800;
 }
 
-.company-address {
-  font-size: 14px;
-  color: #6b7280;
-  margin: 4px 0;
-}
-
+.company-address,
 .company-contact {
-  font-size: 14px;
+  margin: 4px 0 0;
+  font-size: 13px;
   color: #6b7280;
-  margin: 4px 0;
-  font-weight: 500;
 }
 
 .receipt-title-box {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 12px 24px;
-  text-align: center;
+  margin-top: 14px;
+  background: linear-gradient(90deg, #0ea5e9, #3b82f6);
   border-radius: 8px;
-  margin-top: 16px;
+  padding: 10px 16px;
+  text-align: center;
 }
 
 .receipt-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: white;
   margin: 0;
-  letter-spacing: 2px;
+  font-size: 22px;
+  letter-spacing: 1.3px;
+  color: #fff;
 }
 
-/* Receipt Info Section */
-.receipt-info-section {
-  background: #f9fafb;
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 16px;
+.receipt-info-section,
+.section-box {
+  margin-bottom: 14px;
   border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  background: #f9fafb;
 }
 
 .info-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 8px;
 }
 
 .info-item {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 6px;
+  background: #fff;
 }
 
-.info-item.full-width {
+.full-width {
   grid-column: 1 / -1;
 }
 
-.info-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #6b7280;
-}
-
-.info-value {
-  font-size: 15px;
+.info-label,
+.detail-label {
   font-weight: 700;
-  color: #1f2937;
+  color: #4b5563;
 }
 
-/* Section Box */
-.section-box {
-  margin-bottom: 16px;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 16px;
-  background: white;
+.info-value,
+.detail-value {
+  color: #111827;
+  font-weight: 600;
 }
 
 .section-title {
+  margin: 0 0 10px;
   font-size: 16px;
   font-weight: 700;
-  color: #1f2937;
-  margin: 0 0 12px 0;
-  padding-bottom: 8px;
-  border-bottom: 2px solid #667eea;
+  color: #374151;
 }
 
-/* Detail Grid */
 .detail-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  gap: 8px;
 }
 
 .detail-row {
   display: flex;
   justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid #f3f4f6;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 6px;
+  background: #fff;
 }
 
-.detail-row:last-child {
-  border-bottom: none;
-}
-
-.detail-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #6b7280;
-  min-width: 120px;
-}
-
-.detail-value {
-  font-size: 14px;
-  font-weight: 500;
-  color: #1f2937;
-  text-align: right;
-}
-
-/* Payment Table */
 .payment-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 12px;
+  background: #fff;
 }
 
-.payment-table th {
-  background: #f3f4f6;
-  padding: 12px;
-  text-align: left;
-  font-size: 14px;
-  font-weight: 700;
-  color: #374151;
-  border: 1px solid #e5e7eb;
-}
-
+.payment-table th,
 .payment-table td {
-  padding: 12px;
-  font-size: 14px;
-  color: #1f2937;
   border: 1px solid #e5e7eb;
+  padding: 10px;
+  text-align: left;
 }
 
-.payment-table .amount-cell {
+.payment-table thead th {
+  background: #f3f4f6;
+}
+
+.amount-cell {
   text-align: right;
-  font-weight: 600;
+  font-weight: 700;
 }
 
-.payment-table tfoot .total-row {
+.total-row td {
   background: #f9fafb;
 }
 
-.payment-table tfoot td {
-  font-size: 16px;
-  padding: 14px 12px;
-}
-
-/* Status Section */
 .status-section {
   display: flex;
   justify-content: center;
-  margin: 24px 0;
+  margin: 16px 0;
 }
 
 .status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 32px;
-  border-radius: 30px;
-  font-size: 16px;
-  font-weight: 700;
+  padding: 8px 22px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 800;
   letter-spacing: 1px;
 }
 
 .paid-badge {
-  background: #d1fae5;
-  color: #065f46;
-  border: 2px solid #10b981;
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
 }
 
 .unpaid-badge {
   background: #fee2e2;
   color: #991b1b;
-  border: 2px solid #ef4444;
+  border: 1px solid #fca5a5;
 }
 
-.status-icon {
-  font-size: 20px;
-  font-weight: 700;
-}
-
-/* Footer */
 .receipt-footer {
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 2px solid #e5e7eb;
-}
-
-.thank-you-message {
+  margin-top: 16px;
   text-align: center;
-  margin-bottom: 24px;
-}
-
-.thank-you-message p {
-  font-size: 15px;
-  color: #374151;
-  margin: 8px 0;
-  font-weight: 600;
-}
-
-.footer-note {
-  font-size: 12px !important;
-  color: #9ca3af !important;
-  font-weight: 400 !important;
-  font-style: italic;
-}
-
-.signature-section {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 20px;
+  border-top: 1px dashed #d1d5db;
+  padding-top: 14px;
 }
 
 .signature-line {
-  text-align: center;
+  margin-top: 18px;
 }
 
-.signature-line span {
-  display: block;
-  margin-bottom: 8px;
-  color: #9ca3af;
-}
-
-.signature-label {
-  font-size: 12px;
+.signature-line p {
+  margin: 4px 0 0;
+  font-size: 13px;
   color: #6b7280;
-  margin: 0;
-  font-weight: 600;
 }
 
-/* Watermark */
-.receipt-watermark {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(-45deg);
-  font-size: 120px;
-  font-weight: 900;
-  color: rgba(16, 185, 129, 0.08);
-  pointer-events: none;
-  z-index: 0;
-  letter-spacing: 10px;
-}
-
-.receipt-container > * {
-  position: relative;
-  z-index: 1;
-}
-
-/* Print Styles */
-@media print {
-  .no-print {
-    display: none !important;
+@keyframes mesh-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
   }
-
-  .layout-wrapper,img,.logo-text {
-    display: none !important;
-    visibility: hidden !important;
-}
-  
-  body {
-    background: white;
+  100% {
+    transform: translate3d(-1.5%, 1.2%, 0) scale(1.04);
   }
-  
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 767px) {
   .receipt-page {
-    padding: 0;
-    margin: 0;
-    background: white;
-  }
-  
-  .receipt-wrapper {
-    box-shadow: none;
-    border-radius: 0;
-  }
-  
-  .receipt-container {
-    padding: 30px;
-    page-break-inside: avoid;
+    padding-top: 5.4rem;
   }
 
+  .section-shell {
+    width: min(980px, calc(100% - 1rem));
+  }
 
-  
+  .controls {
+    flex-direction: column;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
-}
 
-/* Mobile Responsive */
-@media (max-width: 768px) {
+  .no-print,
+  .mesh-layer {
+    display: none !important;
+  }
 
   .receipt-page {
-        padding-top: 6rem;
-    }
+    background: white !important;
+    color: black !important;
+    padding: 0 !important;
+    min-height: auto !important;
+    overflow: visible !important;
+  }
+
+  .section-shell {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  .receipt-wrapper {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
 
   .receipt-container {
-    padding: 24px;
-  }
-  
-  .company-name {
-    font-size: 24px;
-  }
-  
-  .receipt-title {
-    font-size: 18px;
-  }
-  
-  .info-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .controls {
-    flex-direction: column;
-  }
-  
-  .action-btn, .back-btn {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .payment-table {
-    font-size: 13px;
-  }
-  
-  .payment-table th,
-  .payment-table td {
-    padding: 8px;
-  }
-  
-  .receipt-watermark {
-    font-size: 80px;
-  }
-}
-
-@media (max-width: 480px) {
-  .receipt-page {
-    padding: 12px;
-    padding-top: 6rem;
-  }
-  
-  .receipt-container {
-    padding: 20px;
-  }
-  
-  .company-name {
-    font-size: 20px;
-  }
-  
-  .receipt-title {
-    font-size: 16px;
-    letter-spacing: 1px;
-  }
-  
-  .detail-label {
-    min-width: 90px;
-    font-size: 13px;
-  }
-  
-  .detail-value {
-    font-size: 13px;
+    padding: 20px !important;
   }
 }
 </style>

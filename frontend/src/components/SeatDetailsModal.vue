@@ -1,35 +1,43 @@
 <template>
   <div v-if="show" class="modal-overlay" @click="onCancel">
-    <div class="modal-content seat-details-modal" @click.stop>
-      <div class="modal-header">
-        <h2>Seat Number: {{ seatData?.seat_number || 'Details' }}</h2>
-        <!-- <button @click="onCancel" class="close-btn">&times;</button> -->
-      </div>
+    <section class="modal-content" @click.stop>
+      <header class="modal-header">
+        <h2>Seat {{ seatData?.seat_number || 'Details' }}</h2>
+        <button type="button" class="close-btn" @click="onCancel" aria-label="Close">×</button>
+      </header>
+
       <div class="modal-body">
-        <div v-if="seatData" class="shift-details">
-          <div 
-            v-for="shift in seatData.shifts" 
-            :key="shift.shift" 
+        <div v-if="loading" class="loading-state">
+          <div class="loader"></div>
+          <p>Loading seat details...</p>
+        </div>
+
+        <div v-else-if="seatData?.shifts?.length" class="shift-details">
+          <article
+            v-for="shift in seatData.shifts"
+            :key="shift.shift"
             class="shift-row"
-            :class="{ 'occupied': shift.is_occupied, 'empty': !shift.is_occupied }"
+            :class="shift.is_occupied ? 'occupied' : 'empty'"
           >
             <div class="shift-info">
-              <span class="shift-label">{{ shift.shift_name }} (Shift {{ shift.shift }})</span>
-              <span class="student-name">{{ shift.student_name }}</span>
+              <p class="shift-label">{{ shift.shift_name }} (Shift {{ shift.shift }})</p>
+              <p class="student-name">{{ shift.student_name || 'No student assigned' }}</p>
             </div>
-            <div class="status-indicator">
-              {{ shift.is_occupied ? '✅' : '❌' }}
-            </div>
-          </div>
+            <span class="status-pill" :class="shift.is_occupied ? 'status-occupied' : 'status-empty'">
+              {{ shift.is_occupied ? 'Occupied' : 'Available' }}
+            </span>
+          </article>
         </div>
-        <div v-else class="loading">
-          Loading seat details...
+
+        <div v-else class="empty-state">
+          <p>No seat details available.</p>
         </div>
       </div>
-      <div class="modal-footer">
-        <button @click="onCancel" class="btn btn-secondary">Close</button>
-      </div>
-    </div>
+
+      <footer class="modal-footer">
+        <button type="button" @click="onCancel" class="btn btn-secondary">Close</button>
+      </footer>
+    </section>
   </div>
 </template>
 
@@ -37,167 +45,206 @@
 export default {
   props: {
     show: Boolean,
-    seatData: Object
+    seatData: Object,
+    loading: {
+      type: Boolean,
+      default: false,
+    },
   },
+  emits: ['close'],
   methods: {
     onCancel() {
-      this.$emit('close');
-    }
-  }
+      this.$emit('close')
+    },
+  },
 }
 </script>
 
 <style scoped>
-.seat-details-modal {
-  max-width: 450px;
-  width: 90%;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 15px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #999;
-}
-
-.shift-details {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.shift-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px;
-  border-radius: 8px;
-  border: 2px solid #e9ecef;
-}
-
-.shift-row.occupied {
-  background-color: #d4edda;
-  border-color: #c3e6cb;
-}
-
-.shift-row.empty {
-  background-color: #f8d7da;
-  border-color: #f1b0b7;
-}
-
-.shift-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.shift-label {
-  font-weight: bold;
-  color: #495057;
-  font-size: 14px;
-}
-
-.student-name {
-  font-size: 16px;
-  color: #212529;
-  text-transform: uppercase;
-  font-weight: 500;
-}
-
-.status-indicator {
-  font-size: 20px;
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-  padding-top: 15px;
-  border-top: 1px solid #eee;
-}
-
-.btn {
-  padding: 15px 24px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: medium;
-  width: 90%;
-}
-
-.btn-secondary {
-  background: #6c757d;
-  color: white;
-}
-
-.btn:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-.loading {
-  text-align: center;
-  padding: 20px;
-  color: #6c757d;
-}
-
-
-
-/* Mobile Responsive */
-@media(max-width: 786px) {
-  .seat-details-modal {
-    max-width: 80%;
-    margin: 15px;
-  }
-  .modal-header{
-    margin-bottom: 0px;
-    /* padding-bottom: 5px; */
-  }
-  
-  .shift-row {
-    padding: 10px;
-  }
-  
-  .shift-label {
-    font-size: 13px;
-  }
-  
-  .student-name {
-    font-size: 15px;
-  }
-}
-
-/* Common modal styles */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  inset: 0;
+  z-index: 1700;
+  background: rgba(2, 6, 23, 0.72);
+  backdrop-filter: blur(5px);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  padding: 0.75rem;
 }
 
 .modal-content {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  max-height: 90vh;
+  width: min(560px, 100%);
+  max-height: min(90vh, 760px);
   overflow-y: auto;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(15, 23, 42, 0.92);
+  color: #e2e8f0;
+  box-shadow: 0 24px 48px rgba(2, 6, 23, 0.45);
+}
+
+.modal-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 0.95rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(15, 23, 42, 0.9);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 800;
+}
+
+.close-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  background: rgba(148, 163, 184, 0.12);
+  color: #e2e8f0;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.modal-body {
+  padding: 0.9rem;
+}
+
+.shift-details {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.shift-row {
+  border: 1px solid rgba(148, 163, 184, 0.26);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.56);
+  padding: 0.68rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.55rem;
+}
+
+.shift-row.occupied {
+  border-color: rgba(16, 185, 129, 0.34);
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.shift-row.empty {
+  border-color: rgba(246, 59, 59, 0.34);
+  background: rgba(246, 59, 59, 0.12);
+}
+
+.shift-info {
+  min-width: 0;
+}
+
+.shift-label,
+.student-name {
+  margin: 0;
+}
+
+.shift-label {
+  color: #cbd5e1;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.student-name {
+  margin-top: 0.2rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #f8fafc;
+  word-break: break-word;
+}
+
+.status-pill {
+  border-radius: 999px;
+  padding: 0.22rem 0.55rem;
+  font-size: 0.74rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.status-occupied {
+  background: rgba(16, 185, 129, 0.24);
+  color: #a7f3d0;
+}
+
+.status-empty {
+  background: rgba(59, 130, 246, 0.24);
+  color: #bfdbfe;
+}
+
+.loading-state,
+.empty-state {
+  display: grid;
+  place-items: center;
+  gap: 0.35rem;
+  text-align: center;
+  min-height: 120px;
+}
+
+.loading-state p,
+.empty-state p {
+  margin: 0;
+  color: #cbd5e1;
+}
+
+.loader {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px solid rgba(148, 163, 184, 0.4);
+  border-top-color: #22d3ee;
+  animation: spin 1s linear infinite;
+}
+
+.modal-footer {
+  padding: 0 0.9rem 0.9rem;
+  display: flex;
+  justify-content: center;
+}
+
+.btn {
+  min-height: 40px;
+  min-width: 140px;
+  border-radius: 11px;
+  border: 1px solid transparent;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-secondary {
+  background: rgba(148, 163, 184, 0.16);
+  border-color: rgba(148, 163, 184, 0.35);
+  color: #e2e8f0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 600px) {
+  .modal-content {
+    border-radius: 14px;
+  }
+
+  .shift-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 </style>

@@ -1,253 +1,212 @@
 <template>
-  <div class="expenses-container">
-    <!-- Header -->
-    <div class="header-section">
-      <h2 class="page-title">Monthly Expenses</h2>
-      <p class="page-subtitle">Track and manage your library expenses</p>
-    </div>
+  <main class="monthly-expenses-page">
+    <div class="mesh-layer" aria-hidden="true"></div>
 
-    <!-- Controls Section -->
-    <div class="controls-section">
-      <div class="month-controls">
-        <div class="month-selector">
-          <label for="month-input">Select Month</label>
-          <input 
+    <section class="section-shell hero">
+      <div>
+        <p class="kicker">Expense Tracking</p>
+        <h1>
+          Monthly
+          <span class="gradient-text">Expenses</span>
+        </h1>
+        <p class="hero-subtitle">Track recurring costs, log new expenses, and monitor total monthly spend in one view.</p>
+      </div>
+    </section>
+
+    <section class="section-shell controls-card glass-card">
+      <div class="control-grid">
+        <label class="field-wrap" for="month-input">
+          <span class="field-label">Select Month</span>
+          <input
             id="month-input"
-            type="month" 
-            v-model="selectedMonth" 
-            class="month-input"
+            type="month"
+            v-model="selectedMonth"
+            class="field-input month-input"
           />
-        </div>
-        
-        <button @click="openExpenseModal" :disabled="loading" class="control-btn add-btn">
-          <!-- <span class="btn-icon">➕</span> -->
-          <span class="btn-text">Add Expense</span>
+        </label>
+
+        <button @click="openExpenseModal" :disabled="loading" class="btn btn-solid" type="button">
+          Add Expense
         </button>
       </div>
-    </div>
+    </section>
 
-    <!-- Summary Card -->
-    <div class="summary-card" v-if="expenses.length > 0">
-      <div class="summary-content">
-        <div class="summary-icon">📊</div>
-        <div class="summary-info">
-          <div class="summary-number">{{ expenses.length }}</div>
-          <div class="summary-label">Total Expenses</div>
-        </div>
-        <div class="summary-amount">
-          <div class="amount-number">₹{{ formatAmount(totalExpenses) }}</div>
-          <div class="amount-label">Total Spent</div>
-        </div>
-      </div>
-    </div>
+    <section v-if="expenses.length > 0" class="section-shell summary-grid">
+      <article class="glass-card stat-card">
+        <p class="stat-label">Total Expenses</p>
+        <p class="stat-value">{{ expenses.length }}</p>
+      </article>
+      <article class="glass-card stat-card">
+        <p class="stat-label">Total Spent</p>
+        <p class="stat-value">₹{{ formatAmount(totalExpenses) }}</p>
+      </article>
+    </section>
 
-    <!-- Desktop Table View -->
-    <div v-if="expenses.length > 0" class="table-container desktop-view">
-      <table class="expenses-table">
-        <thead>
-          <tr>
-            <th>Expense Details</th>
-            <th>Amount</th>
-            <th>Date</th>
-            <th>Category</th>
-            <th>Description</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="expense in expenses" :key="expense.id" class="expense-row">
-            <td class="expense-info">
-              <div class="expense-details">
+    <section v-if="loading" class="section-shell glass-card loading-card">
+      <div class="loader"></div>
+      <p>Loading expenses...</p>
+    </section>
+
+    <section v-else-if="expenses.length > 0" class="section-shell glass-card table-card desktop-view">
+      <div class="table-wrap">
+        <table class="expenses-table">
+          <thead>
+            <tr>
+              <th>Expense</th>
+              <th>Amount</th>
+              <th>Date</th>
+              <th>Category</th>
+              <th>Description</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="expense in expenses" :key="expense.id">
+              <td>
                 <span class="expense-name">{{ expense.name }}</span>
-              </div>
-            </td>
-            
-            <td class="amount-cell">
-              <span class="amount">₹{{ formatAmount(expense.amount) }}</span>
-            </td>
-            
-            <td class="date-cell">
-              <span class="date">{{ formatDate(expense.date) }}</span>
-            </td>
-            
-            <td class="category-cell">
-              <span class="category-badge" v-if="expense.category">
-                {{ expense.category }}
-              </span>
-              <span class="no-category" v-else>—</span>
-            </td>
-            
-            <td class="description-cell">
-              <span class="description" :title="expense.description">
-                {{ expense.description || '—' }}
-              </span>
-            </td>
-            
-            <td class="actions-cell">
-              <button @click="deleteExpense(expense)" class="action-btn delete-btn">
-                <!-- <span class="btn-icon">🗑️</span> -->
-                <span class="btn-text">Delete</span>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Mobile Card View -->
-    <div class="mobile-view">
-      <div 
-        v-for="expense in expenses" 
-        :key="expense.id" 
-        class="expense-card"
-      >
-        <div class="card-header">
-          <div class="expense-info-mobile">
-            <h3 class="expense-name-mobile">{{ expense.name }}</h3>
-            <p class="expense-details-mobile">
-              {{ formatDate(expense.date) }} | {{ expense.category || 'Uncategorized' }}
-            </p>
-          </div>
-          
-          <div class="amount-badge">
-            ₹{{ formatAmount(expense.amount) }}
-          </div>
-        </div>
-
-        <div class="card-body" v-if="expense.description">
-          <div class="description-section">
-            <span class="description-label">Description:</span>
-            <span class="description-value">{{ expense.description }}</span>
-          </div>
-        </div>
-
-        <div class="card-footer">
-          <button @click="deleteExpense(expense)" class="action-btn delete-btn mobile">
-            <!-- <span class="btn-icon">🗑️</span> -->
-            <span class="btn-text">Delete</span>
-          </button>
-        </div>
+              </td>
+              <td>
+                <span class="amount">₹{{ formatAmount(expense.amount) }}</span>
+              </td>
+              <td>{{ formatDate(expense.date) }}</td>
+              <td>
+                <span v-if="expense.category" class="category-pill">{{ expense.category }}</span>
+                <span v-else class="muted">—</span>
+              </td>
+              <td>
+                <span class="description" :title="expense.description">{{ expense.description || '—' }}</span>
+              </td>
+              <td>
+                <button @click="deleteExpense(expense)" class="action-btn action-danger" type="button">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-    </div>
+    </section>
 
-    <!-- Empty State -->
-    <div v-if="expenses.length === 0 && !loading" class="empty-state">
-      <div class="empty-icon">
-        <!-- 📊 -->
-         <img src="../assets/svg/money-out-w.svg" style="width: 100px; height: 100px;" class="empty-icon" alt="">
-      </div>
+    <section v-else class="section-shell glass-card empty-state">
+      <img src="../assets/svg/money-out-w.svg" class="empty-icon" alt="No expenses" />
       <h3>No Expenses Found</h3>
       <p>No expenses recorded for {{ formatMonth(selectedMonth) }} yet.</p>
-      <button @click="openExpenseModal" class="empty-action-btn">
-        <!-- <span class="btn-icon">➕</span> -->
-        <span class="btn-text">Add First Expense</span>
-      </button>
-    </div>
+      <button @click="openExpenseModal" class="btn btn-ghost" type="button">Add First Expense</button>
+    </section>
 
-    <!-- Loading State -->
-    <div v-if="loading" class="loading-state">
-      <div class="loading-spinner">⏳</div>
-      <p>Loading expenses...</p>
-    </div>
+    <section v-if="!loading && expenses.length > 0" class="section-shell mobile-view">
+      <article
+        v-for="expense in expenses"
+        :key="expense.id"
+        class="glass-card expense-card"
+      >
+        <header class="card-head">
+          <div>
+            <p class="expense-name">{{ expense.name }}</p>
+            <p class="muted">{{ formatDate(expense.date) }} | {{ expense.category || 'Uncategorized' }}</p>
+          </div>
+          <span class="amount-badge">₹{{ formatAmount(expense.amount) }}</span>
+        </header>
 
-    <!-- Add Expense Modal -->
-    <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>Add New Expense</h3>
-          <button class="modal-close" @click="closeModal">✕</button>
+        <div v-if="expense.description" class="detail-row">
+          <span class="muted">Description</span>
+          <span>{{ expense.description }}</span>
         </div>
-        
+
+        <button @click="deleteExpense(expense)" class="action-btn action-danger mobile-action" type="button">Delete</button>
+      </article>
+    </section>
+
+    <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
+      <section class="modal-content glass-card">
+        <header class="modal-header">
+          <h3>Add New Expense</h3>
+          <button class="modal-close" @click="closeModal" type="button" aria-label="Close">✕</button>
+        </header>
+
         <form @submit.prevent="addExpense" class="expense-form">
           <div class="form-group">
-            <!-- <label for="expense-name">Expense Name</label> -->
-            <input 
+            <label class="field-label" for="expense-name">Expense Name</label>
+            <input
               id="expense-name"
-              v-model="expenseForm.name" 
-              type="text" 
-              placeholder="Enter expense name" 
-              required 
-              class="form-input"
+              v-model="expenseForm.name"
+              type="text"
+              placeholder="Enter expense name"
+              required
+              class="field-input"
             />
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <!-- <label for="expense-amount">Amount (₹)</label> -->
-              <input 
+              <label class="field-label" for="expense-amount">Amount</label>
+              <input
                 id="expense-amount"
-                v-model.number="expenseForm.amount" 
-                type="number" 
-                placeholder="Enter amount (₹)" 
-                required 
-                min="1" 
-                class="form-input"
+                v-model.number="expenseForm.amount"
+                type="number"
+                placeholder="Enter amount"
+                required
+                min="1"
+                class="field-input"
               />
             </div>
 
             <div class="form-group">
-              <!-- <label for="expense-date">Date</label> -->
-              <input 
+              <label class="field-label" for="expense-date">Date</label>
+              <input
                 id="expense-date"
-                v-model="expenseForm.date" 
-                type="date" 
-                required 
-                class="form-input"
+                v-model="expenseForm.date"
+                type="date"
+                required
+                class="field-input date-input"
               />
             </div>
           </div>
 
           <div class="form-group">
-            <!-- <label for="expense-category">Category</label> -->
-            <select id="expense-category" v-model="expenseForm.category" class="form-select">
-              <option value="">Select Category (optional)</option>
-              <option value="Utilities">🔌 Utilities</option>
-              <option value="Maintenance">🔧 Maintenance</option>
-              <option value="Supplies">📦 Supplies</option>
-              <option value="Repair">🛠️ Repair</option>
-              <option value="Rent">🏢 Rent</option>
-              <option value="Internet">🌐 Internet</option>
-              <option value="Other">📝 Other</option>
+            <label class="field-label" for="expense-category">Category</label>
+            <select id="expense-category" v-model="expenseForm.category" class="field-input">
+              <option value="">Select category (optional)</option>
+              <option value="Utilities">Utilities</option>
+              <option value="Maintenance">Maintenance</option>
+              <option value="Supplies">Supplies</option>
+              <option value="Repair">Repair</option>
+              <option value="Rent">Rent</option>
+              <option value="Internet">Internet</option>
+              <option value="Other">Other</option>
             </select>
           </div>
 
           <div class="form-group">
-            <!-- <label for="expense-description">Description</label> -->
-            <textarea 
+            <label class="field-label" for="expense-description">Description</label>
+            <textarea
               id="expense-description"
-              v-model="expenseForm.description" 
-              placeholder="Enter description (optional)" 
+              v-model="expenseForm.description"
+              placeholder="Enter description (optional)"
               rows="3"
-              class="form-textarea"
+              class="field-input textarea"
             ></textarea>
           </div>
 
           <div class="modal-actions">
-            <button type="button" @click="closeModal" class="btn-cancel">
-              <!-- <span class="btn-icon">❌</span> -->
-              <span class="btn-text">Cancel</span>
-            </button>
-            <button type="submit" :disabled="loading" class="btn-submit">
-              <span v-if="loading" class="btn-icon spinner">⏳</span>
-              <!-- <span v-else class="btn-icon">➕</span> -->
-              <span class="btn-text">{{ loading ? 'Adding...' : 'Add Expense' }}</span>
+            <button type="button" @click="closeModal" class="btn btn-ghost">Cancel</button>
+            <button type="submit" :disabled="loading" class="btn btn-solid">
+              {{ loading ? 'Adding...' : 'Add Expense' }}
             </button>
           </div>
         </form>
-      </div>
+      </section>
     </div>
-  </div>
+  </main>
 </template>
 
 <script>
-import API from '../api';
-import { useToast } from 'vue-toast-notification';
-import 'vue-toast-notification/dist/theme-sugar.css';
+import API from '../api'
+import { useToast } from 'vue-toast-notification'
+import 'vue-toast-notification/dist/theme-sugar.css'
 
 export default {
   setup() {
-    const toast = useToast();
-    
+    const toast = useToast()
+
     const showSuccess = (message, options = {}) => {
       toast.success(message, {
         position: 'top',
@@ -259,37 +218,37 @@ export default {
         draggablePercent: 0.6,
         showCloseButtonOnHover: false,
         hideProgressBar: true,
-        closeButton: "button",
+        closeButton: 'button',
         icon: true,
         rtl: false,
         style: {
-          backgroundColor: '#667eea',
+          backgroundColor: '#0ea5e9',
           color: '#fff',
-          borderRadius: '12px'
-        },       
-        ...options
-      });
-    };
-    
+          borderRadius: '12px',
+        },
+        ...options,
+      })
+    }
+
     const showError = (message) => {
       toast.error(message, {
         style: {
           backgroundColor: '#dc2626',
           color: '#fff',
-          borderRadius: '12px'
-        }
-      });
-    };
-    
+          borderRadius: '12px',
+        },
+      })
+    }
+
     return {
       showSuccess,
-      showError
-    };
+      showError,
+    }
   },
 
   data() {
-    const today = new Date();
-    const defaultMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    const today = new Date()
+    const defaultMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
     return {
       selectedMonth: defaultMonth,
       expenses: [],
@@ -301,42 +260,39 @@ export default {
         amount: '',
         description: '',
         category: '',
-      }
+      },
     }
   },
 
   computed: {
     totalExpenses() {
-      return this.expenses.reduce((total, exp) => total + (exp.amount || 0), 0);
-    }
+      return this.expenses.reduce((total, expense) => total + (expense.amount || 0), 0)
+    },
   },
 
   mounted() {
-    this.fetchExpenses();
+    this.fetchExpenses()
   },
 
   watch: {
-    selectedMonth: 'fetchExpenses'
+    selectedMonth: 'fetchExpenses',
   },
 
   methods: {
     async fetchExpenses() {
-      this.loading = true;
+      this.loading = true
       try {
-        const res = await API.get(`/monthly-expenses/${this.selectedMonth}`);
-        this.expenses = res.data;
-        // if (this.expenses.length > 0) {
-        //   this.showSuccess(`📊 Loaded ${this.expenses.length} expenses`);
-        // }
+        const res = await API.get(`/monthly-expenses/${this.selectedMonth}`)
+        this.expenses = res.data
       } catch (err) {
-        this.showError('❌ Error fetching monthly expenses');
+        this.showError('Error fetching monthly expenses')
       } finally {
-        this.loading = false;
+        this.loading = false
       }
     },
 
     openExpenseModal() {
-      this.showModal = true;
+      this.showModal = true
       this.expenseForm = {
         name: '',
         date: new Date().toISOString().slice(0, 10),
@@ -347,799 +303,526 @@ export default {
     },
 
     closeModal() {
-      this.showModal = false;
+      this.showModal = false
     },
 
     async addExpense() {
       if (!this.expenseForm.name.trim() || !this.expenseForm.amount || !this.expenseForm.date) {
-        this.showError("⚠️ Please fill all required fields");
-        return;
+        this.showError('Please fill all required fields')
+        return
       }
 
-      this.loading = true;
+      this.loading = true
       try {
-        await API.post('/monthly-expenses/', this.expenseForm);
-        this.showSuccess('✅ Expense added successfully!');
-        this.closeModal();
-        this.fetchExpenses();
+        await API.post('/monthly-expenses/', this.expenseForm)
+        this.showSuccess('Expense added successfully!')
+        this.closeModal()
+        this.fetchExpenses()
       } catch (err) {
-        this.showError('❌ Error adding expense');
+        this.showError('Error adding expense')
       } finally {
-        this.loading = false;
+        this.loading = false
       }
     },
 
     async deleteExpense(expense) {
-      if (!confirm(`⚠️ Are you sure you want to delete "${expense.name}"?`)) return;
-      
+      if (!confirm(`Are you sure you want to delete "${expense.name}"?`)) return
+
       try {
-        await API.delete(`/monthly-expenses/${expense.id}`);
-        this.showSuccess('✅ Expense deleted successfully');
-        this.fetchExpenses();
+        await API.delete(`/monthly-expenses/${expense.id}`)
+        this.showSuccess('Expense deleted successfully')
+        this.fetchExpenses()
       } catch (err) {
-        this.showError('❌ Error deleting expense');
+        this.showError('Error deleting expense')
       }
     },
-    
+
     formatDate(dateStr) {
-      const d = new Date(dateStr);
-      const day = String(d.getDate()).padStart(2, '0');
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const year = String(d.getFullYear()).slice(-2);
-      return `${day}-${month}-${year}`;
+      if (!dateStr) return '-'
+      const date = new Date(dateStr)
+      const day = String(date.getDate()).padStart(2, '0')
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const year = String(date.getFullYear()).slice(-2)
+      return `${day}-${month}-${year}`
     },
 
     formatAmount(amount) {
-      return amount.toLocaleString('en-IN');
+      return Number(amount || 0).toLocaleString('en-IN')
     },
 
     formatMonth(monthString) {
       if (monthString && monthString.includes('-')) {
-        const [year, month] = monthString.split('-');
-        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        return `${monthNames[parseInt(month) - 1]} ${year}`;
+        const [year, month] = monthString.split('-')
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        return `${monthNames[parseInt(month) - 1]} ${year}`
       }
-      return monthString;
-    }
-  }
+      return monthString
+    },
+  },
 }
 </script>
 
 <style scoped>
-.expenses-container {
+.monthly-expenses-page {
+  --surface: rgba(148, 163, 184, 0.03);
+  --surface-border: rgba(255, 255, 255, 0.03);
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+
+  position: relative;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  padding-top: 3rem;
+  padding: 2rem 1rem 2.8rem 3rem;
+  color: var(--text-primary);
+  overflow: hidden;
+  isolation: isolate;
 }
 
-.header-section {
-  text-align: center;
-  margin-bottom: 24px;
-  color: white;
+.mesh-layer {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(45rem 24rem at 10% 15%, rgba(34, 211, 238, 0.14), transparent 70%),
+    radial-gradient(40rem 24rem at 86% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
+    radial-gradient(36rem 22rem at 65% 88%, rgba(14, 165, 233, 0.11), transparent 70%),
+    linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
+  filter: saturate(115%);
+  animation: mesh-drift 18s ease-in-out infinite alternate;
 }
 
-.page-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.section-shell {
+  width: min(1240px, calc(100% - 2rem));
+  margin: 0 auto;
 }
 
-.page-subtitle {
-  font-size: 1rem;
-  opacity: 0.9;
-  font-weight: 300;
+.hero h1 {
+  margin: 0.9rem 0 0;
+  font-size: clamp(1.9rem, 4.4vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.kicker {
   margin: 0;
+  display: inline-flex;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #cbd5e1;
+  background: rgba(148, 163, 184, 0.07);
 }
 
-.controls-section {
-  max-width: 600px;
-  margin: 0 auto 20px auto;
-  background: rgba(255,255,255,0.95);
-  padding: 20px;
+.gradient-text {
+  background: linear-gradient(90deg, #22d3ee, #3b82f6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero-subtitle {
+  margin: 0.75rem 0 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 62ch;
+}
+
+.glass-card {
+  border: 1px solid var(--surface-border);
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.controls-card,
+.table-card,
+.loading-card,
+.empty-state {
+  margin-top: 0.9rem;
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  backdrop-filter: blur(10px);
+  padding: 0.9rem;
 }
 
-.month-controls {
-  display: flex;
-  gap: 12px;
+.control-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
   align-items: end;
 }
 
-.month-selector {
-  flex: 1;
+.field-wrap {
+  display: grid;
+  gap: 0.35rem;
 }
 
-.month-selector label {
-  display: block;
+.field-label {
+  color: #cbd5e1;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: #374151;
-  margin-bottom: 8px;
-  font-size: 0.9rem;
 }
 
-.month-input {
+.field-input {
   width: 100%;
-  padding: 12px;
-  border: 2px solid #e1e5e9;
-  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.72);
+  color: #f8fafc;
+  min-height: 42px;
+  padding: 0.5rem 0.7rem;
   outline: none;
-  font-size: 16px;
-  transition: border-color 0.3s ease;
   box-sizing: border-box;
 }
 
-.month-input:focus {
-  border-color: #667eea;
+.field-input:focus {
+  border-color: rgba(34, 211, 238, 0.62);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.16);
 }
 
-.control-btn {
-  display: flex;
+.field-input option {
+  color: #0f172a;
+}
+
+.month-input,
+.date-input {
+  color-scheme: dark;
+}
+
+.month-input::-webkit-calendar-picker-indicator,
+.date-input::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.35) saturate(0.25);
+  opacity: 0.95;
+}
+
+.textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.btn {
+  min-height: 42px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  padding: 0.5rem 0.75rem;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 12px 16px;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
+  justify-content: center;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap;
 }
 
-.add-btn {
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  color: white;
-}
-
-.add-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.add-btn:disabled {
-  opacity: 0.6;
+.btn:disabled {
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
-.btn-icon {
-  font-size: 1rem;
+.btn-solid {
+  background: linear-gradient(90deg, #0ea5e9, #3b82f6);
+  box-shadow: 0 14px 28px rgba(59, 130, 246, 0.28);
+  color: #fff;
 }
 
-.spinner {
-  animation: spin 1s linear infinite;
+.btn-ghost {
+  background: rgba(148, 163, 184, 0.08);
+  border-color: rgba(148, 163, 184, 0.32);
+  color: #e2e8f0;
 }
 
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+.summary-grid {
+  margin-top: 0.85rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
 }
 
-.summary-card {
-  max-width: 600px;
-  margin: 0 auto 20px auto;
-  background: rgba(255,255,255,0.95);
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  backdrop-filter: blur(10px);
+.stat-card {
+  border-radius: 14px;
+  padding: 0.75rem;
 }
 
-.summary-content {
-  display: flex;
-  align-items: center;
-  gap: 20px;
+.stat-label {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
 }
 
-.summary-icon {
-  font-size: 2rem;
-  width: 50px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(102, 126, 234, 0.1);
-  border-radius: 12px;
-  flex-shrink: 0;
-}
-
-.summary-info {
-  flex: 1;
-}
-
-.summary-number {
-  font-size: 1.8rem;
+.stat-value {
+  margin: 0.32rem 0 0;
+  font-size: 1.3rem;
   font-weight: 800;
-  color: #1f2937;
-  line-height: 1;
 }
 
-.summary-label {
-  font-size: 0.9rem;
-  color: #6b7280;
-  margin-top: 4px;
-}
-
-.summary-amount {
-  text-align: right;
-}
-
-.amount-number {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #dc2626;
-  line-height: 1;
-}
-
-.amount-label {
-  font-size: 0.85rem;
-  color: #6b7280;
-  margin-top: 4px;
-}
-
-.table-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  background: rgba(255,255,255,0.95);
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  backdrop-filter: blur(10px);
+.table-wrap {
+  overflow-x: auto;
 }
 
 .expenses-table {
   width: 100%;
   border-collapse: collapse;
-}
-
-.expenses-table thead {
-  background: linear-gradient(45deg, #667eea, #764ba2);
+  min-width: 980px;
 }
 
 .expenses-table th {
-  /* background: linear-gradient(45deg, #667eea, #764ba2); */
-  color: white;
-  padding: 16px 12px;
-  text-align: center          ;
-  font-weight: 600;
-  font-size: 0.9rem;
-  border: none;
-}
-
-.expense-row {
-  transition: all 0.3s ease;
-  animation: slideIn 0.6s ease-out forwards;
-  opacity: 0;
-}
-
-.expense-row:hover {
-  background: #f8faff;
-}
-
-.expense-row:nth-child(even) {
-  background: rgba(102, 126, 234, 0.02);
+  text-align: left;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.26);
+  padding: 0.64rem 0.55rem;
 }
 
 .expenses-table td {
-  padding: 12px;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 0.64rem 0.55rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+  color: #e2e8f0;
+  font-size: 0.9rem;
   vertical-align: middle;
+  text-align: left;
 }
 
-.expense-info {
-  min-width: 160px;
-}
-
-.expense-details {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.expenses-table tbody tr:hover {
+  background: rgba(148, 163, 184, 0.07);
 }
 
 .expense-name {
-  font-weight: 600;
-  color: #1f2937;
-  font-size: 0.9rem;
-}
-
-.expense-id {
-  font-size: 0.75rem;
-  color: #6b7280;
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.88rem;
 }
 
 .amount {
   font-weight: 700;
-  color: #dc2626;
-  font-size: 1rem;
+  color: #fecaca;
+  font-family: Monaco, Menlo, monospace;
 }
 
-.date {
-  color: #374151;
-  font-weight: 500;
-  font-size: 0.85rem;
-}
-
-.category-badge {
-  background: linear-gradient(45deg, #10b981, #059669);
-  color: white;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  display: inline-block;
-}
-
-.no-category {
-  color: #9ca3af;
-  font-style: italic;
+.category-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(16, 185, 129, 0.2);
+  color: #a7f3d0;
 }
 
 .description {
-  color: #374151;
-  font-size: 0.85rem;
-  max-width: 200px;
-  display: block;
+  color: #cbd5e1;
+  font-size: 0.84rem;
+  max-width: 220px;
+  display: inline-block;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.muted {
+  color: var(--text-secondary);
+  margin: 0;
+}
+
 .action-btn {
-  display: flex;
+  min-height: 32px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  padding: 0.3rem 0.55rem;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 10px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  min-width: 80px;
   justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
-.delete-btn {
-  background: linear-gradient(45deg, #dc2626, #b91c1c);
-  color: white;
-  margin: auto;
+.action-danger {
+  background: rgba(239, 68, 68, 0.16);
+  color: #fecaca;
+  border-color: rgba(239, 68, 68, 0.36);
 }
 
-.delete-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+.loading-card,
+.empty-state {
+  text-align: center;
+  display: grid;
+  place-items: center;
+  gap: 0.35rem;
 }
 
-/* Mobile View */
+.loader {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px solid rgba(148, 163, 184, 0.4);
+  border-top-color: #22d3ee;
+  animation: spin 1s linear infinite;
+}
+
+.empty-icon {
+  width: 68px;
+  height: 68px;
+}
+
 .mobile-view {
   display: none;
-  gap: 12px;
-  max-width: 600px;
-  margin: 0 auto;
+  margin-top: 0.85rem;
+  gap: 0.55rem;
 }
 
 .expense-card {
-  background: rgba(255,255,255,0.95);
-  border-radius: 12px;
-  padding: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
+  border-radius: 14px;
+  padding: 0.7rem;
 }
 
-.expense-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-}
-
-.card-header {
+.card-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 10px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.expense-info-mobile {
-  flex: 1;
-}
-
-.expense-name-mobile {
-  font-size: 1rem;
-  font-weight: 700;
-  margin: 0 0 4px 0;
-  color: #1f2937;
-}
-
-.expense-details-mobile {
-  margin: 0;
-  color: #6b7280;
-  font-size: 0.85rem;
+  gap: 0.5rem;
 }
 
 .amount-badge {
-  background: linear-gradient(45deg, #dc2626, #b91c1c);
-  color: white;
-  padding: 6px 12px;
-  border-radius: 12px;
+  border-radius: 999px;
+  background: rgba(239, 68, 68, 0.2);
+  color: #fecaca;
+  padding: 0.22rem 0.55rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-family: Monaco, Menlo, monospace;
 }
 
-.card-body {
-  margin-bottom: 10px;
+.detail-row {
+  margin-top: 0.55rem;
+  border-radius: 10px;
+  background: rgba(148, 163, 184, 0.12);
+  padding: 0.45rem 0.55rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.55rem;
 }
 
-.description-section {
-  padding: 8px 12px;
-  background: #f8faff;
-  border-radius: 8px;
-}
-
-.description-label {
-  font-weight: 600;
-  color: #374151;
-  font-size: 0.85rem;
-  margin-right: 8px;
-}
-
-.description-value {
-  color: #1f2937;
-  font-size: 0.85rem;
-}
-
-.card-footer {
-  padding-top: 10px;
-  border-top: 1px solid #f3f4f6;
-}
-
-.action-btn.mobile {
+.mobile-action {
   width: 100%;
-  font-size: 0.9rem;
-  padding: 10px 16px;
+  margin-top: 0.55rem;
 }
 
-.empty-state,
-.loading-state {
-  text-align: center;
-  padding: 60px 20px;
-  color: white;
-}
-
-.empty-icon,
-.loading-spinner {
-  font-size: 4rem;
-  margin-bottom: 20px;
-}
-
-.loading-spinner {
-  animation: bounce 2s infinite;
-}
-
-@keyframes bounce {
-  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-10px); }
-  60% { transform: translateY(-5px); }
-}
-
-.empty-state h3 {
-  font-size: 1.5rem;
-  margin-bottom: 10px;
-  font-weight: 600;
-}
-
-.empty-state p {
-  opacity: 0.9;
-  line-height: 1.5;
-  margin-bottom: 20px;
-}
-
-.empty-action-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: rgba(255,255,255,0.2);
-  color: white;
-  border: 2px solid rgba(255,255,255,0.3);
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.empty-action-btn:hover {
-  background: rgba(255,255,255,0.3);
-  transform: translateY(-2px);
-}
-
-/* Modal Styles */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 9999;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  inset: 0;
+  z-index: 1500;
+  background: rgba(2, 6, 23, 0.72);
+  backdrop-filter: blur(5px);
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0.7rem;
 }
 
 .modal-content {
-  /* background: rgba(185, 146, 207, 0.934); */
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  width: min(620px, 100%);
+  max-height: min(92vh, 860px);
   border-radius: 16px;
-  padding: 0;
-  max-width: 500px;
-  width: 90%;
-  max-height: 95vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
 }
 
 .modal-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
-  border-bottom: 2px solid #f3f4f6;
+  gap: 0.6rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(15, 23, 42, 0.9);
 }
 
 .modal-header h3 {
   margin: 0;
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #ecf0f6;
+  font-size: 1.02rem;
 }
 
 .modal-close {
-  background: #f3f4f6;
-  border: none;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  background: rgba(148, 163, 184, 0.1);
+  color: #e2e8f0;
   cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.modal-close:hover {
-  background: #e5e7eb;
 }
 
 .expense-form {
-  padding: 24px;
+  padding: 0.75rem;
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 0.55rem;
 }
 
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.form-group label {
-  display: block;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 8px;
-  font-size: 0.9rem;
-}
-
-.form-input,
-.form-select,
-.form-textarea {
-  width: 100%;
-  padding: 12px;
-  border: 2px solid #e1e5e9;
-  border-radius: 8px;
-  outline: none;
-  font-size: 16px;
-  transition: border-color 0.3s ease;
-  box-sizing: border-box;
-}
-
-.form-input:focus,
-.form-select:focus,
-.form-textarea:focus {
-  border-color: #667eea;
-}
-
-.form-textarea {
-  resize: vertical;
-  min-height: 80px;
+  gap: 0.55rem;
 }
 
 .modal-actions {
-  display: flex;
-  gap: 12px;
-  padding-top: 20px;
-  border-top: 2px solid #f3f4f6;
+  margin-top: 0.55rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
 }
 
-.btn-cancel,
-.btn-submit {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 12px 20px;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-cancel {
-  background: #f3f4f6;
-  color: #374151;
-}
-
-.btn-cancel:hover {
-  background: #e5e7eb;
-}
-
-.btn-submit {
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  color: white;
-}
-
-.btn-submit:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.btn-submit:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Animations */
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(15px);
+@keyframes mesh-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
   }
+  100% {
+    transform: translate3d(-1.5%, 1.2%, 0) scale(1.04);
+  }
+}
+
+@keyframes spin {
   to {
-    opacity: 1;
-    transform: translateY(0);
+    transform: rotate(360deg);
   }
 }
 
-.expense-row:nth-child(1) { animation-delay: 0.1s; }
-.expense-row:nth-child(2) { animation-delay: 0.2s; }
-.expense-row:nth-child(3) { animation-delay: 0.3s; }
-.expense-row:nth-child(4) { animation-delay: 0.4s; }
-.expense-row:nth-child(5) { animation-delay: 0.5s; }
-
-/* Responsive Design */
-@media (max-width: 1024px) {
+@media (max-width: 920px) {
   .desktop-view {
     display: none;
   }
-  
+
   .mobile-view {
-    display: flex;
-    flex-direction: column;
+    display: grid;
   }
 }
 
-@media (max-width: 768px) {
-  .expenses-container {
-    padding: 12px;
-    padding-top: 3.5rem;
-  }
-  
-  .page-title {
-    font-size: 1.8rem;
-  }
-  
-  .controls-section {
-    padding: 16px;
-    margin-bottom: 16px;
-  }
-  
-  .month-controls {
-    flex-direction: row;
-    gap: 10px;
+@media (max-width: 767px) {
+  .monthly-expenses-page {
+    padding: 2rem 1rem 5rem 1rem;
   }
 
-  .month-selector {
-    width: 100%;
-  }
-  
-  .control-btn {
-    width: 40%;
-    height: 44px;
-    justify-content: center;
-    font-size: 16px;
-  }
-  
-  .summary-card {
-    padding: 16px;
-    margin-bottom: 16px;
-  }
-  
-  .summary-content {
-    flex-direction: row;
-    text-align: center;
-    gap: 12px;
-  }
-  
-  .summary-amount {
-    text-align: center;
-  }
-  
-  .expense-card {
-    padding: 10px;
-  }
-  
-  .card-header {
-    margin-bottom: 8px;
-    padding-bottom: 8px;
-  }
-  
-  .card-footer {
-    padding-top: 8px;
-  }
-  
-  .modal-content {
-    width: 95%;
-  }
-  
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 480px) {
-  .expenses-container {
-    padding: 10px;
-    padding-top: 3.5rem;
+  .section-shell {
+    width: min(1240px, calc(100% - 1rem));
   }
 
-  .card-header {
-    flex-direction: row;
-    gap: 8px;
-    text-align: center;
-  }
-  
-  .expense-info-mobile {
-    text-align: left;
-    margin-left: 1rem;
-  }
-  
+  .control-grid,
+  .summary-grid,
+  .form-row,
   .modal-actions {
-    flex-direction: column;
-  }
-  
-  .month-controls {
-    flex-direction: column;
-    gap: 10px;
+    grid-template-columns: 1fr 1fr;
   }
 
-  .month-selector {
+  .modal-content {
     width: 100%;
   }
-  .control-btn {
-    width: 100%;
-    height: 44px;
-    justify-content: center;
+
+  .field-input {
     font-size: 16px;
   }
 }
