@@ -308,22 +308,22 @@ onBeforeUnmount(() => {
 }
 
 .hero-orb {
-  width: min(360px, 84vw);
+  /* width: min(360px, 84vw); */
   aspect-ratio: 1;
   border-radius: 28px;
   border: 1px solid var(--surface-border);
-  background:
+  /* background:
     linear-gradient(145deg, rgba(148, 163, 184, 0.14), rgba(148, 163, 184, 0.02)),
-    rgba(148, 163, 184, 0.02);
+    rgba(148, 163, 184, 0.02); */
   backdrop-filter: blur(12px);
   display: grid;
   place-items: center;
-  box-shadow: 0 26px 60px rgba(2, 6, 23, 0.45);
+  /* box-shadow: 0 26px 60px rgba(2, 6, 23, 0.45); */
 }
 
 .orb-core {
-  width: 9rem;
-  height: 9rem;
+  width: 12rem;
+  height: 12rem;
   border-radius: 999px;
   display: grid;
   place-items: center;
@@ -573,7 +573,12 @@ onBeforeUnmount(() => {
 
 @media (max-width: 767px) {
   .about-page {
-    padding: 2rem 1rem;
+    padding: 2rem 1rem 5rem;
+  }
+
+  .orb-core {
+    width: 9rem;
+    height: 9rem;
   }
 
   .bento-grid {

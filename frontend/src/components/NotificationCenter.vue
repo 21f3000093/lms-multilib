@@ -267,7 +267,7 @@ onBeforeUnmount(() => {
 
   position: relative;
   min-height: 100vh;
-  padding: 6.7rem 0 2.8rem;
+  padding: 2rem 1rem 2.8rem 3rem;
   background: var(--bg);
   color: var(--text-primary);
   font-family: Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -589,7 +589,12 @@ onBeforeUnmount(() => {
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
+
+  .notifications-page {
+    padding: 2rem 1rem 5rem 1rem;
+  }
+
   .hero {
     flex-direction: column;
     align-items: flex-start;
@@ -606,7 +611,7 @@ onBeforeUnmount(() => {
 
 @media (max-width: 767px) {
   .notifications-page {
-    padding-top: 5.4rem;
+    padding: 2rem 1rem 5rem 1rem;
   }
 
   .section-shell {
@@ -615,7 +620,7 @@ onBeforeUnmount(() => {
 
   .card-top,
   .card-footer {
-    flex-direction: column;
+    flex-direction: row;
     align-items: flex-start;
   }
 }

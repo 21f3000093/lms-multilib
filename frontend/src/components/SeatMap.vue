@@ -76,7 +76,7 @@
       >
         <div class="seat-top">
           <p class="seat-title">Seat {{ seat.seat_number }}</p>
-          <p class="seat-subtitle">Tap for details</p>
+          <!-- <p class="seat-subtitle">Tap for details</p> -->
         </div>
 
         <div class="seat-shifts">
@@ -86,7 +86,7 @@
             class="shift-status"
             :class="status ? 'is-filled' : 'is-empty'"
           >
-            S{{ index + 1 }}
+            S{{ orderedSelectedShifts[index] || index + 1 }}
           </span>
         </div>
       </article>
@@ -160,6 +160,9 @@ export default {
   },
 
   computed: {
+    orderedSelectedShifts() {
+      return [...this.selectedShifts].sort((first, second) => Number(first) - Number(second))
+    },
     filteredSeats() {
       return this.seats || []
     },
@@ -180,7 +183,7 @@ export default {
       try {
         const response = await API.get('/seats/view', {
           params: {
-            shifts: this.selectedShifts.sort(),
+            shifts: this.orderedSelectedShifts,
             only_empty: this.onlyEmpty,
             library_id: localStorage.getItem('library_id'),
           },
@@ -229,7 +232,7 @@ export default {
 
   position: relative;
   min-height: 100vh;
-  padding: 6.7rem 0 2.8rem;
+  padding: 2rem 1rem 2.8rem 3rem;
   color: var(--text-primary);
   overflow: hidden;
   isolation: isolate;
@@ -284,7 +287,7 @@ export default {
   margin: 0.75rem 0 0;
   color: var(--text-secondary);
   line-height: 1.6;
-  max-width: 58ch;
+  /* max-width: 58ch; */
 }
 
 .glass-card {
@@ -323,11 +326,26 @@ export default {
 .shift-pills {
   margin-top: 0.4rem;
   display: flex;
-  flex-wrap: wrap;
+  /* flex-wrap: wrap; */
   gap: 0.45rem;
 }
 
-.shift-pill,
+.shift-pill{
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.72);
+  color: #e2e8f0;
+  min-height: 40px;
+  padding: 0.35rem 0.65rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  font-weight: 700;
+  cursor: pointer;
+  width: 30%;
+}
+
 .empty-only {
   border: 1px solid rgba(148, 163, 184, 0.3);
   border-radius: 12px;
@@ -347,6 +365,7 @@ export default {
 .empty-only.active {
   border-color: rgba(34, 211, 238, 0.65);
   box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.3);
+  background-color: #00ffff38;
 }
 
 .shift-pill input,
@@ -382,6 +401,7 @@ export default {
   display: flex;
   flex-wrap: wrap;
   gap: 0.45rem;
+  justify-content: center;
 }
 
 .legend-pill {
@@ -404,7 +424,7 @@ export default {
 }
 
 .dot-empty {
-  background: #60a5fa;
+  background: #fa6060;
 }
 
 .dot-filled {
@@ -464,6 +484,7 @@ export default {
   display: flex;
   gap: 0.35rem;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .shift-status {
@@ -479,8 +500,8 @@ export default {
 }
 
 .shift-status.is-empty {
-  background: rgba(59, 130, 246, 0.2);
-  color: #bfdbfe;
+  background: rgba(246, 59, 59, 0.2);
+  color: #febfbf;
 }
 
 @keyframes mesh-drift {
@@ -498,23 +519,39 @@ export default {
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1000px) {
   .seat-map-page {
-    padding-top: 5.4rem;
+    padding: 2rem 1rem 5rem 1rem;
   }
-
+/* 
   .section-shell {
     width: min(1240px, calc(100% - 1rem));
-  }
+  } */
 
   .seat-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  }
+
+  .shift-pill {
+    padding: 0rem;
   }
 }
 
 @media (max-width: 500px) {
   .seat-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
   }
+  .seat-card {
+    padding: 0.3rem;
+  }
+
+   .shift-status {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.35rem;
+   }
+
+   .seat-title {
+    font-size: 0.8rem;
+   }
 }
 </style>

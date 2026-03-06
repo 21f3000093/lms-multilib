@@ -318,7 +318,7 @@ export default {
 
   position: relative;
   min-height: 100vh;
-  padding: 6.7rem 0 2.8rem;
+  padding: 2rem 1rem 2.8rem 3rem;
   color: var(--text-primary);
   overflow: hidden;
   isolation: isolate;
@@ -373,7 +373,7 @@ export default {
   margin: 0.75rem 0 0;
   color: var(--text-secondary);
   line-height: 1.6;
-  max-width: 62ch;
+  /* max-width: 62ch; */
 }
 
 .glass-card {
@@ -394,7 +394,7 @@ export default {
 
 .control-grid {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 0.6rem;
   align-items: end;
 }
@@ -512,6 +512,7 @@ export default {
   color: #e2e8f0;
   font-size: 0.9rem;
   vertical-align: middle;
+  text-align: left;
 }
 
 .reminders-table tbody tr:hover {
@@ -664,8 +665,15 @@ export default {
 }
 
 @media (max-width: 1100px) {
+
+  .reminders-page {
+    padding-left: 2rem;
+    padding-right: 2rem;
+    padding-bottom: 5rem;
+  }
+
   .control-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 2fr 1fr 1fr;
   }
 }
 
@@ -681,7 +689,10 @@ export default {
 
 @media (max-width: 767px) {
   .reminders-page {
-    padding-top: 5.4rem;
+    padding-top: 2rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-bottom: 5rem;
   }
 
   .section-shell {
@@ -689,7 +700,12 @@ export default {
   }
 
   .summary-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .control-grid {
     grid-template-columns: 1fr;
   }
+  
 }
 </style>

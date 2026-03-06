@@ -444,7 +444,7 @@ onBeforeUnmount(() => {
 
   position: relative;
   min-height: 100vh;
-  padding: 5rem 0 4.5rem;
+  padding: 2rem 1rem 4.5rem 3rem;
   background: var(--bg);
   color: var(--text-primary);
   font-family: Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -547,15 +547,15 @@ onBeforeUnmount(() => {
 }
 
 .hero-orb {
-  width: min(340px, 84vw);
+  /* width: min(340px, 84vw); */
   aspect-ratio: 1;
   border-radius: 28px;
   border: 1px solid var(--surface-border);
-  background:
+  /* background:
     linear-gradient(145deg, rgba(148, 163, 184, 0.14), rgba(148, 163, 184, 0.02)),
-    rgba(148, 163, 184, 0.02);
+    rgba(148, 163, 184, 0.02); */
   backdrop-filter: blur(12px);
-  box-shadow: 0 26px 60px rgba(2, 6, 23, 0.45);
+  /* box-shadow: 0 26px 60px rgba(2, 6, 23, 0.45); */
   display: grid;
   place-items: center;
 }
@@ -1081,6 +1081,11 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 1024px) {
+
+  .pricing-page{
+    padding: 2rem 1rem 4.5rem 1rem;
+  }
+
   .hero {
     grid-template-columns: 1fr;
   }
@@ -1095,9 +1100,9 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 767px) {
-  .pricing-page {
+  /* .pricing-page {
     padding-top: 7rem;
-  }
+  } */
 
   .pricing-grid,
   .included-grid,

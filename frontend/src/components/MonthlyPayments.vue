@@ -123,8 +123,8 @@
                   >
                     {{ payment.paid ? 'Mark Unpaid' : 'Mark Paid' }}
                   </button>
-                  <button @click="deletePayment(payment)" class="action-btn action-danger" type="button">Delete</button>
                   <button @click="viewReceipt(payment)" class="action-btn action-receipt" :disabled="!payment.paid" type="button">Receipt</button>
+                  <button @click="deletePayment(payment)" class="action-btn action-danger" type="button">Delete</button>
                 </div>
               </td>
             </tr>
@@ -178,8 +178,8 @@
           >
             {{ payment.paid ? 'Mark Unpaid' : 'Mark Paid' }}
           </button>
-          <button @click="deletePayment(payment)" class="action-btn action-danger" type="button">Delete</button>
           <button @click="viewReceipt(payment)" class="action-btn action-receipt" :disabled="!payment.paid" type="button">Receipt</button>
+          <button @click="deletePayment(payment)" class="action-btn action-danger" type="button">Delete</button>
         </div>
       </article>
     </section>
@@ -747,6 +747,7 @@ export default {
   font-weight: 700;
   color: #fff;
   cursor: pointer;
+  width: 30%;
 }
 
 .action-btn:disabled {
@@ -830,6 +831,7 @@ export default {
 
 .mobile-actions {
   margin-top: 0.55rem;
+  justify-content: center;
 }
 
 @keyframes mesh-drift {
