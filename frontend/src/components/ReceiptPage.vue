@@ -11,7 +11,16 @@
       <section class="section-shell controls no-print">
         <button @click="printReceipt" class="action-btn print-btn" type="button">Print Receipt</button>
         <button @click="downloadPDF" class="action-btn download-btn" type="button">Download PDF</button>
-        <router-link to="/monthly-payments" class="action-btn back-btn">Back to Payments</router-link>
+        <button
+          v-if="!isPublicMode"
+          @click="sendReceiptWhatsApp"
+          class="action-btn whatsapp-btn"
+          type="button"
+          :disabled="shareLinkLoading"
+        >
+          {{ shareLinkLoading ? 'Preparing...' : 'Send on WhatsApp' }}
+        </button>
+        <router-link v-if="!isPublicMode" to="/monthly-payments" class="action-btn back-btn">Back to Payments</router-link>
       </section>
 
       <section id="receipt-content" class="section-shell receipt-wrapper">
@@ -106,7 +115,9 @@
     <section v-else class="section-shell glass-card empty-state">
       <h3>Receipt Not Found</h3>
       <p>Unable to load the payment receipt.</p>
-      <router-link to="/monthly-payments" class="action-btn back-btn">Back to Payments</router-link>
+      <router-link :to="isPublicMode ? '/login' : '/monthly-payments'" class="action-btn back-btn">
+        {{ isPublicMode ? 'Go to Login' : 'Back to Payments' }}
+      </router-link>
     </section>
   </main>
 </template>
@@ -148,7 +159,14 @@ export default {
       libraryAddress: '',
       libraryContact: '',
       loading: true,
+      shareLinkLoading: false,
     }
+  },
+
+  computed: {
+    isPublicMode() {
+      return Boolean(this.$route.params.token)
+    },
   },
 
   mounted() {
@@ -166,17 +184,82 @@ export default {
     async fetchPayment() {
       this.loading = true
       try {
-        const paymentId = this.$route.params.paymentId
-        const res = await API.get(`/monthly-payments/single/${paymentId}`)
-        this.payment = res.data
+        const { paymentId, token } = this.$route.params
+        if (token) {
+          const res = await API.get(`/public-receipts/${token}`)
+          this.payment = res.data?.payment || null
+          this.libraryName = res.data?.library_name || this.libraryName
+          this.libraryAddress = res.data?.library_address || this.libraryAddress
+          this.libraryContact = res.data?.library_contact || this.libraryContact
+        } else {
+          const res = await API.get(`/monthly-payments/single/${paymentId}`)
+          this.payment = res.data
+        }
       } catch (err) {
         console.error('Error loading receipt:', err)
-        this.showError('Error loading receipt')
-        setTimeout(() => {
-          this.$router.push('/monthly-payments')
-        }, 5000)
+        this.showError(this.isPublicMode ? 'Invalid or expired receipt link' : 'Error loading receipt')
+        if (!this.isPublicMode) {
+          setTimeout(() => {
+            this.$router.push('/monthly-payments')
+          }, 5000)
+        }
       } finally {
         this.loading = false
+      }
+    },
+
+    normalizeWhatsAppPhone(rawPhone) {
+      const digits = String(rawPhone || '').replace(/\D/g, '')
+      if (!digits) return ''
+      if (digits.length === 10) return `91${digits}`
+      if (digits.length === 11 && digits.startsWith('0')) return `91${digits.slice(1)}`
+      if (digits.length === 12 && digits.startsWith('91')) return digits
+      if (digits.length >= 11 && digits.length <= 15) return digits
+      return ''
+    },
+
+    buildWhatsAppMessage(shareUrl) {
+      const studentName = this.payment?.student?.name || 'Student'
+      const month = this.formatMonth(this.payment?.month || '')
+      const amount = this.formatAmount(this.payment?.amount || 0)
+      const library = this.libraryName || 'Smart Library App'
+
+      return (
+        `Hi ${studentName},\n` +
+        `Your fee receipt for ${month} is ready.\n` +
+        `Amount Paid: Rs.${amount}\n` +
+        `Receipt Link: ${shareUrl}\n\n` +
+        `Thanks,\n${library}`
+      )
+    },
+
+    async sendReceiptWhatsApp() {
+      if (!this.payment?.id) return
+
+      const phone = this.normalizeWhatsAppPhone(this.payment?.student?.contact)
+      if (!phone) {
+        this.showError('Student phone number is missing or invalid')
+        return
+      }
+
+      this.shareLinkLoading = true
+      try {
+        const res = await API.get(`/monthly-payments/${this.payment.id}/share-link`)
+        const token = res.data?.token
+        const shareUrl = res.data?.share_url || (token ? `${window.location.origin}/public-receipts/${token}` : '')
+        if (!shareUrl) {
+          throw new Error('Share URL not returned')
+        }
+
+        const message = this.buildWhatsAppMessage(shareUrl)
+        const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
+        window.open(whatsappUrl, '_blank', 'noopener')
+        this.showSuccess('WhatsApp opened with receipt link')
+      } catch (err) {
+        const apiError = err?.response?.data?.detail
+        this.showError(apiError || 'Unable to prepare WhatsApp receipt link')
+      } finally {
+        this.shareLinkLoading = false
       }
     },
 
@@ -245,7 +328,7 @@ export default {
 .receipt-page {
   position: relative;
   min-height: 100vh;
-  padding: 6.7rem 0 2.8rem;
+  padding: 2rem 0 2.8rem;
   color: #e2e8f0;
   overflow: hidden;
   isolation: isolate;
@@ -327,10 +410,21 @@ export default {
   color: #a7f3d0;
 }
 
+.whatsapp-btn {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: rgba(34, 197, 94, 0.35);
+  color: #86efac;
+}
+
 .back-btn {
   background: rgba(148, 163, 184, 0.16);
   border-color: rgba(148, 163, 184, 0.35);
   color: #e2e8f0;
+}
+
+.action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .receipt-wrapper {
@@ -532,7 +626,7 @@ export default {
 
 @media (max-width: 767px) {
   .receipt-page {
-    padding-top: 5.4rem;
+    padding: 2rem 1rem 5rem;
   }
 
   .section-shell {

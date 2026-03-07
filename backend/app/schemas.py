@@ -50,6 +50,13 @@ class MonthlyPaymentOut(MonthlyPaymentBase):
 
     class Config:
         orm_mode = True
+
+
+class PublicReceiptOut(BaseModel):
+    payment: MonthlyPaymentOut
+    library_name: Optional[str] = None
+    library_address: Optional[str] = None
+    library_contact: Optional[str] = None
     
 
 

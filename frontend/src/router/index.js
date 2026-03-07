@@ -77,6 +77,12 @@ const routes = [
     meta: { requiresAuth: false } // If you have auth guards
   },
   {
+    path: '/public-receipts/:token',
+    name: 'PublicReceiptPage',
+    component: ReceiptPage,
+    meta: { requiresAuth: false }
+  },
+  {
     path: '/receipts/:paymentId',
     name: 'ReceiptPage',
     component: ReceiptPage,
