@@ -454,6 +454,7 @@ onBeforeUnmount(() => {
 .notification-card.unread {
   border-color: rgba(14, 165, 233, 0.45);
   box-shadow: 0 0 0 1px rgba(14, 165, 233, 0.18);
+  background-color: #00ffff26;
 }
 
 .card-top {

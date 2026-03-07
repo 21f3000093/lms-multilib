@@ -714,7 +714,12 @@ export default {
     width: min(1240px, calc(100% - 1rem));
   }
 
-  .quick-stats,
+  .quick-stats {
+    grid-template-columns: 1fr 1fr 1fr;
+    justify-content: center;
+    
+  }
+  
   .dashboard-grid {
     grid-template-columns: 1fr;
   }

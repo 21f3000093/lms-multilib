@@ -296,7 +296,7 @@ export default {
 
   position: relative;
   min-height: 100vh;
-  padding: 6.7rem 0 2.8rem;
+  padding: 2rem 1rem 2.8rem 3rem;
   color: var(--text-primary);
   overflow: hidden;
   isolation: isolate;
@@ -367,6 +367,7 @@ export default {
   display: flex;
   align-items: flex-start;
   gap: 0.65rem;
+  justify-content: center;
 }
 
 .avatar {
@@ -428,6 +429,7 @@ export default {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
+  justify-content: center;
 }
 
 .shift-pill {
@@ -527,6 +529,7 @@ export default {
   color: #e2e8f0;
   font-size: 0.9rem;
   vertical-align: middle;
+  text-align: left;
 }
 
 .payments-table tbody tr:hover {
@@ -537,6 +540,7 @@ export default {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
+  /* justify-content: space-between; */
 }
 
 .action-btn {
@@ -550,6 +554,7 @@ export default {
   font-size: 0.75rem;
   font-weight: 700;
   cursor: pointer;
+  width: 47%;
 }
 
 .action-success {
@@ -633,7 +638,11 @@ export default {
   }
 }
 
-@media (max-width: 920px) {
+@media (max-width: 1100px) {
+  .student-detail-page {
+    padding: 2rem 1rem 5rem 1rem;
+  }
+
   .desktop-view {
     display: none;
   }
@@ -645,16 +654,26 @@ export default {
 
 @media (max-width: 767px) {
   .student-detail-page {
-    padding-top: 5.4rem;
+    padding: 2rem 1rem 5rem 1rem;
   }
 
   .section-shell {
     width: min(1240px, calc(100% - 1rem));
   }
 
-  .info-grid,
+  
   .summary-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+  .info-grid{
+    grid-template-columns: 2fr 1fr;
+  }
+
+  .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: space-between;
+}
 }
 </style>

@@ -426,7 +426,7 @@ export default {
   margin: 0.75rem 0 0;
   color: var(--text-secondary);
   line-height: 1.6;
-  max-width: 62ch;
+  /* max-width: 62ch; */
 }
 
 .glass-card {
@@ -815,7 +815,7 @@ export default {
   .summary-grid,
   .form-row,
   .modal-actions {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
 
   .modal-content {
