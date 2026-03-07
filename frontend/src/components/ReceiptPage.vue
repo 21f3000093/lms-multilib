@@ -383,6 +383,7 @@ export default {
   gap: 0.6rem;
   flex-wrap: wrap;
   margin-bottom: 0.9rem;
+  justify-content: center;
 }
 
 .action-btn {
@@ -396,6 +397,7 @@ export default {
   font-weight: 700;
   cursor: pointer;
   text-decoration: none;
+  min-width: 20%;
 }
 
 .print-btn {
