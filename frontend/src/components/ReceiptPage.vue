@@ -50,6 +50,20 @@
                 <span class="info-label">Payment For:</span>
                 <span class="info-value">{{ formatMonth(payment.month) }}</span>
               </div>
+              <div class="info-item full-width">
+                <span class="info-label">Payment Timestamp:</span>
+                <span class="info-value">
+                  {{ payment.paid_at ? formatDateTime(payment.paid_at) : (payment.paid ? 'Recorded before timestamp tracking' : 'Pending / Not paid yet') }}
+                </span>
+              </div>
+              <div class="info-item full-width">
+                <span class="info-label">Billing Period:</span>
+                <span class="info-value">{{ formatBillingPeriod(payment.period_start, payment.period_end, payment.month, payment.student?.date_of_joining) }}</span>
+              </div>
+              <div class="info-item full-width">
+                <span class="info-label">Next Due Date:</span>
+                <span class="info-value">{{ resolveNextDueDate(payment) }}</span>
+              </div>
             </div>
           </section>
 
@@ -304,12 +318,98 @@ export default {
       }
     },
 
-    formatDate(date) {
-      const d = new Date(date)
+    formatDate(value) {
+      if (!value) return 'N/A'
+
+      if (typeof value === 'string') {
+        const ymdMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})/)
+        if (ymdMatch) {
+          return `${ymdMatch[3]}/${ymdMatch[2]}/${ymdMatch[1]}`
+        }
+      }
+
+      const d = new Date(value)
+      if (Number.isNaN(d.getTime())) return 'N/A'
       const day = String(d.getDate()).padStart(2, '0')
       const month = String(d.getMonth() + 1).padStart(2, '0')
       const year = d.getFullYear()
       return `${day}/${month}/${year}`
+    },
+
+    formatDateTime(dateTimeValue) {
+      if (!dateTimeValue) return 'N/A'
+      const d = new Date(dateTimeValue)
+      if (Number.isNaN(d.getTime())) return 'N/A'
+      const datePart = d.toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata' })
+      const timePart = d.toLocaleTimeString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      })
+      return `${datePart} ${timePart} IST`
+    },
+
+    getDueDayFromJoining(joiningDate) {
+      if (!joiningDate) return 1
+      if (typeof joiningDate === 'string') {
+        const ymdMatch = joiningDate.match(/^(\d{4})-(\d{2})-(\d{2})/)
+        if (ymdMatch) {
+          return Math.max(1, Math.min(31, Number(ymdMatch[3])))
+        }
+      }
+      const parsed = new Date(joiningDate)
+      if (Number.isNaN(parsed.getTime())) return 1
+      return Math.max(1, Math.min(31, parsed.getDate()))
+    },
+
+    computeDueDateString(year, month, dueDay) {
+      const lastDay = new Date(year, month, 0).getDate()
+      const day = Math.min(dueDay, lastDay)
+      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    },
+
+    computeNextDueDate(monthStr, joiningDate) {
+      if (!monthStr) return null
+      const [yearStr, monthStrNum] = monthStr.split('-')
+      const year = Number(yearStr)
+      const month = Number(monthStrNum)
+      if (!year || !month) return null
+
+      const dueDay = this.getDueDayFromJoining(joiningDate)
+      const nextMonth = month === 12 ? 1 : month + 1
+      const nextYear = month === 12 ? year + 1 : year
+      return this.computeDueDateString(nextYear, nextMonth, dueDay)
+    },
+
+    formatBillingPeriod(periodStart, periodEnd, monthStr, joiningDate) {
+      if (monthStr) {
+        const [yearStr, monthStrNum] = monthStr.split('-')
+        const year = Number(yearStr)
+        const month = Number(monthStrNum)
+        if (year && month) {
+          const dueDay = this.getDueDayFromJoining(joiningDate)
+          const currentDue = this.computeDueDateString(year, month, dueDay)
+          const nextDue = this.computeNextDueDate(monthStr, joiningDate)
+
+          if (nextDue) {
+            const periodEndDate = new Date(`${nextDue}T00:00:00`)
+            periodEndDate.setDate(periodEndDate.getDate() - 1)
+            return `${this.formatDate(currentDue)} - ${this.formatDate(periodEndDate)}`
+          }
+        }
+      }
+
+      if (periodStart && periodEnd) {
+        return `${this.formatDate(periodStart)} - ${this.formatDate(periodEnd)}`
+      }
+
+      return 'N/A'
+    },
+
+    resolveNextDueDate(payment) {
+      const dueDate = this.computeNextDueDate(payment?.month, payment?.student?.date_of_joining) || payment?.next_due_date
+      return dueDate ? this.formatDate(dueDate) : 'N/A'
     },
 
     formatMonth(monthStr) {
@@ -328,7 +428,7 @@ export default {
 .receipt-page {
   position: relative;
   min-height: 100vh;
-  padding: 2rem 0 2.8rem;
+  padding: 2rem 1rem 2.8rem 3rem;
   color: #e2e8f0;
   overflow: hidden;
   isolation: isolate;

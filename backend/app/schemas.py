@@ -47,6 +47,10 @@ class MonthlyPaymentCreate(MonthlyPaymentBase):
 class MonthlyPaymentOut(MonthlyPaymentBase):
     id: int
     student: Optional[StudentOut]  # <- add this line
+    paid_at: Optional[datetime] = None
+    period_start: Optional[date] = None
+    period_end: Optional[date] = None
+    next_due_date: Optional[date] = None
 
     class Config:
         orm_mode = True

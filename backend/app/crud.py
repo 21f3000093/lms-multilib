@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session , joinedload
 from app import models, schemas
 # from fastapi import HTTPException
 from sqlalchemy import func 
-from datetime import date , datetime
+from datetime import date , datetime, timedelta
 from app.models import Student ,MonthlyPayment 
 import csv
 from io import StringIO
@@ -301,12 +301,32 @@ def get_dashboard_data(db: Session, library_id: int):
 ##### ======================================================================================================
 
 
+def _get_due_date_for_month(year: int, month_num: int, joining_date: date | None) -> date:
+    due_day = joining_date.day if joining_date else 1
+    last_day = calendar.monthrange(year, month_num)[1]
+    return date(year, month_num, min(due_day, last_day))
+
+
+def _get_billing_period_and_next_due(month: str, joining_date: date | None) -> tuple[date, date, date]:
+    year, month_num = map(int, month.split('-'))
+    current_due_date = _get_due_date_for_month(year, month_num, joining_date)
+
+    if month_num == 12:
+        next_year, next_month = year + 1, 1
+    else:
+        next_year, next_month = year, month_num + 1
+
+    next_due_date = _get_due_date_for_month(next_year, next_month, joining_date)
+    period_start = current_due_date
+    period_end = next_due_date - timedelta(days=1)
+    return period_start, period_end, next_due_date
+
+
 def create_monthly_payments_for_all(db: Session, month: str, library_id: int):
     # Parse 'YYYY-MM' → year, month
     year, month_num = map(int, month.split('-'))
     last_day = calendar.monthrange(year, month_num)[1]
     end_of_month = date(year, month_num, last_day)
-
     students = db.query(models.Student).filter(
         models.Student.status == "active",
         models.Student.library_id == library_id,
@@ -316,12 +336,20 @@ def create_monthly_payments_for_all(db: Session, month: str, library_id: int):
     for student in students:
         exists = db.query(models.MonthlyPayment).filter_by(student_id=student.id, month=month).first()
         if not exists:
+            period_start, period_end, next_due_date = _get_billing_period_and_next_due(
+                month,
+                student.date_of_joining
+            )
             db.add(models.MonthlyPayment(
                 student_id=student.id,
                 month=month,
                 paid=False,
                 amount=student.custom_fees,
-                library_id=library_id
+                library_id=library_id,
+                paid_at=None,
+                period_start=period_start,
+                period_end=period_end,
+                next_due_date=next_due_date
             ))
     db.commit()
 
@@ -342,7 +370,11 @@ def mark_monthly_payment_as_paid(db: Session, payment_id: int, library_id: int):
         .first()
     )
     if payment:
-        payment.paid = True  # type: ignore
+        if not payment.paid: # type: ignore
+            payment.paid = True  # type: ignore
+            payment.paid_at = datetime.now(ZoneInfo("Asia/Kolkata")) # type: ignore
+        elif not payment.paid_at:
+            payment.paid_at = datetime.now(ZoneInfo("Asia/Kolkata")) # type: ignore
         db.commit()
         db.refresh(payment)
     return payment
@@ -392,6 +424,10 @@ def get_monthly_payments(db: Session, month: str, library_id: int):
             models.MonthlyPayment.id,
             models.MonthlyPayment.amount,
             models.MonthlyPayment.paid,
+            models.MonthlyPayment.paid_at,
+            models.MonthlyPayment.period_start,
+            models.MonthlyPayment.period_end,
+            models.MonthlyPayment.next_due_date,
             models.Student.name.label('student_name'),
             models.Student.date_of_joining,
             models.Student.contact,
@@ -421,6 +457,10 @@ def get_monthly_payments(db: Session, month: str, library_id: int):
             "id": row.id,
             "amount": row.amount,
             "paid": row.paid,
+            "paid_at": row.paid_at.isoformat() if row.paid_at else None,
+            "period_start": row.period_start.isoformat() if row.period_start else None,
+            "period_end": row.period_end.isoformat() if row.period_end else None,
+            "next_due_date": row.next_due_date.isoformat() if row.next_due_date else None,
             "student": {
                 "name": row.student_name,
                 "id": row.student_id,
@@ -447,6 +487,7 @@ def toggle_monthly_payment_status(db: Session, payment_id: int, library_id: int)
     )
     if payment:
         payment.paid = not payment.paid # type: ignore
+        payment.paid_at = datetime.now(ZoneInfo("Asia/Kolkata")) if payment.paid else None # type: ignore
         db.commit()
         db.refresh(payment)
     return payment

@@ -111,6 +111,10 @@ class MonthlyPayment(Base):
     month = Column(String, index=True)  # format: '2025-07'
     amount = Column(Integer)
     paid = Column(Boolean, default=False,index=True)
+    paid_at = Column(DateTime, nullable=True)
+    period_start = Column(Date, nullable=True)
+    period_end = Column(Date, nullable=True)
+    next_due_date = Column(Date, nullable=True, index=True)
 
     student = relationship("Student", back_populates="monthly_payments")
     library_id = Column(Integer, ForeignKey("libraries.id", ondelete="CASCADE"), nullable=False,index=True)
