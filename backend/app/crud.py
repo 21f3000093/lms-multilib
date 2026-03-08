@@ -225,6 +225,8 @@ def mark_student_as_left(db: Session, student_id: int, library_id: int):
 
     # Mark status as 'left'
     student.status = "left" # type: ignore
+    if not student.left_at:
+        student.left_at = datetime.now(ZoneInfo("Asia/Kolkata")) # type: ignore
     student.seat_id = None # type: ignore
     
     # Clear seat assignments in all 3 shifts

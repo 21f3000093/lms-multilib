@@ -26,7 +26,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-models.Base.metadata.create_all(bind=engine)
+# models.Base.metadata.create_all(bind=engine)
 
 
 def _get_receipt_share_secret() -> str:

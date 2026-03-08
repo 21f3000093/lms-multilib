@@ -92,6 +92,7 @@ class Student(Base):
     custom_fees = Column(Integer, nullable=True)
     date_of_joining = Column(Date, default=date.today,index=True)
     status = Column(String, default="active",index=True)
+    left_at = Column(DateTime, nullable=True, index=True)
 
     library_id = Column(Integer, ForeignKey("libraries.id", ondelete="CASCADE"), nullable=False,index=True)
     library = relationship("Library", back_populates="students")

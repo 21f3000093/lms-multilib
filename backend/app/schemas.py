@@ -28,6 +28,7 @@ class StudentOut(StudentCreate):
     seat_id: Optional[int] = None
     total_fee: Optional[int] = None
     custom_fees: Optional[int] = None
+    left_at: Optional[datetime] = None
     library_id: int  # ✅ Ensure it's present
     seat: Optional[SeatOut]
 
