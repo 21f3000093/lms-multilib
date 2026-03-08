@@ -2,9 +2,13 @@
   <div id="app" class="app-background">
     <div
       class="app-content"
-      :class="{ 'no-sidebar': !isLoggedIn, 'has-bottom-nav': isLoggedIn && role === 'admin' }"
+      :class="{
+        'no-sidebar': !isLoggedIn || !shouldShowNav,
+        'has-bottom-nav': isLoggedIn && role === 'admin' && shouldShowNav,
+        'no-topbar': !shouldShowNav
+      }"
     >
-      <NavBar class="navbar"  />
+      <NavBar v-if="shouldShowNav" class="navbar" />
       <router-view />
     </div>
   </div>
@@ -15,6 +19,11 @@ import NavBar from './components/NavBar.vue';
 
 export default {
   components: { NavBar },
+  computed: {
+    shouldShowNav() {
+      return !this.$route.meta?.hideNav
+    }
+  },
   data() {
     return {
       isLoggedIn: false,
@@ -85,6 +94,10 @@ body, html, #app {
   padding-top: calc(var(--topbar-height));
 }
 
+.app-content.no-topbar {
+  padding-top: 0;
+}
+
 #app {
   font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -118,6 +131,10 @@ body, html, #app {
   .app-content {
     margin-left: 0 !important;
     padding-top: var(--topbar-height);
+  }
+
+  .app-content.no-topbar {
+    padding-top: 0 !important;
   }
 }
 

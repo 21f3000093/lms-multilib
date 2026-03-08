@@ -80,7 +80,7 @@ const routes = [
     path: '/public-receipts/:token',
     name: 'PublicReceiptPage',
     component: ReceiptPage,
-    meta: { requiresAuth: false }
+    meta: { requiresAuth: false, hideNav: true }
   },
   {
     path: '/receipts/:paymentId',
