@@ -147,6 +147,7 @@
 
 <script>
 import API from '../api'
+import { unsubscribeCurrentBrowserPush } from '../utils/pushNotifications'
 import {
   Armchair,
   Banknote,
@@ -357,6 +358,7 @@ export default {
     async logout() {
       try {
         if (confirm('Are you sure you want to log out?')) {
+          await unsubscribeCurrentBrowserPush()
           await API.post('/auth/logout')
 
           localStorage.removeItem('role')

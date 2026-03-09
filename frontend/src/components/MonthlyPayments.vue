@@ -119,12 +119,28 @@
                     @click="togglePaid(payment)"
                     class="action-btn"
                     :class="payment.paid ? 'action-warning' : 'action-success'"
+                    :disabled="isPaymentToggling(payment.id)"
                     type="button"
                   >
-                    {{ payment.paid ? 'Mark Unpaid' : 'Mark Paid' }}
+                    <span v-if="isPaymentToggling(payment.id)" class="btn-spinner" aria-hidden="true"></span>
+                    {{ isPaymentToggling(payment.id) ? 'Updating...' : (payment.paid ? 'Mark Unpaid' : 'Mark Paid') }}
                   </button>
-                  <button @click="viewReceipt(payment)" class="action-btn action-receipt" :disabled="!payment.paid" type="button">Receipt</button>
-                  <button @click="deletePayment(payment)" class="action-btn action-danger" type="button">Delete</button>
+                  <button
+                    @click="viewReceipt(payment)"
+                    class="action-btn action-receipt"
+                    :disabled="!payment.paid || isPaymentToggling(payment.id)"
+                    type="button"
+                  >
+                    Receipt
+                  </button>
+                  <button
+                    @click="deletePayment(payment)"
+                    class="action-btn action-danger"
+                    :disabled="isPaymentToggling(payment.id)"
+                    type="button"
+                  >
+                    Delete
+                  </button>
                 </div>
               </td>
             </tr>
@@ -174,12 +190,28 @@
             @click="togglePaid(payment)"
             class="action-btn"
             :class="payment.paid ? 'action-warning' : 'action-success'"
+            :disabled="isPaymentToggling(payment.id)"
             type="button"
           >
-            {{ payment.paid ? 'Mark Unpaid' : 'Mark Paid' }}
+            <span v-if="isPaymentToggling(payment.id)" class="btn-spinner" aria-hidden="true"></span>
+            {{ isPaymentToggling(payment.id) ? 'Updating...' : (payment.paid ? 'Mark Unpaid' : 'Mark Paid') }}
           </button>
-          <button @click="viewReceipt(payment)" class="action-btn action-receipt" :disabled="!payment.paid" type="button">Receipt</button>
-          <button @click="deletePayment(payment)" class="action-btn action-danger" type="button">Delete</button>
+          <button
+            @click="viewReceipt(payment)"
+            class="action-btn action-receipt"
+            :disabled="!payment.paid || isPaymentToggling(payment.id)"
+            type="button"
+          >
+            Receipt
+          </button>
+          <button
+            @click="deletePayment(payment)"
+            class="action-btn action-danger"
+            :disabled="isPaymentToggling(payment.id)"
+            type="button"
+          >
+            Delete
+          </button>
         </div>
       </article>
     </section>
@@ -259,6 +291,7 @@ export default {
       showConfirmationModal: false,
       selectedPayment: null,
       loading: false,
+      togglingPaymentIds: {},
     }
   },
 
@@ -324,19 +357,23 @@ export default {
     },
 
     async togglePaid(payment) {
+      if (this.isPaymentToggling(payment.id)) return
+      this.togglingPaymentIds[payment.id] = true
       try {
         const res = await API.put(`/monthly-payments/toggle/${payment.id}`)
         payment.paid = res.data.paid
 
         if (payment.paid) {
           this.showSuccess('Payment marked as paid!')
-          this.showConfirmationModal = true
-          this.selectedPayment = payment
+          // this.showConfirmationModal = true
+          // this.selectedPayment = payment
         } else {
           this.showSuccess('Payment marked as unpaid')
         }
       } catch (err) {
         this.showError('Failed to toggle status')
+      } finally {
+        delete this.togglingPaymentIds[payment.id]
       }
     },
 
@@ -426,6 +463,10 @@ export default {
 
     formatAmount(amount) {
       return amount.toLocaleString('en-IN')
+    },
+
+    isPaymentToggling(paymentId) {
+      return !!this.togglingPaymentIds[paymentId]
     },
 
     viewReceipt(payment) {
@@ -748,6 +789,16 @@ export default {
   color: #fff;
   cursor: pointer;
   width: 30%;
+}
+
+.btn-spinner {
+  width: 12px;
+  height: 12px;
+  margin-right: 0.35rem;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
 
 .action-btn:disabled {

@@ -1,7 +1,10 @@
 from datetime import datetime
+import json
+import logging
+import os
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy import case, func
 from sqlalchemy.orm import Session, joinedload
 
@@ -9,6 +12,105 @@ from app import models, schemas
 from app.dependencies import get_current_admin, get_db
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
+logger = logging.getLogger(__name__)
+
+try:
+    from pywebpush import WebPushException, webpush
+except ImportError:  # pragma: no cover - optional dependency guard
+    WebPushException = Exception  # type: ignore[assignment]
+    webpush = None  # type: ignore[assignment]
+
+
+def _load_push_settings() -> tuple[str, str, str] | None:
+    public_key = (os.getenv("PUSH_VAPID_PUBLIC_KEY") or "").strip()
+    private_key = (os.getenv("PUSH_VAPID_PRIVATE_KEY") or "").strip()
+    subject = (os.getenv("PUSH_VAPID_SUBJECT") or "").strip()
+
+    if not public_key or not private_key or not subject:
+        return None
+    return public_key, private_key, subject
+
+
+def _is_push_enabled() -> bool:
+    return _load_push_settings() is not None and webpush is not None
+
+
+def _normalize_click_url(click_url: str | None, fallback: str = "/notifications") -> str:
+    normalized = (click_url or fallback).strip()
+    if normalized.startswith(("/", "http://", "https://")):
+        return normalized
+    raise HTTPException(status_code=400, detail="click_url must start with / or http(s)://")
+
+
+def _send_push_to_admins(
+    db: Session,
+    admin_ids: list[int],
+    title: str,
+    body: str,
+    click_url: str,
+) -> None:
+    if not admin_ids or not _is_push_enabled():
+        return
+
+    settings = _load_push_settings()
+    if not settings:
+        return
+
+    _, vapid_private_key, vapid_subject = settings
+
+    subscriptions = (
+        db.query(models.PushSubscription)
+        .filter(models.PushSubscription.admin_id.in_(admin_ids))
+        .all()
+    )
+    if not subscriptions:
+        return
+
+    now = datetime.utcnow()
+    payload = json.dumps(
+        {
+            "title": title,
+            "body": body,
+            "url": click_url,
+        },
+        ensure_ascii=False,
+    )
+
+    mutated = False
+    for subscription in subscriptions:
+        subscription_info = {
+            "endpoint": subscription.endpoint,
+            "keys": {
+                "p256dh": subscription.p256dh,
+                "auth": subscription.auth,
+            },
+        }
+        if subscription.expiration_time:
+            subscription_info["expirationTime"] = subscription.expiration_time
+
+        try:
+            webpush(
+                subscription_info=subscription_info,  # type: ignore[arg-type]
+                data=payload,
+                vapid_private_key=vapid_private_key,
+                vapid_claims={"sub": vapid_subject},
+                ttl=60 * 60 * 24,
+            )
+            subscription.last_seen_at = now
+            subscription.updated_at = now
+            mutated = True
+        except WebPushException as exc:  # type: ignore[misc]
+            status_code = getattr(getattr(exc, "response", None), "status_code", None)
+            if status_code in (404, 410):
+                db.delete(subscription)
+                mutated = True
+            else:
+                logger.warning("Push delivery failed for endpoint=%s status=%s", subscription.endpoint, status_code)
+        except Exception as exc:  # pragma: no cover - defensive guard
+            logger.warning("Unexpected push delivery failure for endpoint=%s error=%s", subscription.endpoint, exc)
+
+    if mutated:
+        db.commit()
 
 
 def _require_superadmin(admin: models.Admin) -> None:
@@ -55,6 +157,7 @@ def create_notification(
     admin: models.Admin = Depends(get_current_admin),
 ):
     _require_superadmin(admin)
+    click_url = _normalize_click_url(payload.click_url)
 
     target_admin_ids = sorted(set(payload.target_admin_ids or []))
 
@@ -113,6 +216,16 @@ def create_notification(
     db.add_all(recipients)
     db.commit()
     db.refresh(notification)
+    try:
+        _send_push_to_admins(
+            db=db,
+            admin_ids=[target_admin.id for target_admin in target_admins],
+            title=notification.title,
+            body=notification.message,
+            click_url=click_url,
+        )
+    except Exception as exc:  # pragma: no cover - push must not break in-app notifications
+        logger.warning("Push broadcast skipped due to error: %s", exc)
 
     return _serialize_notification(
         notification,
@@ -120,6 +233,93 @@ def create_notification(
         unread_count=len(target_admins),
         sender_username=admin.username,
     )
+
+
+@router.get("/push/config", response_model=schemas.PushConfigOut)
+def get_push_config(admin: models.Admin = Depends(get_current_admin)):
+    if admin.role not in {"admin", "superadmin"}:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+
+    settings = _load_push_settings()
+    enabled = settings is not None and webpush is not None
+    public_key = settings[0] if settings else None
+    return {
+        "enabled": enabled,
+        "vapid_public_key": public_key,
+    }
+
+
+@router.post("/push/subscriptions", response_model=schemas.PushSubscriptionOut)
+def upsert_push_subscription(
+    payload: schemas.PushSubscriptionCreate,
+    request: Request,
+    db: Session = Depends(get_db),
+    admin: models.Admin = Depends(get_current_admin),
+):
+    _require_admin(admin)
+
+    endpoint = payload.endpoint.strip()
+    if not endpoint:
+        raise HTTPException(status_code=400, detail="Invalid subscription endpoint")
+
+    now = datetime.utcnow()
+    existing = (
+        db.query(models.PushSubscription)
+        .filter(models.PushSubscription.endpoint == endpoint)
+        .first()
+    )
+
+    if existing:
+        existing.admin_id = admin.id
+        existing.p256dh = payload.keys.p256dh
+        existing.auth = payload.keys.auth
+        existing.expiration_time = payload.expirationTime
+        existing.user_agent = request.headers.get("user-agent")
+        existing.updated_at = now
+        existing.last_seen_at = now
+        db.commit()
+        db.refresh(existing)
+        return existing
+
+    subscription = models.PushSubscription(
+        admin_id=admin.id,
+        endpoint=endpoint,
+        p256dh=payload.keys.p256dh,
+        auth=payload.keys.auth,
+        expiration_time=payload.expirationTime,
+        user_agent=request.headers.get("user-agent"),
+        created_at=now,
+        updated_at=now,
+        last_seen_at=now,
+    )
+    db.add(subscription)
+    db.commit()
+    db.refresh(subscription)
+    return subscription
+
+
+@router.post("/push/subscriptions/unsubscribe")
+def unsubscribe_push_subscription(
+    payload: schemas.PushSubscriptionDelete,
+    db: Session = Depends(get_db),
+    admin: models.Admin = Depends(get_current_admin),
+):
+    _require_admin(admin)
+
+    endpoint = payload.endpoint.strip()
+    subscription = (
+        db.query(models.PushSubscription)
+        .filter(
+            models.PushSubscription.admin_id == admin.id,
+            models.PushSubscription.endpoint == endpoint,
+        )
+        .first()
+    )
+    if subscription:
+        db.delete(subscription)
+        db.commit()
+
+    return {"message": "Push subscription removed"}
 
 
 @router.get("/sent", response_model=List[schemas.NotificationOut])

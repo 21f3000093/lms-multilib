@@ -88,6 +88,7 @@ module.exports = defineConfig({
     workboxOptions: {
       skipWaiting: true,
       clientsClaim: true,
+      importScripts: ['sw-push.js'],
 
       // change this version string on important deployments
       cacheId: 'smart-library-v3',

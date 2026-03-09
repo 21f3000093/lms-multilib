@@ -62,6 +62,29 @@ class PublicReceiptOut(BaseModel):
     library_name: Optional[str] = None
     library_address: Optional[str] = None
     library_contact: Optional[str] = None
+
+
+class StudentBulkPaymentCreate(BaseModel):
+    start_month: str = Field(..., regex=r"^\d{4}-\d{2}$")
+    number_of_months: int = Field(default=1, ge=1, le=24)
+    mark_as_paid: bool = False
+    total_amount_paid: Optional[int] = Field(default=None, ge=1)
+    selected_months: Optional[List[str]] = None
+
+
+class StudentBulkPaymentItem(BaseModel):
+    payment_id: int
+    month: str
+    amount: int
+    paid: bool
+    action: str
+
+
+class StudentBulkPaymentResult(BaseModel):
+    created: int
+    updated: int
+    skipped: int
+    payments: List[StudentBulkPaymentItem]
     
 
 
@@ -155,6 +178,7 @@ class NotificationCreate(BaseModel):
     category: str = Field(default="general", min_length=1, max_length=50)
     target_library_id: Optional[int] = None
     target_admin_ids: Optional[List[int]] = None
+    click_url: Optional[str] = Field(default=None, max_length=500)
 
 
 class NotificationOut(BaseModel):
@@ -194,3 +218,35 @@ class NotificationInboxItem(BaseModel):
 
 class NotificationUnreadCount(BaseModel):
     unread_count: int
+
+
+class PushSubscriptionKeys(BaseModel):
+    p256dh: str
+    auth: str
+
+
+class PushSubscriptionCreate(BaseModel):
+    endpoint: str = Field(..., min_length=1)
+    expirationTime: Optional[str] = None
+    keys: PushSubscriptionKeys
+
+
+class PushSubscriptionDelete(BaseModel):
+    endpoint: str = Field(..., min_length=1)
+
+
+class PushSubscriptionOut(BaseModel):
+    id: int
+    admin_id: int
+    endpoint: str
+    created_at: datetime
+    updated_at: datetime
+    last_seen_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class PushConfigOut(BaseModel):
+    enabled: bool
+    vapid_public_key: Optional[str] = None

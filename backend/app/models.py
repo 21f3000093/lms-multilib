@@ -57,6 +57,11 @@ class Admin(Base):
         back_populates="admin",
         cascade="all, delete-orphan",
     )
+    push_subscriptions = relationship(
+        "PushSubscription",
+        back_populates="admin",
+        cascade="all, delete-orphan",
+    )
 
     
 # class Student(Base):
@@ -234,4 +239,25 @@ class NotificationRecipient(Base):
     __table_args__ = (
         UniqueConstraint("notification_id", "admin_id", name="uq_notification_recipient"),
         Index("idx_notification_recipient_admin_unread_created", "admin_id", "is_read", "created_at"),
+    )
+
+
+class PushSubscription(Base):
+    __tablename__ = "push_subscriptions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    admin_id = Column(Integer, ForeignKey("admins.id", ondelete="CASCADE"), nullable=False, index=True)
+    endpoint = Column(String, nullable=False, unique=True, index=True)
+    p256dh = Column(String, nullable=False)
+    auth = Column(String, nullable=False)
+    expiration_time = Column(String, nullable=True)
+    user_agent = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    last_seen_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    admin = relationship("Admin", back_populates="push_subscriptions")
+
+    __table_args__ = (
+        Index("idx_push_subscriptions_admin_last_seen", "admin_id", "last_seen_at"),
     )
