@@ -69,6 +69,9 @@
       <section class="section-shell">
         <header class="payments-head">
           <h3>Monthly Payments</h3>
+          <button class="action-btn action-primary add-payments-btn" type="button" @click="openBulkPaymentModal">
+            Add Payments
+          </button>
         </header>
 
         <div v-if="payments.length > 0" class="glass-card table-card desktop-view">
@@ -97,11 +100,29 @@
                         @click="togglePaid(payment)"
                         class="action-btn"
                         :class="payment.paid ? 'action-warning' : 'action-success'"
+                        :disabled="isPaymentToggling(payment.id)"
                         type="button"
                       >
-                        {{ payment.paid ? 'Mark Unpaid' : 'Mark Paid' }}
+                        <span v-if="isPaymentToggling(payment.id)" class="btn-spinner" aria-hidden="true"></span>
+                        {{ isPaymentToggling(payment.id) ? 'Updating...' : (payment.paid ? 'Mark Unpaid' : 'Mark Paid') }}
                       </button>
-                      <button @click="deletePayment(payment.id)" class="action-btn action-danger" type="button">Delete</button>
+                      <button
+                        v-if="payment.paid"
+                        @click="viewReceipt(payment.id)"
+                        class="action-btn action-receipt"
+                        :disabled="isPaymentToggling(payment.id)"
+                        type="button"
+                      >
+                        Receipt
+                      </button>
+                      <button
+                        @click="deletePayment(payment.id)"
+                        class="action-btn action-danger"
+                        :disabled="isPaymentToggling(payment.id)"
+                        type="button"
+                      >
+                        Delete
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -131,11 +152,29 @@
                 @click="togglePaid(payment)"
                 class="action-btn"
                 :class="payment.paid ? 'action-warning' : 'action-success'"
+                :disabled="isPaymentToggling(payment.id)"
                 type="button"
               >
-                {{ payment.paid ? 'Mark Unpaid' : 'Mark Paid' }}
+                <span v-if="isPaymentToggling(payment.id)" class="btn-spinner" aria-hidden="true"></span>
+                {{ isPaymentToggling(payment.id) ? 'Updating...' : (payment.paid ? 'Mark Unpaid' : 'Mark Paid') }}
               </button>
-              <button @click="deletePayment(payment.id)" class="action-btn action-danger" type="button">Delete</button>
+              <button
+                v-if="payment.paid"
+                @click="viewReceipt(payment.id)"
+                class="action-btn action-receipt"
+                :disabled="isPaymentToggling(payment.id)"
+                type="button"
+              >
+                Receipt
+              </button>
+              <button
+                @click="deletePayment(payment.id)"
+                class="action-btn action-danger"
+                :disabled="isPaymentToggling(payment.id)"
+                type="button"
+              >
+                Delete
+              </button>
             </div>
           </article>
         </div>
@@ -145,6 +184,90 @@
           <p>No payment history found for this student.</p>
         </section>
       </section>
+
+      <div v-if="showBulkPaymentModal" class="modal-overlay" @click.self="closeBulkPaymentModal">
+        <div class="modal-content glass-card">
+          <header class="modal-head">
+            <h3>Add Advance Payments</h3>
+            <button class="modal-close" type="button" @click="closeBulkPaymentModal" aria-label="Close modal">×</button>
+          </header>
+
+          <form class="bulk-form" @submit.prevent="submitBulkPayments">
+            <label class="field-wrap">
+              <span class="field-label">Month Selection Mode</span>
+              <select v-model="bulkPaymentForm.monthMode" class="field-input">
+                <option value="range">Start Month + Number of Months</option>
+                <option value="custom">Select Specific Months</option>
+              </select>
+            </label>
+
+            <template v-if="bulkPaymentForm.monthMode === 'range'">
+              <label class="field-wrap">
+                <span class="field-label">Start Month</span>
+                <input v-model="bulkPaymentForm.startMonth" type="month" class="field-input" required />
+              </label>
+
+              <label class="field-wrap">
+                <span class="field-label">Number of Months</span>
+                <input
+                  v-model.number="bulkPaymentForm.numberOfMonths"
+                  type="number"
+                  min="1"
+                  max="24"
+                  class="field-input"
+                  required
+                />
+              </label>
+            </template>
+
+            <template v-else>
+              <label class="field-wrap">
+                <span class="field-label">Specific Months (comma separated)</span>
+                <input
+                  v-model="bulkPaymentForm.customMonthsText"
+                  type="text"
+                  class="field-input"
+                  placeholder="2026-04, 2026-05, 2026-07"
+                  required
+                />
+              </label>
+            </template>
+
+            <label class="field-wrap">
+              <span class="field-label">Total Fees Paid (optional)</span>
+              <input
+                v-model.number="bulkPaymentForm.totalAmountPaid"
+                type="number"
+                min="1"
+                class="field-input"
+                placeholder="Leave empty to use student monthly fee"
+              />
+            </label>
+
+            <label class="checkbox-wrap">
+              <input v-model="bulkPaymentForm.markAsPaid" type="checkbox" />
+              <span>Mark generated records as paid now</span>
+            </label>
+
+            <div class="preview-box" v-if="previewMonths.length">
+              <p class="preview-title">Preview</p>
+              <p class="preview-text">Months: {{ previewMonths.join(', ') }}</p>
+              <p class="preview-text">
+                Amount per month:
+                <span v-if="bulkPaymentForm.totalAmountPaid">₹{{ formatAmount(previewPerMonthAmount) }}</span>
+                <span v-else>Student monthly fee (₹{{ formatAmount(student?.custom_fees || student?.total_fee || 0) }})</span>
+              </p>
+            </div>
+
+            <div class="modal-actions">
+              <button type="button" class="action-btn action-ghost" @click="closeBulkPaymentModal">Cancel</button>
+              <button type="submit" class="action-btn action-primary" :disabled="submittingBulk">
+                {{ submittingBulk ? 'Saving...' : 'Create Payments' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </template>
   </main>
 </template>
@@ -184,10 +307,23 @@ export default {
   },
 
   data() {
+    const today = new Date()
+    const defaultMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
     return {
       student: null,
       payments: [],
       loading: false,
+      showBulkPaymentModal: false,
+      submittingBulk: false,
+      togglingPaymentIds: {},
+      bulkPaymentForm: {
+        monthMode: 'range',
+        startMonth: defaultMonth,
+        numberOfMonths: 1,
+        customMonthsText: '',
+        totalAmountPaid: null,
+        markAsPaid: true,
+      },
     }
   },
 
@@ -202,6 +338,15 @@ export default {
 
     totalAmount() {
       return this.payments.reduce((sum, payment) => sum + payment.amount, 0)
+    },
+
+    previewMonths() {
+      return this.getMonthsForSubmission(false)
+    },
+
+    previewPerMonthAmount() {
+      if (!this.bulkPaymentForm.totalAmountPaid || !this.previewMonths.length) return 0
+      return Math.floor(this.bulkPaymentForm.totalAmountPaid / this.previewMonths.length)
     },
   },
 
@@ -238,6 +383,8 @@ export default {
     },
 
     async togglePaid(payment) {
+      if (this.isPaymentToggling(payment.id)) return
+      this.togglingPaymentIds[payment.id] = true
       try {
         const res = await API.put(`/monthly-payments/toggle/${payment.id}`)
         payment.paid = res.data.paid
@@ -249,6 +396,8 @@ export default {
         }
       } catch (err) {
         this.showError('Failed to update payment status')
+      } finally {
+        delete this.togglingPaymentIds[payment.id]
       }
     },
 
@@ -261,6 +410,101 @@ export default {
         this.showSuccess('Payment record deleted successfully')
       } catch (err) {
         this.showError('Failed to delete payment record')
+      }
+    },
+
+    viewReceipt(paymentId) {
+      this.$router.push(`/receipts/${paymentId}`)
+    },
+
+    openBulkPaymentModal() {
+      this.showBulkPaymentModal = true
+    },
+
+    closeBulkPaymentModal() {
+      this.showBulkPaymentModal = false
+      this.submittingBulk = false
+    },
+
+    parseCustomMonths() {
+      return (this.bulkPaymentForm.customMonthsText || '')
+        .split(',')
+        .map((value) => value.trim())
+        .filter((value) => value.length > 0)
+    },
+
+    buildRangeMonths() {
+      const startMonth = this.bulkPaymentForm.startMonth
+      const count = Number(this.bulkPaymentForm.numberOfMonths || 0)
+      if (!startMonth || count < 1 || count > 24) return []
+
+      const [startYear, startMonthNum] = startMonth.split('-').map(Number)
+      if (!startYear || !startMonthNum) return []
+
+      const months = []
+      let year = startYear
+      let month = startMonthNum
+
+      for (let i = 0; i < count; i += 1) {
+        months.push(`${year}-${String(month).padStart(2, '0')}`)
+        month += 1
+        if (month > 12) {
+          month = 1
+          year += 1
+        }
+      }
+      return months
+    },
+
+    getMonthsForSubmission(throwOnInvalid = true) {
+      const months = this.bulkPaymentForm.monthMode === 'custom'
+        ? this.parseCustomMonths()
+        : this.buildRangeMonths()
+
+      const uniqueMonths = [...new Set(months)].sort()
+      const monthPattern = /^\d{4}-\d{2}$/
+      const hasInvalid = uniqueMonths.some((value) => !monthPattern.test(value))
+
+      if (throwOnInvalid && hasInvalid) {
+        throw new Error('Months must be in YYYY-MM format')
+      }
+      if (throwOnInvalid && (!uniqueMonths.length || uniqueMonths.length > 24)) {
+        throw new Error('Select between 1 and 24 months')
+      }
+
+      return hasInvalid ? [] : uniqueMonths
+    },
+
+    async submitBulkPayments() {
+      if (!this.student?.id) return
+
+      let selectedMonths = []
+      try {
+        selectedMonths = this.getMonthsForSubmission(true)
+      } catch (error) {
+        this.showError(error.message || 'Invalid month selection')
+        return
+      }
+
+      const payload = {
+        start_month: this.bulkPaymentForm.startMonth || selectedMonths[0],
+        number_of_months: Number(this.bulkPaymentForm.numberOfMonths || selectedMonths.length || 1),
+        mark_as_paid: !!this.bulkPaymentForm.markAsPaid,
+        total_amount_paid: this.bulkPaymentForm.totalAmountPaid ? Number(this.bulkPaymentForm.totalAmountPaid) : null,
+        selected_months: this.bulkPaymentForm.monthMode === 'custom' ? selectedMonths : null,
+      }
+
+      this.submittingBulk = true
+      try {
+        const res = await API.post(`/students/${this.student.id}/payments/bulk`, payload)
+        await this.fetchPayments(this.student.id)
+        const { created = 0, updated = 0, skipped = 0 } = res.data || {}
+        this.showSuccess(`Payments updated. Created: ${created}, Updated: ${updated}, Skipped: ${skipped}`)
+        this.closeBulkPaymentModal()
+      } catch (err) {
+        this.showError(err.response?.data?.detail || 'Failed to create bulk payments')
+      } finally {
+        this.submittingBulk = false
       }
     },
 
@@ -282,6 +526,10 @@ export default {
 
     formatAmount(amount) {
       return Number(amount || 0).toLocaleString('en-IN')
+    },
+
+    isPaymentToggling(paymentId) {
+      return !!this.togglingPaymentIds[paymentId]
     },
   },
 }
@@ -498,6 +746,10 @@ export default {
 .payments-head {
   margin-top: 0.8rem;
   margin-bottom: 0.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
 
 .payments-head h3 {
@@ -554,7 +806,23 @@ export default {
   font-size: 0.75rem;
   font-weight: 700;
   cursor: pointer;
-  width: 47%;
+  width: auto;
+  min-width: 110px;
+}
+
+.action-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-spinner {
+  width: 12px;
+  height: 12px;
+  margin-right: 0.35rem;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
 
 .action-success {
@@ -575,6 +843,28 @@ export default {
   border-color: rgba(239, 68, 68, 0.36);
 }
 
+.action-receipt {
+  background: rgba(59, 130, 246, 0.18);
+  color: #bfdbfe;
+  border-color: rgba(59, 130, 246, 0.36);
+}
+
+.action-primary {
+  background: linear-gradient(90deg, #0ea5e9, #3b82f6);
+  color: #fff;
+  border-color: rgba(59, 130, 246, 0.32);
+}
+
+.action-ghost {
+  background: rgba(148, 163, 184, 0.18);
+  color: #e2e8f0;
+  border-color: rgba(148, 163, 184, 0.34);
+}
+
+.add-payments-btn {
+  min-width: 130px;
+}
+
 .mobile-view {
   display: none;
   margin-top: 0.85rem;
@@ -584,6 +874,7 @@ export default {
 .payment-card {
   border-radius: 14px;
   padding: 0.7rem;
+  overflow: auto;
 }
 
 .card-head {
@@ -600,6 +891,10 @@ export default {
 
 .mobile-actions {
   margin-top: 0.55rem;
+}
+
+.mobile-actions .action-btn {
+  width: 30%;
 }
 
 .empty-state,
@@ -621,6 +916,111 @@ export default {
 
 .muted {
   color: var(--text-secondary);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(2, 8, 23, 0.72);
+  display: grid;
+  place-items: center;
+  padding: 1rem 2rem;
+}
+
+.modal-content {
+  width: min(560px, 100%);
+  border-radius: 16px;
+  padding: 0.9rem;
+  text-align: left;
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.modal-head h3 {
+  margin: 0;
+}
+
+.modal-close {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(15, 23, 42, 0.6);
+  color: #e2e8f0;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.bulk-form {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.field-wrap {
+  display: grid;
+  gap: 0.33rem;
+  width: webkit-fit-content;
+  margin-right: 1rem;
+}
+
+.field-label {
+  font-size: 0.78rem;
+  color: #cbd5e1;
+}
+
+.field-input {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(15, 23, 42, 0.62);
+  color: #e2e8f0;
+  padding: 0.55rem 0.65rem;
+  outline: none;
+}
+
+.field-input:focus {
+  border-color: rgba(56, 189, 248, 0.7);
+}
+
+.checkbox-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #cbd5e1;
+  font-size: 0.85rem;
+}
+
+.preview-box {
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  background: rgba(56, 189, 248, 0.08);
+  border-radius: 10px;
+  padding: 0.55rem 0.65rem;
+}
+
+.preview-title {
+  margin: 0 0 0.25rem;
+  font-size: 0.8rem;
+  color: #bae6fd;
+  font-weight: 700;
+}
+
+.preview-text {
+  margin: 0.2rem 0 0;
+  font-size: 0.8rem;
+}
+
+.modal-actions {
+  margin-top: 0.45rem;
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 @keyframes mesh-drift {
@@ -674,6 +1074,8 @@ export default {
   flex-wrap: wrap;
   gap: 0.35rem;
   justify-content: space-between;
+  flex-flow: row;
+  overflow: auto;
 }
 }
 </style>

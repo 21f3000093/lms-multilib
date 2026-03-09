@@ -378,6 +378,19 @@ def get_student_payments(
     return crud.get_student_payments(db, student_id, admin.library_id)
 
 
+@app.post("/students/{student_id}/payments/bulk", response_model=schemas.StudentBulkPaymentResult)
+def create_student_bulk_payments(
+    student_id: int,
+    payload: schemas.StudentBulkPaymentCreate,
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin)
+):
+    try:
+        return crud.create_bulk_student_payments(db, student_id, admin.library_id, payload)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 @app.get("/export-monthly-payments/{month}")
 def export_csv(month: str, db: Session = Depends(get_db), admin = Depends(get_current_admin)):
     return crud.export_monthly_payments_csv(db, month, library_id=admin.library_id)

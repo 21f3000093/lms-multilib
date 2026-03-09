@@ -112,6 +112,7 @@ import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toast-notification'
 import 'vue-toast-notification/dist/theme-sugar.css'
 import API from '../api'
+import { setupPushForCurrentAdmin } from '../utils/pushNotifications'
 
 const router = useRouter()
 const toast = useToast()
@@ -190,6 +191,10 @@ const login = async () => {
     localStorage.setItem('library_name', res.data.library?.name || '')
 
     showSuccess('Login successful')
+
+    if (res.data.role === 'admin') {
+      await setupPushForCurrentAdmin()
+    }
 
     if (res.data.role === 'superadmin') {
       router.push('/superadmin')

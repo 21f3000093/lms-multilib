@@ -324,6 +324,193 @@ def _get_billing_period_and_next_due(month: str, joining_date: date | None) -> t
     return period_start, period_end, next_due_date
 
 
+def _parse_month_str(month_value: str) -> tuple[int, int]:
+    try:
+        year, month_num = map(int, month_value.split("-"))
+    except Exception as exc:
+        raise ValueError(f"Invalid month format: {month_value}") from exc
+    if year < 1900 or year > 2100 or month_num < 1 or month_num > 12:
+        raise ValueError(f"Invalid month value: {month_value}")
+    return year, month_num
+
+
+def _normalize_bulk_months(
+    start_month: str,
+    number_of_months: int,
+    selected_months: list[str] | None
+) -> list[str]:
+    if selected_months:
+        unique_months = sorted(set(selected_months))
+        normalized = []
+        for month_value in unique_months:
+            _parse_month_str(month_value)
+            normalized.append(month_value)
+        if not normalized:
+            raise ValueError("At least one month is required")
+        if len(normalized) > 24:
+            raise ValueError("You can add up to 24 months at once")
+        return normalized
+
+    _parse_month_str(start_month)
+    if number_of_months < 1 or number_of_months > 24:
+        raise ValueError("number_of_months must be between 1 and 24")
+
+    year, month_num = map(int, start_month.split("-"))
+    months: list[str] = []
+    for _ in range(number_of_months):
+        months.append(f"{year:04d}-{month_num:02d}")
+        month_num += 1
+        if month_num > 12:
+            month_num = 1
+            year += 1
+    return months
+
+
+def _split_total_amount(total_amount: int, number_of_months: int) -> list[int]:
+    base = total_amount // number_of_months
+    remainder = total_amount % number_of_months
+    amounts = [base] * number_of_months
+    if remainder:
+        amounts[-1] += remainder
+    return amounts
+
+
+def create_bulk_student_payments(
+    db: Session,
+    student_id: int,
+    library_id: int,
+    payload: schemas.StudentBulkPaymentCreate
+):
+    student = (
+        db.query(models.Student)
+        .filter(
+            models.Student.id == student_id,
+            models.Student.library_id == library_id
+        )
+        .first()
+    )
+    if not student:
+        raise ValueError("Student not found")
+
+    months = _normalize_bulk_months(payload.start_month, payload.number_of_months, payload.selected_months)
+    if not months:
+        raise ValueError("No valid months provided")
+
+    joining_month = student.date_of_joining.strftime("%Y-%m") if student.date_of_joining else None # type: ignore
+    if joining_month:
+        invalid_months = [month_value for month_value in months if month_value < joining_month]
+        if invalid_months:
+            raise ValueError(
+                f"Cannot add payments before joining month ({joining_month}): {', '.join(invalid_months)}"
+            )
+
+    if payload.total_amount_paid is not None:
+        amounts = _split_total_amount(payload.total_amount_paid, len(months))
+    else:
+        monthly_fee = student.custom_fees if student.custom_fees is not None else student.total_fee # type: ignore
+        if monthly_fee is None:
+            raise ValueError("Student monthly fee is not set. Provide total_amount_paid.")
+        amounts = [int(monthly_fee)] * len(months)
+
+    existing_records = (
+        db.query(models.MonthlyPayment)
+        .filter(
+            models.MonthlyPayment.student_id == student.id,
+            models.MonthlyPayment.library_id == library_id,
+            models.MonthlyPayment.month.in_(months)
+        )
+        .all()
+    )
+    existing_by_month = {record.month: record for record in existing_records}
+
+    now_ist = datetime.now(ZoneInfo("Asia/Kolkata"))
+    created = 0
+    updated = 0
+    skipped = 0
+    result_items = []
+
+    for month_value, amount in zip(months, amounts):
+        period_start, period_end, next_due_date = _get_billing_period_and_next_due(month_value, student.date_of_joining) # type: ignore
+        existing = existing_by_month.get(month_value)
+
+        if existing:
+            if existing.paid:
+                skipped += 1
+                result_items.append({
+                    "payment_id": existing.id,
+                    "month": existing.month,
+                    "amount": existing.amount,
+                    "paid": existing.paid,
+                    "action": "skipped_paid",
+                })
+                continue
+
+            changed = False
+            if existing.amount != amount:
+                existing.amount = amount # type: ignore
+                changed = True
+            if existing.period_start != period_start:
+                existing.period_start = period_start # type: ignore
+                changed = True
+            if existing.period_end != period_end:
+                existing.period_end = period_end # type: ignore
+                changed = True
+            if existing.next_due_date != next_due_date:
+                existing.next_due_date = next_due_date # type: ignore
+                changed = True
+            if payload.mark_as_paid and not existing.paid:
+                existing.paid = True # type: ignore
+                existing.paid_at = now_ist # type: ignore
+                changed = True
+
+            if changed:
+                updated += 1
+                action = "updated"
+            else:
+                skipped += 1
+                action = "skipped"
+
+            result_items.append({
+                "payment_id": existing.id,
+                "month": existing.month,
+                "amount": existing.amount,
+                "paid": existing.paid,
+                "action": action,
+            })
+            continue
+
+        payment = models.MonthlyPayment(
+            student_id=student.id,
+            month=month_value,
+            amount=amount,
+            paid=payload.mark_as_paid,
+            paid_at=now_ist if payload.mark_as_paid else None,
+            period_start=period_start,
+            period_end=period_end,
+            next_due_date=next_due_date,
+            library_id=library_id,
+        )
+        db.add(payment)
+        db.flush()
+
+        created += 1
+        result_items.append({
+            "payment_id": payment.id,
+            "month": payment.month,
+            "amount": payment.amount,
+            "paid": payment.paid,
+            "action": "created",
+        })
+
+    db.commit()
+    return {
+        "created": created,
+        "updated": updated,
+        "skipped": skipped,
+        "payments": result_items,
+    }
+
+
 def create_monthly_payments_for_all(db: Session, month: str, library_id: int):
     # Parse 'YYYY-MM' → year, month
     year, month_num = map(int, month.split('-'))

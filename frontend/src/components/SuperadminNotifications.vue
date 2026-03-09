@@ -230,6 +230,7 @@ const sendNotification = async () => {
     title: form.value.title,
     message: form.value.message,
     category: form.value.category,
+    click_url: '/notifications',
   }
 
   if (targetMode.value === 'library') {
