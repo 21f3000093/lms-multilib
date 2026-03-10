@@ -17,8 +17,9 @@ module.exports = defineConfig({
   // ✅ PWA configuration
   pwa: {
     name: 'Smart Library App',
-    themeColor: '#3f51b5',
-    msTileColor: '#ffffff',
+    // Align browser/PWA chrome with the dark enterprise app theme.
+    themeColor: '#0f172a',
+    msTileColor: '#0f172a',
 
     // optional: manifest path
     manifestPath: 'manifest.json',
@@ -27,8 +28,8 @@ module.exports = defineConfig({
     manifestOptions: {
       name: 'Smart Library App',
       short_name: 'Smart Library',
-      theme_color: '#3f51b5',
-      background_color: '#ffffff',
+      theme_color: '#0f172a',
+      background_color: '#0b1222',
       display: 'standalone',
       scope: './',
       start_url: './',
