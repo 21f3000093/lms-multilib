@@ -218,6 +218,7 @@ export default {
         { key: 'register', to: '/register', label: 'Register', icon: 'UserPlus' },
         { key: 'students', to: '/students', label: 'Student List', icon: 'Users' },
         { key: 'monthly-payments', to: '/monthly-payments', label: 'Monthly Fees', icon: 'Banknote' },
+        { key: 'fee-reminders', to: '/reminders', label: 'Fee Reminders', icon: 'Bell' },
         { key: 'seat-map', to: '/seat-map', label: 'Seat Map', icon: 'Grid3X3' },
         { key: 'monthly-expenses', to: '/monthly-expenses', label: 'Expenses', icon: 'ReceiptText' },
         // { key: 'notifications', to: '/notifications', label: 'Notifications', icon: 'Bell', unread: true },
