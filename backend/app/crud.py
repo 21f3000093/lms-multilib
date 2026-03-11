@@ -261,9 +261,16 @@ def mark_student_as_left(db: Session, student_id: int, library_id: int):
 from zoneinfo import ZoneInfo
 
 # To get dashboard data for a library
-def get_dashboard_data(db: Session, library_id: int, trend_months: int = 4):
-    if trend_months not in (4, 6):
-        trend_months = 4
+def get_dashboard_data(
+    db: Session,
+    library_id: int,
+    collection_trend_months: int = 4,
+    movement_trend_months: int = 4,
+):
+    if collection_trend_months not in (4, 6):
+        collection_trend_months = 4
+    if movement_trend_months not in (4, 6):
+        movement_trend_months = 4
 
     shift1_count = db.query(models.Student).filter(models.Student.shift1 == True, models.Student.status == "active", models.Student.library_id == library_id).count()
     shift2_count = db.query(models.Student).filter(models.Student.shift2 == True, models.Student.status == "active", models.Student.library_id == library_id).count()
@@ -291,7 +298,7 @@ def get_dashboard_data(db: Session, library_id: int, trend_months: int = 4):
         months.reverse()
         return months
 
-    trend_month_keys = get_last_n_months(now_india.year, now_india.month, trend_months)
+    collection_month_keys = get_last_n_months(now_india.year, now_india.month, collection_trend_months)
     trend_rows = (
         db.query(
             MonthlyPayment.month,
@@ -300,7 +307,7 @@ def get_dashboard_data(db: Session, library_id: int, trend_months: int = 4):
         .filter(
             MonthlyPayment.library_id == library_id,
             MonthlyPayment.paid == True,
-            MonthlyPayment.month.in_(trend_month_keys)
+            MonthlyPayment.month.in_(collection_month_keys)
         )
         .group_by(MonthlyPayment.month)
         .all()
@@ -312,11 +319,77 @@ def get_dashboard_data(db: Session, library_id: int, trend_months: int = 4):
             "month": month,
             "collected": trend_map.get(month, 0)
         }
-        for month in trend_month_keys
+        for month in collection_month_keys
     ]
 
     monthly_collected = trend_map.get(current_month, 0)
     last_month_collected = collection_trend[-2]["collected"] if len(collection_trend) >= 2 else 0
+
+    # Student movement KPI (growth/churn) for selected trend window.
+    movement_month_keys = get_last_n_months(now_india.year, now_india.month, movement_trend_months)
+    trend_month_set = set(movement_month_keys)
+    first_trend_year, first_trend_month = map(int, movement_month_keys[0].split("-"))
+    last_trend_year, last_trend_month = map(int, movement_month_keys[-1].split("-"))
+    trend_start_date = date(first_trend_year, first_trend_month, 1)
+    if last_trend_month == 12:
+        trend_end_exclusive = date(last_trend_year + 1, 1, 1)
+    else:
+        trend_end_exclusive = date(last_trend_year, last_trend_month + 1, 1)
+
+    joined_rows = (
+        db.query(models.Student.date_of_joining)
+        .filter(
+            models.Student.library_id == library_id,
+            models.Student.date_of_joining >= trend_start_date,
+            models.Student.date_of_joining < trend_end_exclusive,
+        )
+        .all()
+    )
+    joined_map = {month: 0 for month in movement_month_keys}
+    for row in joined_rows:
+        joined_on = row[0]
+        if not joined_on:
+            continue
+        month_key = joined_on.strftime("%Y-%m")
+        if month_key in trend_month_set:
+            joined_map[month_key] += 1
+
+    left_rows = (
+        db.query(models.Student.left_at)
+        .filter(
+            models.Student.library_id == library_id,
+            models.Student.left_at.isnot(None),
+        )
+        .all()
+    )
+    left_map = {month: 0 for month in movement_month_keys}
+    for row in left_rows:
+        left_at = row[0]
+        if not left_at:
+            continue
+        left_on = left_at.date()
+        if left_on < trend_start_date or left_on >= trend_end_exclusive:
+            continue
+        month_key = left_on.strftime("%Y-%m")
+        if month_key in trend_month_set:
+            left_map[month_key] += 1
+
+    movement_trend = []
+    for month in movement_month_keys:
+        new_count = joined_map.get(month, 0)
+        left_count = left_map.get(month, 0)
+        movement_trend.append(
+            {
+                "month": month,
+                "new_count": new_count,
+                "left_count": left_count,
+                "net_movement": new_count - left_count,
+            }
+        )
+
+    new_this_month = joined_map.get(current_month, 0)
+    left_this_month = left_map.get(current_month, 0)
+    net_movement_this_month = new_this_month - left_this_month
 
     # Due-date-aware collection pace (as of today in IST).
     today_india = now_india.date()
@@ -368,6 +441,11 @@ def get_dashboard_data(db: Session, library_id: int, trend_months: int = 4):
         "revenue": revenue,
         "monthly_collected": monthly_collected,
         "last_month_collected": last_month_collected,
+        "active_total": total_students,
+        "new_this_month": new_this_month,
+        "left_this_month": left_this_month,
+        "net_movement_this_month": net_movement_this_month,
+        "movement_trend": movement_trend,
         "due_till_today": due_till_today,
         "collected_till_today": collected_till_today,
         "due_pace_percentage": due_pace_percentage,

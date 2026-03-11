@@ -107,7 +107,7 @@
         <div class="availability-status" :class="getStatusClass(3)">{{ getAvailabilityText(3) }}</div>
       </article>
 
-      <article class="glass-card dashboard-card">
+      <!-- <article class="glass-card dashboard-card">
         <header class="card-header">
           <div class="card-icon students-icon">
             <img src="../assets/svg/student-white.svg" class="svg" alt="Students" loading="lazy">
@@ -134,7 +134,7 @@
             <span class="breakdown-value">{{ data.shift3_count || 0 }}</span>
           </div>
         </div>
-      </article>
+      </article> -->
 
       <article class="glass-card dashboard-card">
         <header class="card-header">
@@ -192,6 +192,8 @@
         </div>
       </article>
 
+      
+
       <article class="glass-card dashboard-card trend-card">
         <header class="card-header trend-header">
           <div class="trend-head-left">
@@ -206,26 +208,30 @@
           <div class="trend-head-actions" role="group" aria-label="Select trend range">
             <button
               class="range-btn"
-              :class="{ active: selectedTrendMonths === 4 }"
+              :class="{ active: selectedCollectionTrendMonths === 4 }"
               :disabled="isDashboardLoading"
               type="button"
-              @click="setTrendMonths(4)"
+              @click="setCollectionTrendMonths(4)"
             >
               Last 4
             </button>
             <button
               class="range-btn"
-              :class="{ active: selectedTrendMonths === 6 }"
+              :class="{ active: selectedCollectionTrendMonths === 6 }"
               :disabled="isDashboardLoading"
               type="button"
-              @click="setTrendMonths(6)"
+              @click="setCollectionTrendMonths(6)"
             >
               Last 6
             </button>
           </div>
         </header>
 
-        <div v-if="trendBars.length" class="trend-chart">
+        <div
+          v-if="trendBars.length"
+          class="trend-chart"
+          :style="{ gridTemplateColumns: `repeat(${trendBars.length}, minmax(0, 1fr))` }"
+        >
           <article
             v-for="(point, index) in trendBars"
             :key="point.month"
@@ -254,6 +260,145 @@
         </div>
         <p v-else class="metric-subtitle">No paid collection data yet.</p>
       </article>
+
+      <article class="glass-card dashboard-card movement-card">
+        <header class="card-header movement-header">
+          <div class="movement-head-left">
+            <div class="card-icon movement-icon">
+              <img src="../assets/svg/chart1.svg" class="svg" alt="Movement" loading="lazy">
+            </div>
+            <div>
+              <h3>Student Movement KPI</h3>
+              <p>Growth vs churn (last {{ selectedMovementTrendMonths }} months)</p>
+            </div>
+          </div>
+          <div class="movement-head-actions" role="group" aria-label="Select movement trend range">
+            <button
+              class="range-btn movement-range-btn"
+              :class="{ active: selectedMovementTrendMonths === 4 }"
+              :disabled="isDashboardLoading"
+              type="button"
+              @click="setMovementTrendMonths(4)"
+            >
+              Last 4
+            </button>
+            <button
+              class="range-btn movement-range-btn"
+              :class="{ active: selectedMovementTrendMonths === 6 }"
+              :disabled="isDashboardLoading"
+              type="button"
+              @click="setMovementTrendMonths(6)"
+            >
+              Last 6
+            </button>
+          </div>
+        </header>
+
+        <div class="movement-grid">
+          <div class="movement-item">
+            <span class="movement-label">New this month</span>
+            <span class="movement-value">+{{ movementNewThisMonth }}</span>
+          </div>
+          <div class="movement-item">
+            <span class="movement-label">Left this month</span>
+            <span class="movement-value">-{{ movementLeftThisMonth }}</span>
+          </div>
+          <div class="movement-item">
+            <span class="movement-label">Active total</span>
+            <span class="movement-value">{{ movementActiveTotal }}</span>
+          </div>
+          <div class="movement-item">
+            <span class="movement-label">Net movement</span>
+            <span
+              class="movement-value"
+              :class="movementNetThisMonth >= 0 ? 'movement-positive' : 'movement-negative'"
+            >
+              {{ movementNetThisMonth >= 0 ? '+' : '' }}{{ movementNetThisMonth }}
+            </span>
+          </div>
+        </div>
+
+        <div v-if="movementChartData.length" class="movement-chart-wrap">
+          <div class="movement-legend">
+            <span><i class="dot dot-new"></i>New</span>
+            <span><i class="dot dot-left"></i>Left</span>
+            <span><i class="dot dot-net"></i>Net</span>
+          </div>
+
+          <svg
+            class="movement-chart"
+            viewBox="0 0 260 100"
+            preserveAspectRatio="none"
+            role="img"
+            aria-label="Student movement combo trend chart"
+          >
+            <line
+              class="movement-zero-line"
+              x1="14"
+              :y1="movementZeroLineY"
+              x2="246"
+              :y2="movementZeroLineY"
+            ></line>
+
+            <g v-for="item in movementChartData" :key="item.month">
+              <rect
+                class="movement-bar movement-bar-new"
+                :x="item.newBarX"
+                :y="item.newBarY"
+                :width="item.barWidth"
+                :height="item.newBarHeight"
+                rx="2"
+              ></rect>
+              <rect
+                class="movement-bar movement-bar-left"
+                :x="item.leftBarX"
+                :y="item.leftBarY"
+                :width="item.barWidth"
+                :height="item.leftBarHeight"
+                rx="2"
+              ></rect>
+            </g>
+
+            <polyline class="movement-net-line" :points="movementNetPolyline"></polyline>
+            <circle
+              v-for="item in movementChartData"
+              :key="`${item.month}-net`"
+              class="movement-net-point"
+              :cx="item.xCenter"
+              :cy="item.netY"
+              r="2.2"
+            ></circle>
+          </svg>
+
+          <div class="movement-month-chips" :style="{ gridTemplateColumns: movementMonthGridTemplate }">
+            <button
+              v-for="(item, index) in movementChartData"
+              :key="`${item.month}-chip`"
+              type="button"
+              class="movement-chip"
+              :class="{ active: movementActiveDetailIndex === index }"
+              @mouseenter="setActiveMovementIndex(index)"
+              @focus="setActiveMovementIndex(index)"
+              @blur="clearActiveMovementIndex"
+              @click="toggleActiveMovementIndex(index)"
+            >
+              {{ item.label }}
+            </button>
+          </div>
+
+          <div v-if="activeMovementDetail" class="movement-detail-panel">
+            <p class="movement-detail-month">{{ activeMovementDetail.fullLabel }}</p>
+            <div class="movement-detail-grid">
+              <p><span>New</span><strong>+{{ activeMovementDetail.newCount }}</strong></p>
+              <p><span>Left</span><strong>-{{ activeMovementDetail.leftCount }}</strong></p>
+              <p><span>Net</span><strong>{{ activeMovementDetail.net >= 0 ? '+' : '' }}{{ activeMovementDetail.net }}</strong></p>
+              <p><span>Join Share</span><strong>{{ activeMovementDetail.joinShare }}%</strong></p>
+            </div>
+          </div>
+        </div>
+        <p v-else class="metric-subtitle">No movement data for selected range.</p>
+      </article>
+
     </section>
 
     <section class="section-shell insights-section glass-card">
@@ -301,9 +446,11 @@ export default {
   data() {
     return {
       data: {},
-      selectedTrendMonths: 4,
+      selectedCollectionTrendMonths: 4,
+      selectedMovementTrendMonths: 4,
       isDashboardLoading: false,
       activeTrendIndex: null,
+      activeMovementIndex: null,
     }
   },
 
@@ -366,7 +513,7 @@ export default {
     },
 
     trendSubtitle() {
-      return `Last ${this.selectedTrendMonths} months (paid only)`
+      return `Last ${this.selectedCollectionTrendMonths} months (paid only)`
     },
 
     collectionPercentage() {
@@ -422,6 +569,113 @@ export default {
 
     pendingAmount() {
       return Math.max(0, this.totalRevenue - this.monthlyCollected)
+    },
+
+    movementTrend() {
+      if (!Array.isArray(this.data.movement_trend)) return []
+      return this.data.movement_trend.map((item) => ({
+        month: item.month,
+        newCount: Number(item.new_count || 0),
+        leftCount: Number(item.left_count || 0),
+        net: Number(item.net_movement || 0),
+      }))
+    },
+
+    movementNewThisMonth() {
+      return Number(this.data.new_this_month || 0)
+    },
+
+    movementLeftThisMonth() {
+      return Number(this.data.left_this_month || 0)
+    },
+
+    movementActiveTotal() {
+      if (this.data.active_total !== undefined && this.data.active_total !== null) {
+        return Number(this.data.active_total)
+      }
+      return Number(this.data.total_students || 0)
+    },
+
+    movementNetThisMonth() {
+      if (this.data.net_movement_this_month !== undefined && this.data.net_movement_this_month !== null) {
+        return Number(this.data.net_movement_this_month)
+      }
+      return this.movementNewThisMonth - this.movementLeftThisMonth
+    },
+
+    movementChartData() {
+      if (!this.movementTrend.length) return []
+
+      const chartTop = 10
+      const chartBottom = 88
+      const chartLeft = 14
+      const chartRight = 246
+      const chartHeight = chartBottom - chartTop
+      const slotWidth = (chartRight - chartLeft) / this.movementTrend.length
+      const barWidth = Math.max(6, Math.min(12, slotWidth * 0.24))
+      const barGap = 2
+
+      const maxCount = Math.max(
+        1,
+        ...this.movementTrend.map((item) => Math.max(item.newCount, item.leftCount)),
+      )
+      const netMin = Math.min(0, ...this.movementTrend.map((item) => item.net))
+      const netMax = Math.max(0, ...this.movementTrend.map((item) => item.net))
+      const netRange = netMax - netMin || 1
+      const zeroY = chartBottom - ((0 - netMin) / netRange) * chartHeight
+
+      return this.movementTrend.map((item, index) => {
+        const xCenter = chartLeft + (slotWidth * (index + 0.5))
+        const newBarHeight = (item.newCount / maxCount) * chartHeight
+        const leftBarHeight = (item.leftCount / maxCount) * chartHeight
+        const netY = chartBottom - ((item.net - netMin) / netRange) * chartHeight
+        const totalMove = item.newCount + item.leftCount
+        const joinShare = totalMove > 0 ? Math.round((item.newCount / totalMove) * 100) : 0
+
+        return {
+          ...item,
+          label: this.formatMonthShort(item.month),
+          fullLabel: this.formatMonthFull(item.month),
+          xCenter: Number(xCenter.toFixed(2)),
+          barWidth: Number(barWidth.toFixed(2)),
+          newBarX: Number((xCenter - barWidth - barGap).toFixed(2)),
+          leftBarX: Number((xCenter + barGap).toFixed(2)),
+          newBarY: Number((chartBottom - newBarHeight).toFixed(2)),
+          leftBarY: Number((chartBottom - leftBarHeight).toFixed(2)),
+          newBarHeight: Number(Math.max(1, newBarHeight).toFixed(2)),
+          leftBarHeight: Number(Math.max(1, leftBarHeight).toFixed(2)),
+          netY: Number(netY.toFixed(2)),
+          zeroY: Number(zeroY.toFixed(2)),
+          joinShare,
+        }
+      })
+    },
+
+    movementNetPolyline() {
+      return this.movementChartData.map((item) => `${item.xCenter},${item.netY}`).join(' ')
+    },
+
+    movementZeroLineY() {
+      if (!this.movementChartData.length) return 88
+      return this.movementChartData[0].zeroY
+    },
+
+    movementMonthGridTemplate() {
+      if (!this.movementChartData.length) return 'repeat(1, minmax(0, 1fr))'
+      return `repeat(${this.movementChartData.length}, minmax(0, 1fr))`
+    },
+
+    movementActiveDetailIndex() {
+      if (!this.movementChartData.length) return -1
+      if (this.activeMovementIndex === null || this.activeMovementIndex === undefined) {
+        return this.movementChartData.length - 1
+      }
+      return Math.max(0, Math.min(this.activeMovementIndex, this.movementChartData.length - 1))
+    },
+
+    activeMovementDetail() {
+      if (this.movementActiveDetailIndex < 0) return null
+      return this.movementChartData[this.movementActiveDetailIndex]
     },
 
     overallOccupancy() {
@@ -484,11 +738,26 @@ export default {
       this.activeTrendIndex = this.activeTrendIndex === index ? null : index
     },
 
+    setActiveMovementIndex(index) {
+      this.activeMovementIndex = index
+    },
+
+    clearActiveMovementIndex() {
+      this.activeMovementIndex = null
+    },
+
+    toggleActiveMovementIndex(index) {
+      this.activeMovementIndex = this.activeMovementIndex === index ? null : index
+    },
+
     async fetchDashboard() {
       this.isDashboardLoading = true
       try {
         const res = await API.get('/dashboard/', {
-          params: { trend_months: this.selectedTrendMonths },
+          params: {
+            collection_trend_months: this.selectedCollectionTrendMonths,
+            movement_trend_months: this.selectedMovementTrendMonths,
+          },
         })
         this.data = res.data || {}
       } catch (error) {
@@ -498,10 +767,17 @@ export default {
       }
     },
 
-    async setTrendMonths(months) {
-      if (this.selectedTrendMonths === months || this.isDashboardLoading) return
-      this.selectedTrendMonths = months
+    async setCollectionTrendMonths(months) {
+      if (this.selectedCollectionTrendMonths === months || this.isDashboardLoading) return
+      this.selectedCollectionTrendMonths = months
       this.activeTrendIndex = null
+      await this.fetchDashboard()
+    },
+
+    async setMovementTrendMonths(months) {
+      if (this.selectedMovementTrendMonths === months || this.isDashboardLoading) return
+      this.selectedMovementTrendMonths = months
+      this.activeMovementIndex = null
       await this.fetchDashboard()
     },
 
@@ -717,6 +993,10 @@ export default {
   background: rgba(14, 165, 233, 0.2);
 }
 
+.movement-icon {
+  background: rgba(56, 189, 248, 0.2);
+}
+
 .svg {
   width: 36px;
   height: 36px;
@@ -887,6 +1167,210 @@ export default {
 .pace-at-risk {
   background: rgba(239, 68, 68, 0.2);
   color: #fecaca;
+}
+
+.movement-card {
+  display: flex;
+  flex-direction: column;
+  grid-column: span 3;
+}
+
+.movement-header {
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+.movement-head-left {
+  display: flex;
+  align-items: center;
+  gap: 0.62rem;
+}
+
+.movement-head-actions {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(74, 222, 128, 0.34);
+  background: rgba(15, 23, 42, 0.62);
+  padding: 0.2rem;
+}
+
+.movement-range-btn.active {
+  background: linear-gradient(90deg, rgba(34, 197, 94, 0.25), rgba(16, 185, 129, 0.3));
+  color: #dcfce7;
+}
+
+.movement-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.movement-item {
+  border-radius: 10px;
+  background: rgba(148, 163, 184, 0.12);
+  padding: 0.5rem 0.56rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+}
+
+.movement-label {
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+}
+
+.movement-value {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #e2e8f0;
+}
+
+.movement-positive {
+  color: #86efac;
+}
+
+.movement-negative {
+  color: #fca5a5;
+}
+
+.movement-chart-wrap {
+  margin-top: 0.58rem;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  padding: 0.5rem;
+}
+
+.movement-legend {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.movement-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.dot-new {
+  background: #34d399;
+}
+
+.dot-left {
+  background: #f87171;
+}
+
+.dot-net {
+  background: #67e8f9;
+}
+
+.movement-chart {
+  width: 100%;
+  height: 108px;
+  display: block;
+  margin-top: 0.38rem;
+}
+
+.movement-zero-line {
+  stroke: rgba(148, 163, 184, 0.28);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+
+.movement-bar {
+  opacity: 0.95;
+}
+
+.movement-bar-new {
+  fill: #34d399;
+}
+
+.movement-bar-left {
+  fill: #f87171;
+}
+
+.movement-net-line {
+  fill: none;
+  stroke: #67e8f9;
+  stroke-width: 2.1;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.movement-net-point {
+  fill: #67e8f9;
+  stroke: rgba(12, 74, 110, 0.85);
+  stroke-width: 1;
+}
+
+.movement-month-chips {
+  margin-top: 0.3rem;
+  display: grid;
+  gap: 0.34rem;
+}
+
+.movement-chip {
+  border: 1px solid rgba(148, 163, 184, 0.26);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.4);
+  color: #cbd5e1;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.26rem 0.2rem;
+  cursor: pointer;
+}
+
+.movement-chip.active {
+  border-color: rgba(34, 197, 94, 0.5);
+  background: rgba(34, 197, 94, 0.16);
+  color: #dcfce7;
+}
+
+.movement-detail-panel {
+  margin-top: 0.42rem;
+  border-radius: 10px;
+  background: rgba(30, 41, 59, 0.42);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  padding: 0.42rem 0.5rem;
+}
+
+.movement-detail-month {
+  margin: 0;
+  color: #bae6fd;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.movement-detail-grid {
+  margin-top: 0.26rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.2rem 0.48rem;
+}
+
+.movement-detail-grid p {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.35rem;
+  font-size: 0.73rem;
+  color: #cbd5e1;
+}
+
+.movement-detail-grid strong {
+  color: #e2e8f0;
 }
 
 .trend-card {
@@ -1133,6 +1617,19 @@ export default {
   .trend-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .movement-card {
+    grid-column: span 1;
+  }
+
+  .movement-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .movement-detail-grid {
+    grid-template-columns: 1fr;
   }
 
   .current,

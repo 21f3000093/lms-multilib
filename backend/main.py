@@ -233,13 +233,21 @@ def get_student_by_id(
 
 @app.get("/dashboard/")
 def dashboard(
-    trend_months: int = Query(4, description="Supported values: 4 or 6"),
+    collection_trend_months: int = Query(4, description="Supported values: 4 or 6"),
+    movement_trend_months: int = Query(4, description="Supported values: 4 or 6"),
     db: Session = Depends(get_db),
     admin = Depends(get_current_admin)
 ):
-    if trend_months not in (4, 6):
-        trend_months = 4
-    return crud.get_dashboard_data(db, library_id=admin.library_id, trend_months=trend_months)
+    if collection_trend_months not in (4, 6):
+        collection_trend_months = 4
+    if movement_trend_months not in (4, 6):
+        movement_trend_months = 4
+    return crud.get_dashboard_data(
+        db,
+        library_id=admin.library_id,
+        collection_trend_months=collection_trend_months,
+        movement_trend_months=movement_trend_months,
+    )
 
 
 @app.get("/available-seats")
