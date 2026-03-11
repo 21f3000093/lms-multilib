@@ -108,7 +108,7 @@ class LibraryCreate(BaseModel):
     address: Optional[str] = None
     contact_email: Optional[str] = None
     contact_phone: Optional[str] = None
-    max_seats: int
+    max_seats: int = Field(..., ge=1, le=200)
     
     
 class LibraryOut(LibraryCreate):

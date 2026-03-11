@@ -27,6 +27,8 @@ def get_libraries(db: Session = Depends(get_db),admin = Depends(get_current_admi
 def create_library(library: schemas.LibraryCreate, db: Session = Depends(get_db), admin = Depends(get_current_admin)):
     if admin.role != "superadmin":
         raise HTTPException(status_code=403, detail="Only superadmin can access this")
+    if library.max_seats < 1 or library.max_seats > 200:
+        raise HTTPException(status_code=400, detail="max_seats must be between 1 and 200")
     
     new_library = models.Library(
         name=library.name,
