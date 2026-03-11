@@ -142,8 +142,8 @@
             <img src="../assets/svg/money-dollar.svg" class="svg" alt="Revenue" loading="lazy">
           </div>
           <div>
-            <h3>Monthly Revenue</h3>
-            <p>Expected this month</p>
+            <h3>Due This Month (Target)</h3>
+            <p>Projected billing target</p>
           </div>
         </header>
         <div class="metric-display">
@@ -164,21 +164,46 @@
           </div>
           <div>
             <h3>This Month Collected</h3>
-            <p>{{ collectionPercentage }}% of target</p>
+            <p>Collection pipeline status</p>
           </div>
+          <span class="pipeline-chip" :class="collectionStatusClass">{{ collectionStatusLabel }}</span>
         </header>
         <div class="metric-display">
           <div class="main-number collection-amount">₹{{ formatNumber(monthlyCollected) }}</div>
+          <div class="metric-subtitle">{{ collectionPercentage }}% of due target</div>
         </div>
         <div class="collection-progress">
           <div class="progress-container">
             <div class="progress-bar collection-bar">
-              <div class="progress-fill collection-fill" :style="{ width: Math.min(collectionPercentage, 100) + '%' }"></div>
+              <div
+                class="progress-fill"
+                :class="collectionFillClass"
+                :style="{ width: Math.min(collectionPercentage, 100) + '%' }"
+              ></div>
             </div>
           </div>
-          <div class="pending-amount">Pending: ₹{{ formatNumber(pendingAmount) }}</div>
         </div>
         <div class="collection-details">
+          <div class="detail-row">
+            <span class="detail-label">Due this month</span>
+            <span class="detail-value">₹{{ formatNumber(totalRevenue) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Collected</span>
+            <span class="detail-value">₹{{ formatNumber(monthlyCollected) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Outstanding</span>
+            <span class="detail-value">₹{{ formatNumber(pendingAmount) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Collection %</span>
+            <span class="detail-value">{{ collectionPercentage }}%</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Status</span>
+            <span class="pipeline-chip" :class="collectionStatusClass">{{ collectionStatusLabel }}</span>
+          </div>
           <div class="detail-row">
             <span class="detail-label">Current month delta</span>
             <span class="detail-value">₹{{ formatNumber(Math.abs(monthOverMonthDelta)) }}</span>
@@ -399,6 +424,30 @@ export default {
     collectionPercentage() {
       if (this.totalRevenue === 0) return 0
       return Math.round((this.monthlyCollected / this.totalRevenue) * 100)
+    },
+
+    collectionStatusKey() {
+      if (this.collectionPercentage >= 95) return 'on-track'
+      if (this.collectionPercentage >= 80) return 'watch'
+      return 'at-risk'
+    },
+
+    collectionStatusLabel() {
+      if (this.collectionStatusKey === 'on-track') return 'On track'
+      if (this.collectionStatusKey === 'watch') return 'Watch'
+      return 'At risk'
+    },
+
+    collectionStatusClass() {
+      if (this.collectionStatusKey === 'on-track') return 'pipeline-on-track'
+      if (this.collectionStatusKey === 'watch') return 'pipeline-watch'
+      return 'pipeline-at-risk'
+    },
+
+    collectionFillClass() {
+      if (this.collectionStatusKey === 'on-track') return 'collection-fill-on-track'
+      if (this.collectionStatusKey === 'watch') return 'collection-fill-watch'
+      return 'collection-fill-at-risk'
     },
 
     pendingAmount() {
@@ -771,7 +820,9 @@ export default {
 .shift1 { background: linear-gradient(90deg, #3b82f6, #1d4ed8); }
 .shift2 { background: linear-gradient(90deg, #8b5cf6, #7c3aed); }
 .shift3 { background: linear-gradient(90deg, #06b6d4, #0891b2); }
-.collection-fill { background: linear-gradient(90deg, #10b981, #059669); }
+.collection-fill-on-track { background: linear-gradient(90deg, #10b981, #059669); }
+.collection-fill-watch { background: linear-gradient(90deg, #f59e0b, #d97706); }
+.collection-fill-at-risk { background: linear-gradient(90deg, #ef4444, #dc2626); }
 
 .availability-status {
   text-align: center;
@@ -850,6 +901,30 @@ export default {
 
 .detail-value {
   font-weight: 700;
+}
+
+.pipeline-chip {
+  margin-left: auto;
+  border-radius: 999px;
+  padding: 0.24rem 0.58rem;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.pipeline-on-track {
+  background: rgba(16, 185, 129, 0.2);
+  color: #a7f3d0;
+}
+
+.pipeline-watch {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fde68a;
+}
+
+.pipeline-at-risk {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fecaca;
 }
 
 .trend-chip {
