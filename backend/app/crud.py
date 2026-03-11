@@ -317,6 +317,46 @@ def get_dashboard_data(db: Session, library_id: int, trend_months: int = 4):
 
     monthly_collected = trend_map.get(current_month, 0)
     last_month_collected = collection_trend[-2]["collected"] if len(collection_trend) >= 2 else 0
+
+    # Due-date-aware collection pace (as of today in IST).
+    today_india = now_india.date()
+    current_year, current_month_num = map(int, current_month.split("-"))
+    current_month_payments = (
+        db.query(MonthlyPayment)
+        .options(joinedload(MonthlyPayment.student))
+        .filter(
+            MonthlyPayment.library_id == library_id,
+            MonthlyPayment.month == current_month,
+        )
+        .all()
+    )
+
+    due_till_today = 0
+    collected_till_today = 0
+    for payment in current_month_payments:
+        # Current cycle due date is period_start; next_due_date belongs to next cycle.
+        due_date = payment.period_start
+        if due_date is None:
+            joining_date = payment.student.date_of_joining if payment.student else None
+            due_date = _get_due_date_for_month(current_year, current_month_num, joining_date)
+
+        amount_value = int(payment.amount or 0)
+        if due_date <= today_india:
+            due_till_today += amount_value
+            if payment.paid:
+                collected_till_today += amount_value
+
+    if due_till_today <= 0:
+        due_pace_percentage = 100
+    else:
+        due_pace_percentage = round((collected_till_today / due_till_today) * 100)
+
+    if due_pace_percentage >= 100:
+        due_pace_status = "on-track"
+    elif due_pace_percentage >= 85:
+        due_pace_status = "watch"
+    else:
+        due_pace_status = "at-risk"
     
     max_seats = db.query(models.Library).filter(models.Library.id == library_id).first().max_seats # type: ignore
     
@@ -328,6 +368,10 @@ def get_dashboard_data(db: Session, library_id: int, trend_months: int = 4):
         "revenue": revenue,
         "monthly_collected": monthly_collected,
         "last_month_collected": last_month_collected,
+        "due_till_today": due_till_today,
+        "collected_till_today": collected_till_today,
+        "due_pace_percentage": due_pace_percentage,
+        "due_pace_status": due_pace_status,
         "collection_trend": collection_trend,
         "max_seats": max_seats
     }

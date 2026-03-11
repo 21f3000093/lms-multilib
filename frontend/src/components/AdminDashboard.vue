@@ -138,27 +138,6 @@
 
       <article class="glass-card dashboard-card">
         <header class="card-header">
-          <div class="card-icon revenue-icon">
-            <img src="../assets/svg/money-dollar.svg" class="svg" alt="Revenue" loading="lazy">
-          </div>
-          <div>
-            <h3>Due This Month (Target)</h3>
-            <p>Projected billing target</p>
-          </div>
-        </header>
-        <div class="metric-display">
-          <div class="main-number revenue-amount">₹{{ formatNumber(totalRevenue) }}</div>
-        </div>
-        <div class="revenue-details">
-          <div class="detail-row">
-            <span class="detail-label">Per Student Avg</span>
-            <span class="detail-value">₹{{ getAverageRevenue() }}</span>
-          </div>
-        </div>
-      </article>
-
-      <article class="glass-card dashboard-card">
-        <header class="card-header">
           <div class="card-icon collection-icon">
             <img src="../assets/svg/money-recive-white.svg" class="svg" alt="Collected" loading="lazy">
           </div>
@@ -166,11 +145,10 @@
             <h3>This Month Collected</h3>
             <p>Collection pipeline status</p>
           </div>
-          <span class="pipeline-chip" :class="collectionStatusClass">{{ collectionStatusLabel }}</span>
         </header>
         <div class="metric-display">
           <div class="main-number collection-amount">₹{{ formatNumber(monthlyCollected) }}</div>
-          <div class="metric-subtitle">{{ collectionPercentage }}% of due target</div>
+          <div class="metric-subtitle">{{ collectionPercentage }}% of month target</div>
         </div>
         <div class="collection-progress">
           <div class="progress-container">
@@ -181,6 +159,9 @@
                 :style="{ width: Math.min(collectionPercentage, 100) + '%' }"
               ></div>
             </div>
+          </div>
+          <div class="pace-caption">
+            As of today: {{ duePacePercentage }}% due pace (₹{{ formatNumber(collectedTillToday) }} / ₹{{ formatNumber(dueTillToday) }})
           </div>
         </div>
         <div class="collection-details">
@@ -201,35 +182,13 @@
             <span class="detail-value">{{ collectionPercentage }}%</span>
           </div>
           <div class="detail-row">
-            <span class="detail-label">Status</span>
-            <span class="pipeline-chip" :class="collectionStatusClass">{{ collectionStatusLabel }}</span>
+            <span class="detail-label">Last month collected</span>
+            <span class="detail-value">₹{{ formatNumber(lastMonthCollected) }}</span>
           </div>
           <div class="detail-row">
-            <span class="detail-label">Current month delta</span>
-            <span class="detail-value">₹{{ formatNumber(Math.abs(monthOverMonthDelta)) }}</span>
+            <span class="detail-label">Pace (as of today)</span>
+            <span class="pace-chip" :class="duePaceClass">{{ duePaceLabel }}</span>
           </div>
-          <div class="detail-row">
-            <span class="detail-label">Month-over-month</span>
-            <span class="trend-chip" :class="monthOverMonthDelta >= 0 ? 'trend-up' : 'trend-down'">
-              {{ monthOverMonthDelta >= 0 ? '+' : '' }}{{ monthOverMonthPercent }}%
-            </span>
-          </div>
-        </div>
-      </article>
-
-      <article class="glass-card dashboard-card">
-        <header class="card-header">
-          <div class="card-icon collection-icon">
-            <img src="../assets/svg/money-recive-white.svg" class="svg" alt="Last month" loading="lazy">
-          </div>
-          <div>
-            <h3>Last Month Collected</h3>
-            <p>Previous month benchmark</p>
-          </div>
-        </header>
-        <div class="metric-display">
-          <div class="main-number last-month-amount">₹{{ formatNumber(lastMonthCollected) }}</div>
-          <div class="metric-subtitle">Benchmark against current month</div>
         </div>
       </article>
 
@@ -361,17 +320,6 @@ export default {
       return this.data.last_month_collected || 0
     },
 
-    monthOverMonthDelta() {
-      return this.monthlyCollected - this.lastMonthCollected
-    },
-
-    monthOverMonthPercent() {
-      if (this.lastMonthCollected <= 0) {
-        return this.monthlyCollected > 0 ? 100 : 0
-      }
-      return Math.round((this.monthOverMonthDelta / this.lastMonthCollected) * 100)
-    },
-
     collectionTrend() {
       if (!Array.isArray(this.data.collection_trend)) return []
       return this.data.collection_trend.map((item) => ({
@@ -426,27 +374,49 @@ export default {
       return Math.round((this.monthlyCollected / this.totalRevenue) * 100)
     },
 
-    collectionStatusKey() {
-      if (this.collectionPercentage >= 95) return 'on-track'
-      if (this.collectionPercentage >= 80) return 'watch'
+    dueTillToday() {
+      return Number(this.data.due_till_today || 0)
+    },
+
+    collectedTillToday() {
+      return Number(this.data.collected_till_today || 0)
+    },
+
+    duePacePercentage() {
+      const backendValue = this.data.due_pace_percentage
+      if (backendValue !== undefined && backendValue !== null) {
+        return Number(backendValue)
+      }
+      if (this.dueTillToday <= 0) return 100
+      return Math.round((this.collectedTillToday / this.dueTillToday) * 100)
+    },
+
+    duePaceStatusKey() {
+      const rawStatus = String(this.data.due_pace_status || '').trim().toLowerCase()
+      if (rawStatus === 'on-track' || rawStatus === 'watch' || rawStatus === 'at-risk') {
+        return rawStatus
+      }
+
+      if (this.duePacePercentage >= 100) return 'on-track'
+      if (this.duePacePercentage >= 85) return 'watch'
       return 'at-risk'
     },
 
-    collectionStatusLabel() {
-      if (this.collectionStatusKey === 'on-track') return 'On track'
-      if (this.collectionStatusKey === 'watch') return 'Watch'
+    duePaceLabel() {
+      if (this.duePaceStatusKey === 'on-track') return 'On track'
+      if (this.duePaceStatusKey === 'watch') return 'Watch'
       return 'At risk'
     },
 
-    collectionStatusClass() {
-      if (this.collectionStatusKey === 'on-track') return 'pipeline-on-track'
-      if (this.collectionStatusKey === 'watch') return 'pipeline-watch'
-      return 'pipeline-at-risk'
+    duePaceClass() {
+      if (this.duePaceStatusKey === 'on-track') return 'pace-on-track'
+      if (this.duePaceStatusKey === 'watch') return 'pace-watch'
+      return 'pace-at-risk'
     },
 
     collectionFillClass() {
-      if (this.collectionStatusKey === 'on-track') return 'collection-fill-on-track'
-      if (this.collectionStatusKey === 'watch') return 'collection-fill-watch'
+      if (this.duePaceStatusKey === 'on-track') return 'collection-fill-on-track'
+      if (this.duePaceStatusKey === 'watch') return 'collection-fill-watch'
       return 'collection-fill-at-risk'
     },
 
@@ -585,10 +555,6 @@ export default {
       return 'Evening Shift (Shift 3)'
     },
 
-    getAverageRevenue() {
-      const totalStudents = this.data.total_students || 0
-      return totalStudents > 0 ? Math.round(this.totalRevenue / totalStudents) : 0
-    }
   },
 
   async created() {
@@ -781,23 +747,14 @@ export default {
 }
 
 .occupancy-percentage,
-.pending-amount,
 .metric-subtitle {
   margin-top: 0.35rem;
   color: var(--text-secondary);
   font-size: 0.85rem;
 }
 
-.revenue-amount {
-  color: #fecaca;
-}
-
 .collection-amount {
   color: #a7f3d0;
-}
-
-.last-month-amount {
-  color: #bfdbfe;
 }
 
 .progress-container {
@@ -903,8 +860,13 @@ export default {
   font-weight: 700;
 }
 
-.pipeline-chip {
-  margin-left: auto;
+.pace-caption {
+  margin-top: 0.15rem;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.pace-chip {
   border-radius: 999px;
   padding: 0.24rem 0.58rem;
   font-size: 0.76rem;
@@ -912,35 +874,17 @@ export default {
   letter-spacing: 0.01em;
 }
 
-.pipeline-on-track {
+.pace-on-track {
   background: rgba(16, 185, 129, 0.2);
   color: #a7f3d0;
 }
 
-.pipeline-watch {
+.pace-watch {
   background: rgba(245, 158, 11, 0.2);
   color: #fde68a;
 }
 
-.pipeline-at-risk {
-  background: rgba(239, 68, 68, 0.2);
-  color: #fecaca;
-}
-
-.trend-chip {
-  border-radius: 999px;
-  padding: 0.22rem 0.55rem;
-  font-size: 0.8rem;
-  font-weight: 800;
-  letter-spacing: 0.01em;
-}
-
-.trend-up {
-  background: rgba(16, 185, 129, 0.2);
-  color: #a7f3d0;
-}
-
-.trend-down {
+.pace-at-risk {
   background: rgba(239, 68, 68, 0.2);
   color: #fecaca;
 }
