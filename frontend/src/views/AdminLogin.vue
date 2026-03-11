@@ -232,7 +232,7 @@ const login = async () => {
   font-family: Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   color: var(--text-primary);
   background: var(--bg);
-  padding: 4rem 1rem 2rem;
+  padding: 2rem 1rem 2rem;
 }
 
 .mesh-layer {
@@ -381,6 +381,23 @@ const login = async () => {
 
 .input-wrap input::placeholder {
   color: #64748b;
+}
+
+.input-wrap input:-webkit-autofill,
+.input-wrap input:-webkit-autofill:hover,
+.input-wrap input:-webkit-autofill:focus,
+.input-wrap input:-webkit-autofill:active {
+  -webkit-text-fill-color: #f8fafc;
+  caret-color: #f8fafc;
+  -webkit-box-shadow: 0 0 0 1000px rgba(15, 23, 42, 0.75) inset;
+  box-shadow: 0 0 0 1000px rgba(15, 23, 42, 0.75) inset;
+  transition: background-color 9999s ease-out 0s;
+}
+
+.input-wrap input:-moz-autofill {
+  color: #f8fafc;
+  caret-color: #f8fafc;
+  box-shadow: 0 0 0 1000px rgba(15, 23, 42, 0.75) inset;
 }
 
 .toggle-btn {

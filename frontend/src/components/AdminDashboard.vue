@@ -377,10 +377,8 @@
               type="button"
               class="movement-chip"
               :class="{ active: movementActiveDetailIndex === index }"
-              @mouseenter="setActiveMovementIndex(index)"
               @focus="setActiveMovementIndex(index)"
-              @blur="clearActiveMovementIndex"
-              @click="toggleActiveMovementIndex(index)"
+              @click="setActiveMovementIndex(index)"
             >
               {{ item.label }}
             </button>
@@ -740,14 +738,6 @@ export default {
 
     setActiveMovementIndex(index) {
       this.activeMovementIndex = index
-    },
-
-    clearActiveMovementIndex() {
-      this.activeMovementIndex = null
-    },
-
-    toggleActiveMovementIndex(index) {
-      this.activeMovementIndex = this.activeMovementIndex === index ? null : index
     },
 
     async fetchDashboard() {
