@@ -249,6 +249,7 @@ export default {
         { key: 'register', to: '/register', label: 'Register', icon: 'UserPlus' },
         { key: 'students', to: '/students', label: 'Student List', icon: 'Users' },
         { key: 'monthly-payments', to: '/monthly-payments', label: 'Monthly Fees', icon: 'Banknote' },
+        { key: 'fee-reminders', to: '/reminders', label: 'Fee Reminders', icon: 'Bell' },
         { key: 'seat-map', to: '/seat-map', label: 'Seat Map', icon: 'Armchair' },
       ]
     },
@@ -798,7 +799,7 @@ export default {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   padding: 0.4rem;
   box-shadow: 0 20px 35px rgba(2, 6, 23, 0.35);
 }
