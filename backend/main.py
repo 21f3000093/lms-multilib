@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
@@ -131,10 +131,10 @@ class Settings(BaseModel):
     authjwt_cookie_csrf_protect: bool = False  # Optional
     authjwt_access_token_expires: int = 60 * 60 * 24  # 24 hours
     authjwt_cookie_max_age: int = 60 * 60 * 24
-    # authjwt_cookie_samesite: str = "none" # keep it "none" for local testing with secure cookies, change to "lax" for production if you want to allow cross-origin GETs without credentials
+    authjwt_cookie_samesite: str = "none" # keep it "none" for local testing with secure cookies, change to "lax" for production if you want to allow cross-origin GETs without credentials
     authjwt_cookie_secure: bool = True
-    authjwt_cookie_samesite: str = "lax"   # ✅ allow cross-origin GETs without credentials, change to "none" for local testing with secure cookies
-    authjwt_cookie_domain: str = ".smartlibraryapp.in"  # ✅ important for matching frontend domain, adjust as needed for local testing vs production
+    # authjwt_cookie_samesite: str = "lax"   # ✅ allow cross-origin GETs without credentials, change to "none" for local testing with secure cookies
+    # authjwt_cookie_domain: str = ".smartlibraryapp.in"  # ✅ important for matching frontend domain, adjust as needed for local testing vs production
     
 
 @AuthJWT.load_config # type:ignore
@@ -151,18 +151,28 @@ app.include_router(superadmin.superadmin_router)
 app.include_router(whatsapp_reminder.router)
 app.include_router(notifications.router)
 
-origins=os.getenv("ALLOWED_ORIGINS") # type: ignore
+def _parse_allowed_origins(raw_origins: str | None) -> list[str]:
+    if not raw_origins:
+        return []
+    parsed: list[str] = []
+    for origin in raw_origins.split(","):
+        cleaned = origin.strip().strip("'").strip('"')
+        if cleaned:
+            parsed.append(cleaned)
+    return parsed
+
+
+configured_origins = _parse_allowed_origins(os.getenv("ALLOWED_ORIGINS"))
+default_origins = [
+    "http://localhost:8080",
+    "https://www.smartlibraryapp.in",
+    "https://app.smartlibraryapp.in",
+]
 
 # CORS config
 app.add_middleware(
     CORSMiddleware,
-    # allow_origins=[origins],  # Change to frontend URL in production # type: ignore
-    # allow_origins=["http://localhost:8080"],  # Change to frontend URL in production
-    allow_origins=[
-        # "http://localhost:8080",    # Change to frontend URL in production
-        "https://www.smartlibraryapp.in",
-        "https://app.smartlibraryapp.in"
-        ],   
+    allow_origins=configured_origins or default_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -222,8 +232,14 @@ def get_student_by_id(
 
 
 @app.get("/dashboard/")
-def dashboard(db: Session = Depends(get_db), admin = Depends(get_current_admin)):
-    return crud.get_dashboard_data(db, library_id=admin.library_id)
+def dashboard(
+    trend_months: int = Query(4, description="Supported values: 4 or 6"),
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin)
+):
+    if trend_months not in (4, 6):
+        trend_months = 4
+    return crud.get_dashboard_data(db, library_id=admin.library_id, trend_months=trend_months)
 
 
 @app.get("/available-seats")

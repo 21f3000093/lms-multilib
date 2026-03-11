@@ -261,7 +261,10 @@ def mark_student_as_left(db: Session, student_id: int, library_id: int):
 from zoneinfo import ZoneInfo
 
 # To get dashboard data for a library
-def get_dashboard_data(db: Session, library_id: int):
+def get_dashboard_data(db: Session, library_id: int, trend_months: int = 4):
+    if trend_months not in (4, 6):
+        trend_months = 4
+
     shift1_count = db.query(models.Student).filter(models.Student.shift1 == True, models.Student.status == "active", models.Student.library_id == library_id).count()
     shift2_count = db.query(models.Student).filter(models.Student.shift2 == True, models.Student.status == "active", models.Student.library_id == library_id).count()
     shift3_count = db.query(models.Student).filter(models.Student.shift3 == True, models.Student.status == "active", models.Student.library_id == library_id).count()
@@ -270,17 +273,50 @@ def get_dashboard_data(db: Session, library_id: int):
 
     revenue = db.query(func.coalesce(func.sum(models.Student.custom_fees), 0)).filter(models.Student.status == "active", models.Student.library_id == library_id).scalar()
 
-    # current_month = datetime.now().strftime('%Y-%m')
-    
     # Use Indian timezone (Asia/Kolkata)
     india_tz = ZoneInfo("Asia/Kolkata")
-    current_month = datetime.now(india_tz).strftime('%Y-%m')
+    now_india = datetime.now(india_tz)
+    current_month = now_india.strftime('%Y-%m')
 
-    monthly_collected = db.query(func.coalesce(func.sum(MonthlyPayment.amount), 0)).filter(
-        MonthlyPayment.month == current_month,
-        MonthlyPayment.paid == True,
-        MonthlyPayment.library_id == library_id
-    ).scalar()
+    def get_last_n_months(end_year: int, end_month: int, count: int) -> list[str]:
+        months: list[str] = []
+        year = end_year
+        month = end_month
+        for _ in range(count):
+            months.append(f"{year:04d}-{month:02d}")
+            month -= 1
+            if month == 0:
+                month = 12
+                year -= 1
+        months.reverse()
+        return months
+
+    trend_month_keys = get_last_n_months(now_india.year, now_india.month, trend_months)
+    trend_rows = (
+        db.query(
+            MonthlyPayment.month,
+            func.coalesce(func.sum(MonthlyPayment.amount), 0).label("collected")
+        )
+        .filter(
+            MonthlyPayment.library_id == library_id,
+            MonthlyPayment.paid == True,
+            MonthlyPayment.month.in_(trend_month_keys)
+        )
+        .group_by(MonthlyPayment.month)
+        .all()
+    )
+
+    trend_map = {row.month: int(row.collected or 0) for row in trend_rows}
+    collection_trend = [
+        {
+            "month": month,
+            "collected": trend_map.get(month, 0)
+        }
+        for month in trend_month_keys
+    ]
+
+    monthly_collected = trend_map.get(current_month, 0)
+    last_month_collected = collection_trend[-2]["collected"] if len(collection_trend) >= 2 else 0
     
     max_seats = db.query(models.Library).filter(models.Library.id == library_id).first().max_seats # type: ignore
     
@@ -291,6 +327,8 @@ def get_dashboard_data(db: Session, library_id: int):
         "total_students": total_students,
         "revenue": revenue,
         "monthly_collected": monthly_collected,
+        "last_month_collected": last_month_collected,
+        "collection_trend": collection_trend,
         "max_seats": max_seats
     }
     

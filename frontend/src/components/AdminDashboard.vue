@@ -23,7 +23,7 @@
         <p class="stat-value">{{ overallOccupancy }}%</p>
       </article>
       <article class="glass-card stat-card">
-        <p class="stat-label">Collected</p>
+        <p class="stat-label">This Month Collected</p>
         <p class="stat-value">₹{{ formatNumber(monthlyCollected) }}</p>
       </article>
     </section>
@@ -163,7 +163,7 @@
             <img src="../assets/svg/money-recive-white.svg" class="svg" alt="Collected" loading="lazy">
           </div>
           <div>
-            <h3>Collected</h3>
+            <h3>This Month Collected</h3>
             <p>{{ collectionPercentage }}% of target</p>
           </div>
         </header>
@@ -178,6 +178,97 @@
           </div>
           <div class="pending-amount">Pending: ₹{{ formatNumber(pendingAmount) }}</div>
         </div>
+        <div class="collection-details">
+          <div class="detail-row">
+            <span class="detail-label">Current month delta</span>
+            <span class="detail-value">₹{{ formatNumber(Math.abs(monthOverMonthDelta)) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Month-over-month</span>
+            <span class="trend-chip" :class="monthOverMonthDelta >= 0 ? 'trend-up' : 'trend-down'">
+              {{ monthOverMonthDelta >= 0 ? '+' : '' }}{{ monthOverMonthPercent }}%
+            </span>
+          </div>
+        </div>
+      </article>
+
+      <article class="glass-card dashboard-card">
+        <header class="card-header">
+          <div class="card-icon collection-icon">
+            <img src="../assets/svg/money-recive-white.svg" class="svg" alt="Last month" loading="lazy">
+          </div>
+          <div>
+            <h3>Last Month Collected</h3>
+            <p>Previous month benchmark</p>
+          </div>
+        </header>
+        <div class="metric-display">
+          <div class="main-number last-month-amount">₹{{ formatNumber(lastMonthCollected) }}</div>
+          <div class="metric-subtitle">Benchmark against current month</div>
+        </div>
+      </article>
+
+      <article class="glass-card dashboard-card trend-card">
+        <header class="card-header trend-header">
+          <div class="trend-head-left">
+            <div class="card-icon collection-icon">
+              <img src="../assets/svg/chart-2.svg" class="svg" alt="Trend" loading="lazy">
+            </div>
+            <div>
+              <h3>Collections Trend</h3>
+              <p>{{ trendSubtitle }}</p>
+            </div>
+          </div>
+          <div class="trend-head-actions" role="group" aria-label="Select trend range">
+            <button
+              class="range-btn"
+              :class="{ active: selectedTrendMonths === 4 }"
+              :disabled="isDashboardLoading"
+              type="button"
+              @click="setTrendMonths(4)"
+            >
+              Last 4
+            </button>
+            <button
+              class="range-btn"
+              :class="{ active: selectedTrendMonths === 6 }"
+              :disabled="isDashboardLoading"
+              type="button"
+              @click="setTrendMonths(6)"
+            >
+              Last 6
+            </button>
+          </div>
+        </header>
+
+        <div v-if="trendBars.length" class="trend-chart">
+          <article
+            v-for="(point, index) in trendBars"
+            :key="point.month"
+            class="trend-column"
+          >
+            <button
+              class="trend-bar-track trend-hitbox"
+              type="button"
+              @mouseenter="setActiveTrendIndex(index)"
+              @mouseleave="clearActiveTrendIndex"
+              @focus="setActiveTrendIndex(index)"
+              @blur="clearActiveTrendIndex"
+              @click="toggleActiveTrendIndex(index)"
+              :aria-label="getTrendAriaLabel(point)"
+            >
+              <div class="trend-bar-fill" :style="{ height: point.height + '%' }"></div>
+            </button>
+            <div v-if="activeTrendIndex === index" class="trend-tooltip" role="tooltip">
+              <p class="tooltip-month">{{ point.fullLabel }}</p>
+              <p class="tooltip-value">₹{{ formatNumber(point.collected) }}</p>
+              <p v-if="point.deltaText" class="tooltip-delta">{{ point.deltaText }}</p>
+            </div>
+            <p class="trend-month">{{ point.label }}</p>
+            <p class="trend-value">₹{{ formatCompactNumber(point.collected) }}</p>
+          </article>
+        </div>
+        <p v-else class="metric-subtitle">No paid collection data yet.</p>
       </article>
     </section>
 
@@ -226,6 +317,9 @@ export default {
   data() {
     return {
       data: {},
+      selectedTrendMonths: 4,
+      isDashboardLoading: false,
+      activeTrendIndex: null,
     }
   },
 
@@ -236,6 +330,70 @@ export default {
 
     monthlyCollected() {
       return this.data.monthly_collected || 0
+    },
+
+    lastMonthCollected() {
+      return this.data.last_month_collected || 0
+    },
+
+    monthOverMonthDelta() {
+      return this.monthlyCollected - this.lastMonthCollected
+    },
+
+    monthOverMonthPercent() {
+      if (this.lastMonthCollected <= 0) {
+        return this.monthlyCollected > 0 ? 100 : 0
+      }
+      return Math.round((this.monthOverMonthDelta / this.lastMonthCollected) * 100)
+    },
+
+    collectionTrend() {
+      if (!Array.isArray(this.data.collection_trend)) return []
+      return this.data.collection_trend.map((item) => ({
+        month: item.month,
+        collected: Number(item.collected || 0),
+      }))
+    },
+
+    trendMaxValue() {
+      const max = this.collectionTrend.reduce((acc, point) => Math.max(acc, point.collected), 0)
+      return max > 0 ? max : 1
+    },
+
+    trendBars() {
+      return this.collectionTrend.map((point, index) => {
+        const previous = index > 0 ? this.collectionTrend[index - 1] : null
+        const deltaValue = previous ? point.collected - previous.collected : 0
+        const deltaPercent = previous && previous.collected > 0
+          ? Math.round((deltaValue / previous.collected) * 100)
+          : null
+
+        if (point.collected <= 0) {
+          return {
+            ...point,
+            label: this.formatMonthShort(point.month),
+            fullLabel: this.formatMonthFull(point.month),
+            height: 6,
+            deltaText: previous ? `vs prev: ₹${this.formatNumber(Math.abs(deltaValue))}` : null,
+          }
+        }
+
+        return {
+          ...point,
+          label: this.formatMonthShort(point.month),
+          fullLabel: this.formatMonthFull(point.month),
+          height: Math.max(18, Math.round((point.collected / this.trendMaxValue) * 100)),
+          deltaText: previous
+            ? `vs prev: ${deltaValue >= 0 ? '+' : '-'}₹${this.formatNumber(Math.abs(deltaValue))}${
+              deltaPercent !== null ? ` (${deltaPercent >= 0 ? '+' : ''}${deltaPercent}%)` : ''
+            }`
+            : null,
+        }
+      })
+    },
+
+    trendSubtitle() {
+      return `Last ${this.selectedTrendMonths} months (paid only)`
     },
 
     collectionPercentage() {
@@ -266,7 +424,66 @@ export default {
 
   methods: {
     formatNumber(num) {
-      return num.toLocaleString('en-IN')
+      return Number(num || 0).toLocaleString('en-IN')
+    },
+
+    formatCompactNumber(num) {
+      return new Intl.NumberFormat('en-IN', {
+        notation: 'compact',
+        compactDisplay: 'short',
+        maximumFractionDigits: 1,
+      }).format(Number(num || 0))
+    },
+
+    formatMonthShort(monthString) {
+      if (!monthString) return '--'
+      const [year, month] = monthString.split('-')
+      const date = new Date(Number(year), Number(month) - 1, 1)
+      return date.toLocaleDateString('en-US', { month: 'short' })
+    },
+
+    formatMonthFull(monthString) {
+      if (!monthString) return '--'
+      const [year, month] = monthString.split('-')
+      const date = new Date(Number(year), Number(month) - 1, 1)
+      return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+    },
+
+    getTrendAriaLabel(point) {
+      return `${point.fullLabel}, collected ${this.formatNumber(point.collected)} rupees`
+    },
+
+    setActiveTrendIndex(index) {
+      this.activeTrendIndex = index
+    },
+
+    clearActiveTrendIndex() {
+      this.activeTrendIndex = null
+    },
+
+    toggleActiveTrendIndex(index) {
+      this.activeTrendIndex = this.activeTrendIndex === index ? null : index
+    },
+
+    async fetchDashboard() {
+      this.isDashboardLoading = true
+      try {
+        const res = await API.get('/dashboard/', {
+          params: { trend_months: this.selectedTrendMonths },
+        })
+        this.data = res.data || {}
+      } catch (error) {
+        console.error('Failed to fetch dashboard data:', error)
+      } finally {
+        this.isDashboardLoading = false
+      }
+    },
+
+    async setTrendMonths(months) {
+      if (this.selectedTrendMonths === months || this.isDashboardLoading) return
+      this.selectedTrendMonths = months
+      this.activeTrendIndex = null
+      await this.fetchDashboard()
     },
 
     getShiftPercentage(shiftNumber) {
@@ -326,12 +543,7 @@ export default {
   },
 
   async created() {
-    try {
-      const res = await API.get('/dashboard/')
-      this.data = res.data
-    } catch (error) {
-      console.error('Failed to fetch dashboard data:', error)
-    }
+    await this.fetchDashboard()
   }
 }
 </script>
@@ -535,6 +747,10 @@ export default {
   color: #a7f3d0;
 }
 
+.last-month-amount {
+  color: #bfdbfe;
+}
+
 .progress-container {
   margin-bottom: 0.7rem;
 }
@@ -615,6 +831,12 @@ export default {
   margin-top: 0.6rem;
 }
 
+.collection-details {
+  margin-top: 0.45rem;
+  display: grid;
+  gap: 0.3rem;
+}
+
 .detail-row {
   display: flex;
   justify-content: space-between;
@@ -628,6 +850,163 @@ export default {
 
 .detail-value {
   font-weight: 700;
+}
+
+.trend-chip {
+  border-radius: 999px;
+  padding: 0.22rem 0.55rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.trend-up {
+  background: rgba(16, 185, 129, 0.2);
+  color: #a7f3d0;
+}
+
+.trend-down {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fecaca;
+}
+
+.trend-card {
+  grid-column: span 2;
+}
+
+.trend-header {
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+.trend-head-left {
+  display: flex;
+  align-items: center;
+  gap: 0.62rem;
+}
+
+.trend-head-actions {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  background: rgba(15, 23, 42, 0.55);
+  padding: 0.2rem;
+}
+
+.range-btn {
+  border: 0;
+  background: transparent;
+  color: #cbd5e1;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.range-btn.active {
+  background: linear-gradient(90deg, rgba(34, 211, 238, 0.25), rgba(59, 130, 246, 0.28));
+  color: #e0f2fe;
+}
+
+.range-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.trend-chart {
+  margin-top: 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.trend-column {
+  position: relative;
+  border-radius: 10px;
+  background: rgba(148, 163, 184, 0.08);
+  padding: 0.45rem 0.45rem 0.5rem;
+  text-align: center;
+}
+
+.trend-bar-track {
+  height: 92px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.trend-hitbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  padding: 0;
+  cursor: pointer;
+}
+
+.trend-hitbox:focus-visible {
+  outline: 2px solid rgba(56, 189, 248, 0.75);
+  outline-offset: 2px;
+}
+
+.trend-bar-fill {
+  width: 100%;
+  border-radius: 6px 6px 0 0;
+  background: linear-gradient(180deg, rgba(34, 211, 238, 0.95) 0%, rgba(59, 130, 246, 0.9) 100%);
+  transition: height 0.6s ease;
+}
+
+.trend-tooltip {
+  position: absolute;
+  top: -0.55rem;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  min-width: 132px;
+  z-index: 3;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  background: rgba(15, 23, 42, 0.92);
+  box-shadow: 0 12px 22px rgba(2, 8, 23, 0.35);
+  padding: 0.42rem 0.5rem;
+  text-align: left;
+}
+
+.tooltip-month {
+  margin: 0;
+  font-size: 0.72rem;
+  color: #bae6fd;
+}
+
+.tooltip-value {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  color: #e2e8f0;
+  font-weight: 700;
+}
+
+.tooltip-delta {
+  margin: 0.18rem 0 0;
+  font-size: 0.7rem;
+  color: #cbd5e1;
+}
+
+.trend-month {
+  margin: 0.4rem 0 0;
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+}
+
+.trend-value {
+  margin: 0.12rem 0 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #dbeafe;
 }
 
 .insights-section {
@@ -699,6 +1078,10 @@ export default {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .trend-card {
+    grid-column: span 2;
+  }
+
   .insights-grid {
     grid-template-columns: 1fr;
   }
@@ -722,6 +1105,15 @@ export default {
   
   .dashboard-grid {
     grid-template-columns: 1fr;
+  }
+
+  .trend-card {
+    grid-column: span 1;
+  }
+
+  .trend-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .current,
