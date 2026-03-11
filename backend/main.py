@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
@@ -151,18 +151,28 @@ app.include_router(superadmin.superadmin_router)
 app.include_router(whatsapp_reminder.router)
 app.include_router(notifications.router)
 
-origins=os.getenv("ALLOWED_ORIGINS") # type: ignore
+def _parse_allowed_origins(raw_origins: str | None) -> list[str]:
+    if not raw_origins:
+        return []
+    parsed: list[str] = []
+    for origin in raw_origins.split(","):
+        cleaned = origin.strip().strip("'").strip('"')
+        if cleaned:
+            parsed.append(cleaned)
+    return parsed
+
+
+configured_origins = _parse_allowed_origins(os.getenv("ALLOWED_ORIGINS"))
+default_origins = [
+    "http://localhost:8080",
+    "https://www.smartlibraryapp.in",
+    "https://app.smartlibraryapp.in",
+]
 
 # CORS config
 app.add_middleware(
     CORSMiddleware,
-    # allow_origins=[origins],  # Change to frontend URL in production # type: ignore
-    # allow_origins=["http://localhost:8080"],  # Change to frontend URL in production
-    allow_origins=[
-        # "http://localhost:8080",    # Change to frontend URL in production
-        "https://www.smartlibraryapp.in",
-        "https://app.smartlibraryapp.in"
-        ],   
+    allow_origins=configured_origins or default_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -222,8 +232,22 @@ def get_student_by_id(
 
 
 @app.get("/dashboard/")
-def dashboard(db: Session = Depends(get_db), admin = Depends(get_current_admin)):
-    return crud.get_dashboard_data(db, library_id=admin.library_id)
+def dashboard(
+    collection_trend_months: int = Query(4, description="Supported values: 4 or 6"),
+    movement_trend_months: int = Query(4, description="Supported values: 4 or 6"),
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin)
+):
+    if collection_trend_months not in (4, 6):
+        collection_trend_months = 4
+    if movement_trend_months not in (4, 6):
+        movement_trend_months = 4
+    return crud.get_dashboard_data(
+        db,
+        library_id=admin.library_id,
+        collection_trend_months=collection_trend_months,
+        movement_trend_months=movement_trend_months,
+    )
 
 
 @app.get("/available-seats")
