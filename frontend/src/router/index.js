@@ -20,6 +20,7 @@ import AboutView from '@/views/AboutView.vue'
 import ReceiptPage from '@/components/ReceiptPage.vue'
 import NotificationCenter from '@/components/NotificationCenter.vue'
 import SuperadminNotifications from '@/components/SuperadminNotifications.vue'
+import BillingCenter from '@/components/BillingCenter.vue'
 
 
 
@@ -36,6 +37,7 @@ const routes = [
   { path: '/register', name: 'Register', component: StudentForm , meta: { requiresAuth: true }},
   { path: '/students', name: 'StudentList', component: StudentList , meta: { requiresAuth: true }},
   { path: '/monthly-payments',name: 'MonthlyPayments', component: MonthlyPayments , meta: { requiresAuth: true } },
+  { path: '/billing', name: 'BillingCenter', component: BillingCenter, meta: { requiresAuth: true } },
   { path: '/monthly-expenses',name: 'MonthlyExpenses', component: MonthlyExpenses , meta: { requiresAuth: true } },
   { path: '/students/:id', name: 'StudentDetail', component: StudentDetail , meta: { requiresAuth: true } },
   { path: '/seat-map', name: 'SeatMap', component: SeatMap , meta: { requiresAuth: true }},

@@ -75,6 +75,10 @@
                 <KeyRound class="dropdown-icon" aria-hidden="true" />
                 <span>Change Password</span>
               </button>
+              <button v-if="role === 'admin'" type="button" class="dropdown-item" @click="goBilling">
+                <CircleDollarSign class="dropdown-icon" aria-hidden="true" />
+                <span>Billing Center</span>
+              </button>
               <button type="button" class="dropdown-item" @click="goPricing">
                 <CircleDollarSign class="dropdown-icon" aria-hidden="true" />
                 <span>Pricing & Plans</span>
@@ -218,6 +222,7 @@ export default {
         { key: 'register', to: '/register', label: 'Register', icon: 'UserPlus' },
         { key: 'students', to: '/students', label: 'Student List', icon: 'Users' },
         { key: 'monthly-payments', to: '/monthly-payments', label: 'Monthly Fees', icon: 'Banknote' },
+        { key: 'billing', to: '/billing', label: 'Billing', icon: 'CircleDollarSign' },
         { key: 'fee-reminders', to: '/reminders', label: 'Fee Reminders', icon: 'Bell' },
         { key: 'seat-map', to: '/seat-map', label: 'Seat Map', icon: 'Grid3X3' },
         { key: 'monthly-expenses', to: '/monthly-expenses', label: 'Expenses', icon: 'ReceiptText' },
@@ -342,6 +347,10 @@ export default {
     goPricing() {
       this.dropdownOpen = false
       this.$router.push('/pricing-plans')
+    },
+    goBilling() {
+      this.dropdownOpen = false
+      this.$router.push('/billing')
     },
     goAbout() {
       this.dropdownOpen = false

@@ -1,20 +1,24 @@
 import calendar
+import hashlib
+import hmac
 import json
 import os
 import uuid
 from datetime import date, datetime, time, timedelta
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from sqlalchemy.orm import Session, joinedload
 
 from app import models, schemas
 from app.dependencies import get_current_admin, get_db
 
+_RAZORPAY_IMPORT_ERROR: Exception | None = None
 try:
     import razorpay
-except ImportError:  # pragma: no cover - dependency guard
+except Exception as exc:  # pragma: no cover - dependency guard
     razorpay = None  # type: ignore[assignment]
+    _RAZORPAY_IMPORT_ERROR = exc
 
 
 router = APIRouter(prefix="/billing", tags=["billing"])
@@ -37,9 +41,35 @@ def _get_razorpay_credentials() -> tuple[str, str]:
 
 def _get_razorpay_client():
     if razorpay is None:
+        if _RAZORPAY_IMPORT_ERROR:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Razorpay SDK import failed: {_RAZORPAY_IMPORT_ERROR}",
+            )
         raise HTTPException(status_code=500, detail="Razorpay SDK is not installed")
     key_id, key_secret = _get_razorpay_credentials()
     return razorpay.Client(auth=(key_id, key_secret)), key_id
+
+
+def _get_razorpay_webhook_secret() -> str:
+    secret = (os.getenv("RAZORPAY_WEBHOOK_SECRET") or "").strip()
+    if not secret:
+        raise HTTPException(status_code=500, detail="Razorpay webhook secret is not configured")
+    return secret
+
+
+def _verify_webhook_signature(raw_body: bytes, signature: str | None) -> None:
+    if not signature:
+        raise HTTPException(status_code=401, detail="Missing Razorpay signature header")
+
+    expected = hmac.new(
+        _get_razorpay_webhook_secret().encode("utf-8"),
+        raw_body,
+        hashlib.sha256,
+    ).hexdigest()
+
+    if not hmac.compare_digest(expected, signature.strip()):
+        raise HTTPException(status_code=401, detail="Invalid Razorpay webhook signature")
 
 
 def _add_months(base_date: date, months: int) -> date:
@@ -93,6 +123,57 @@ def _load_subscription_with_plan(db: Session, subscription_id: int):
     )
 
 
+def _apply_captured_transaction(
+    db: Session,
+    tx: models.SubscriptionTransaction,
+    payment_id: str | None,
+    signature: str | None = None,
+    payment_data: dict | None = None,
+) -> tuple[models.SubscriptionTransaction, models.Subscription]:
+    plan = db.query(models.SubscriptionPlan).filter(models.SubscriptionPlan.id == tx.plan_id).first()
+    if not plan:
+        raise HTTPException(status_code=500, detail="Plan not found for transaction")
+
+    subscription = _get_or_create_subscription(db, tx.library_id)
+    start_date = _get_subscription_start_date(subscription)
+    total_months = int(tx.billing_months) + max(0, int(plan.bonus_months))
+    period_end = _compute_period_end(start_date, total_months)
+    now_utc = datetime.utcnow()
+
+    tx.subscription_id = subscription.id
+    tx.plan_id = plan.id
+    tx.status = "captured"
+    if payment_id:
+        tx.gateway_payment_id = payment_id
+    if signature:
+        tx.gateway_signature = signature
+    tx.period_start = start_date
+    tx.period_end = period_end
+    tx.paid_at = now_utc
+
+    payload_store: dict = {}
+    if payment_data:
+        payload_store["payment"] = payment_data
+    tx.gateway_payload_json = json.dumps(payload_store, ensure_ascii=False)
+
+    subscription.plan = plan.code
+    subscription.plan_id = plan.id
+    subscription.status = "active"
+    subscription.current_period_start = start_date
+    subscription.current_period_end = period_end
+    subscription.valid_until = datetime.combine(period_end, time(23, 59, 59))
+    subscription.grace_until = None
+    subscription.last_payment_at = now_utc
+    subscription.is_trial = False
+    subscription.trial_valid_until = None
+    if payment_id:
+        subscription.payment_gateway_id = payment_id
+    if payment_data and payment_data.get("customer_id"):
+        subscription.gateway_customer_id = str(payment_data.get("customer_id"))
+
+    return tx, subscription
+
+
 @router.get("/plans", response_model=List[schemas.SubscriptionPlanOut])
 def list_subscription_plans(
     db: Session = Depends(get_db),
@@ -118,6 +199,27 @@ def get_my_subscription(
     if not response_item:
         raise HTTPException(status_code=500, detail="Failed to load subscription")
     return response_item
+
+
+@router.get("/transactions", response_model=List[schemas.SubscriptionTransactionOut])
+def list_my_transactions(
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    db: Session = Depends(get_db),
+    admin: models.Admin = Depends(get_current_admin),
+):
+    _require_admin(admin)
+    return (
+        db.query(models.SubscriptionTransaction)
+        .filter(models.SubscriptionTransaction.library_id == admin.library_id)
+        .order_by(
+            models.SubscriptionTransaction.created_at.desc(),
+            models.SubscriptionTransaction.id.desc(),
+        )
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
 
 
 @router.post("/checkout-order", response_model=schemas.BillingCheckoutOrderOut)
@@ -340,44 +442,17 @@ def verify_payment(
             db.commit()
             raise HTTPException(status_code=400, detail=f"Payment status is {payment_status or 'unknown'}")
 
-    plan = db.query(models.SubscriptionPlan).filter(models.SubscriptionPlan.id == tx.plan_id).first()
-    if not plan:
-        raise HTTPException(status_code=500, detail="Plan not found for transaction")
-
-    subscription = _get_or_create_subscription(db, admin.library_id)  # type: ignore[arg-type]
-    start_date = _get_subscription_start_date(subscription)
-    total_months = int(tx.billing_months) + max(0, int(plan.bonus_months))
-    period_end = _compute_period_end(start_date, total_months)
-    now_utc = datetime.utcnow()
-
-    tx.subscription_id = subscription.id
-    tx.plan_id = plan.id
-    tx.status = "captured"
-    tx.gateway_payment_id = payload.razorpay_payment_id
-    tx.gateway_signature = payload.razorpay_signature
-    tx.period_start = start_date
-    tx.period_end = period_end
-    tx.paid_at = now_utc
-
+    tx, subscription = _apply_captured_transaction(
+        db=db,
+        tx=tx,
+        payment_id=payload.razorpay_payment_id,
+        signature=payload.razorpay_signature,
+        payment_data=payment_data,
+    )
     payload_store = {"verify_request": signature_payload}
     if payment_data:
         payload_store["payment"] = payment_data
     tx.gateway_payload_json = json.dumps(payload_store, ensure_ascii=False)
-
-    subscription.plan = plan.code
-    subscription.plan_id = plan.id
-    subscription.status = "active"
-    subscription.current_period_start = start_date
-    subscription.current_period_end = period_end
-    subscription.valid_until = datetime.combine(period_end, time(23, 59, 59))
-    subscription.grace_until = None
-    subscription.last_payment_at = now_utc
-    subscription.is_trial = False
-    subscription.trial_valid_until = None
-    subscription.payment_gateway_id = payload.razorpay_payment_id
-
-    if payment_data and payment_data.get("customer_id"):
-        subscription.gateway_customer_id = str(payment_data.get("customer_id"))
 
     db.commit()
     db.refresh(tx)
@@ -391,4 +466,119 @@ def verify_payment(
         "message": "Payment verified successfully",
         "transaction": tx,
         "subscription": subscription_out,
+    }
+
+
+@router.post("/webhooks/razorpay")
+async def handle_razorpay_webhook(
+    request: Request,
+    x_razorpay_signature: str | None = Header(default=None, alias="X-Razorpay-Signature"),
+    db: Session = Depends(get_db),
+):
+    raw_body = await request.body()
+    _verify_webhook_signature(raw_body, x_razorpay_signature)
+
+    try:
+        payload = json.loads(raw_body.decode("utf-8"))
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON payload")
+
+    event_type = str(payload.get("event") or "unknown")
+    fallback_event_id = hashlib.sha256(raw_body).hexdigest()
+    gateway_event_id = str(payload.get("id") or fallback_event_id)
+
+    existing_event = (
+        db.query(models.SubscriptionWebhookEvent)
+        .filter(models.SubscriptionWebhookEvent.gateway_event_id == gateway_event_id)
+        .first()
+    )
+    if existing_event:
+        return {
+            "ok": True,
+            "event_id": gateway_event_id,
+            "event_type": existing_event.event_type,
+            "message": "duplicate_event_ignored",
+        }
+
+    event_row = models.SubscriptionWebhookEvent(
+        gateway_event_id=gateway_event_id,
+        event_type=event_type,
+        payload_json=raw_body.decode("utf-8", errors="replace"),
+        processed=False,
+    )
+    db.add(event_row)
+    db.flush()
+
+    result_message = "event_ignored"
+
+    try:
+        payload_root = payload.get("payload") or {}
+        payment_wrapper = payload_root.get("payment") or {}
+        payment_entity = payment_wrapper.get("entity") or {}
+
+        if event_type in {"payment.captured", "payment.authorized"}:
+            order_id = str(payment_entity.get("order_id") or "").strip()
+            payment_id = str(payment_entity.get("id") or "").strip()
+            if not order_id:
+                raise ValueError("order_id missing in payment payload")
+
+            tx = (
+                db.query(models.SubscriptionTransaction)
+                .filter(models.SubscriptionTransaction.gateway_order_id == order_id)
+                .first()
+            )
+            if not tx:
+                result_message = f"no_transaction_for_order:{order_id}"
+            else:
+                if tx.status != "captured":
+                    _apply_captured_transaction(
+                        db=db,
+                        tx=tx,
+                        payment_id=payment_id or None,
+                        signature=x_razorpay_signature,
+                        payment_data=payment_entity,
+                    )
+                elif payment_id and not tx.gateway_payment_id:
+                    tx.gateway_payment_id = payment_id
+                result_message = "payment_captured_processed"
+
+        elif event_type == "payment.failed":
+            order_id = str(payment_entity.get("order_id") or "").strip()
+            payment_id = str(payment_entity.get("id") or "").strip()
+            tx = (
+                db.query(models.SubscriptionTransaction)
+                .filter(models.SubscriptionTransaction.gateway_order_id == order_id)
+                .first()
+            ) if order_id else None
+
+            if tx and tx.status != "captured":
+                tx.status = "failed"
+                if payment_id:
+                    tx.gateway_payment_id = payment_id
+                tx.gateway_payload_json = json.dumps(
+                    {"webhook_event": event_type, "payment": payment_entity},
+                    ensure_ascii=False,
+                )
+                result_message = "payment_failed_recorded"
+            else:
+                result_message = "payment_failed_ignored"
+        else:
+            result_message = f"event_ignored:{event_type}"
+
+        event_row.processed = True
+        event_row.processed_at = datetime.utcnow()
+        event_row.error_message = None
+        db.commit()
+    except Exception as exc:
+        event_row.processed = False
+        event_row.processed_at = datetime.utcnow()
+        event_row.error_message = str(exc)[:1000]
+        db.commit()
+        raise HTTPException(status_code=400, detail=f"Webhook processing failed: {exc}")
+
+    return {
+        "ok": True,
+        "event_id": gateway_event_id,
+        "event_type": event_type,
+        "message": result_message,
     }
