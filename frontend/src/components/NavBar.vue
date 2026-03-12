@@ -232,6 +232,7 @@ export default {
     superAdminItems() {
       return [
         { key: 'superadmin-dashboard', to: '/superadmin', label: 'Dashboard', icon: 'Shield' },
+        { key: 'superadmin-subscriptions', to: '/superadmin/subscriptions', label: 'Subscriptions', icon: 'CircleDollarSign' },
         { key: 'superadmin-notifications', to: '/superadmin/notifications', label: 'Notifications', icon: 'Bell' },
       ]
     },
@@ -331,7 +332,15 @@ export default {
       }
 
       if (item.key === 'superadmin-dashboard') {
-        return currentPath.startsWith('/superadmin') && !currentPath.startsWith('/superadmin/notifications')
+        return (
+          currentPath.startsWith('/superadmin') &&
+          !currentPath.startsWith('/superadmin/notifications') &&
+          !currentPath.startsWith('/superadmin/subscriptions')
+        )
+      }
+
+      if (item.key === 'superadmin-subscriptions') {
+        return currentPath === '/superadmin/subscriptions'
       }
 
       if (item.key === 'superadmin-notifications') {

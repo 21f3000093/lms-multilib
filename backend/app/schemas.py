@@ -393,3 +393,17 @@ class SubscriptionGrantTrialRequest(BaseModel):
 class SubscriptionGrantTrialOut(BaseModel):
     message: str
     subscription: SubscriptionOut
+
+
+class SuperadminSubscriptionPatchRequest(BaseModel):
+    status: Optional[str] = Field(default=None, min_length=1, max_length=30)
+    plan_id: Optional[int] = Field(default=None, ge=1)
+    plan_code: Optional[str] = Field(default=None, min_length=1, max_length=50)
+    extend_days: Optional[int] = Field(default=None, ge=1, le=3650)
+    valid_until: Optional[datetime] = None
+    clear_trial: bool = False
+
+
+class SuperadminSubscriptionPatchOut(BaseModel):
+    message: str
+    subscription: SubscriptionOut
