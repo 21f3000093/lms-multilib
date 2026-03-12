@@ -368,3 +368,28 @@ class BillingVerifyPaymentOut(BaseModel):
     message: str
     transaction: SubscriptionTransactionOut
     subscription: SubscriptionOut
+
+
+class SuperadminSubscriptionLibraryOut(BaseModel):
+    id: int
+    name: str
+    max_seats: int
+    contact_email: Optional[str] = None
+    contact_phone: Optional[str] = None
+
+    class Config:
+        orm_mode = True
+
+
+class SuperadminSubscriptionRowOut(BaseModel):
+    library: SuperadminSubscriptionLibraryOut
+    subscription: Optional[SubscriptionOut] = None
+
+
+class SubscriptionGrantTrialRequest(BaseModel):
+    days: Optional[int] = Field(default=None, ge=1, le=90)
+
+
+class SubscriptionGrantTrialOut(BaseModel):
+    message: str
+    subscription: SubscriptionOut

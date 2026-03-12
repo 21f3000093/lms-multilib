@@ -68,6 +68,24 @@ API.interceptors.response.use(
     if (error.response) {
       const status = error.response.status;
       const detail = error.response.data?.detail;
+      const detailCode = typeof detail === 'object' ? detail?.code : undefined;
+      const detailMessage =
+        typeof detail === 'object'
+          ? (detail?.message || '')
+          : (typeof detail === 'string' ? detail : '');
+
+      if (status === 402) {
+        if (detailCode === 'subscription_expired') {
+          showWarningToast(detailMessage || 'Your subscription is inactive or expired. Please renew to continue.', 5000);
+          if (window.location.pathname !== '/billing') {
+            setTimeout(() => {
+              window.location.href = '/billing';
+            }, 1200);
+          }
+        } else {
+          showWarningToast(detailMessage || 'Subscription is required to continue.', 5000);
+        }
+      }
 
       if (status === 403) {
         showErrorToast('Your account is inactive.Please contact the Admin for more details.', 5000);

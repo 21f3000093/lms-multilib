@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from sqlalchemy.orm import Session, joinedload
 
 from app import models, schemas
-from app.dependencies import get_current_admin, get_db
+from app.dependencies import ensure_subscription_for_library, get_current_admin, get_db
 
 _RAZORPAY_IMPORT_ERROR: Exception | None = None
 try:
@@ -97,21 +97,7 @@ def _get_subscription_start_date(subscription: models.Subscription) -> date:
 
 
 def _get_or_create_subscription(db: Session, library_id: int) -> models.Subscription:
-    subscription = db.query(models.Subscription).filter(models.Subscription.library_id == library_id).first()
-    if subscription:
-        return subscription
-
-    subscription = models.Subscription(
-        library_id=library_id,
-        status="inactive",
-        auto_renew=False,
-        cancel_at_period_end=False,
-        is_trial=False,
-    )
-    db.add(subscription)
-    db.commit()
-    db.refresh(subscription)
-    return subscription
+    return ensure_subscription_for_library(db, library_id)
 
 
 def _load_subscription_with_plan(db: Session, subscription_id: int):
