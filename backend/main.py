@@ -3,7 +3,7 @@ from fastapi import FastAPI, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
-from app import models, schemas, crud, auth, seats, superadmin, whatsapp_reminder, notifications
+from app import models, schemas, crud, auth, seats, superadmin, whatsapp_reminder, notifications, billing
 from fastapi_jwt_auth import AuthJWT
 from app.database import engine, SessionLocal
 from pydantic import BaseSettings , BaseModel
@@ -150,6 +150,7 @@ app.include_router(seats.router)
 app.include_router(superadmin.superadmin_router)
 app.include_router(whatsapp_reminder.router)
 app.include_router(notifications.router)
+app.include_router(billing.router)
 
 def _parse_allowed_origins(raw_origins: str | None) -> list[str]:
     if not raw_origins:

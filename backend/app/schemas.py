@@ -250,3 +250,121 @@ class PushSubscriptionOut(BaseModel):
 class PushConfigOut(BaseModel):
     enabled: bool
     vapid_public_key: Optional[str] = None
+
+
+class SubscriptionPlanBase(BaseModel):
+    code: str = Field(..., min_length=1, max_length=50)
+    name: str = Field(..., min_length=1, max_length=120)
+    description: Optional[str] = Field(default=None, max_length=500)
+    billing_months: int = Field(..., ge=1, le=36)
+    price_per_seat_paise: int = Field(..., ge=1)
+    discount_percent: int = Field(default=0, ge=0, le=100)
+    bonus_months: int = Field(default=0, ge=0, le=12)
+    is_active: bool = True
+    sort_order: int = 0
+
+
+class SubscriptionPlanCreate(SubscriptionPlanBase):
+    pass
+
+
+class SubscriptionPlanOut(SubscriptionPlanBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class SubscriptionOut(BaseModel):
+    id: int
+    library_id: int
+    status: str
+    valid_until: Optional[datetime] = None
+    plan: Optional[str] = None
+    plan_id: Optional[int] = None
+    current_period_start: Optional[date] = None
+    current_period_end: Optional[date] = None
+    grace_until: Optional[datetime] = None
+    auto_renew: bool = False
+    cancel_at_period_end: bool = False
+    payment_gateway_id: Optional[str] = None
+    gateway_customer_id: Optional[str] = None
+    gateway_subscription_id: Optional[str] = None
+    last_payment_at: Optional[datetime] = None
+    is_trial: bool = False
+    trial_valid_until: Optional[datetime] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    plan_config: Optional[SubscriptionPlanOut] = None
+
+    class Config:
+        orm_mode = True
+
+
+class SubscriptionTransactionOut(BaseModel):
+    id: int
+    subscription_id: Optional[int] = None
+    library_id: int
+    plan_id: Optional[int] = None
+    amount_paise: int
+    currency: str
+    seats_billed: int
+    billing_months: int
+    status: str
+    gateway_order_id: Optional[str] = None
+    gateway_payment_id: Optional[str] = None
+    gateway_signature: Optional[str] = None
+    idempotency_key: str
+    period_start: Optional[date] = None
+    period_end: Optional[date] = None
+    paid_at: Optional[datetime] = None
+    gateway_payload_json: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class SubscriptionWebhookEventOut(BaseModel):
+    id: int
+    gateway_event_id: str
+    event_type: str
+    payload_json: str
+    processed: bool
+    processed_at: Optional[datetime] = None
+    error_message: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class BillingCheckoutOrderRequest(BaseModel):
+    plan_code: str = Field(..., min_length=1, max_length=50)
+    idempotency_key: Optional[str] = Field(default=None, min_length=8, max_length=100)
+
+
+class BillingCheckoutOrderOut(BaseModel):
+    order_id: str
+    key_id: str
+    amount_paise: int
+    currency: str
+    transaction_id: int
+    idempotency_key: str
+    subscription_id: int
+    plan: SubscriptionPlanOut
+
+
+class BillingVerifyPaymentRequest(BaseModel):
+    razorpay_order_id: str = Field(..., min_length=1)
+    razorpay_payment_id: str = Field(..., min_length=1)
+    razorpay_signature: str = Field(..., min_length=1)
+
+
+class BillingVerifyPaymentOut(BaseModel):
+    message: str
+    transaction: SubscriptionTransactionOut
+    subscription: SubscriptionOut
