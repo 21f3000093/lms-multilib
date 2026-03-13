@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session, joinedload
 from app import models, schemas
 from app.dependencies import (
     ensure_subscription_for_library,
+    evaluate_subscription_access,
     get_current_admin,
     get_db,
     get_subscription_grace_days,
@@ -178,6 +179,14 @@ def list_subscriptions(
         .filter(models.Subscription.library_id.in_(library_ids))
         .all()
     )
+    changed_any = False
+    for subscription in subscriptions:
+        _, _, _, changed = evaluate_subscription_access(subscription)
+        if changed:
+            changed_any = True
+    if changed_any:
+        db.commit()
+
     subscription_map = {subscription.library_id: subscription for subscription in subscriptions}
 
     rows: list[dict] = []

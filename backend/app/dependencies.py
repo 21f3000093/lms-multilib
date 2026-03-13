@@ -100,7 +100,7 @@ def ensure_subscription_for_library(db: Session, library_id: int) -> models.Subs
     return subscription
 
 
-def _evaluate_subscription_access(subscription: models.Subscription) -> tuple[bool, str, str, bool]:
+def evaluate_subscription_access(subscription: models.Subscription) -> tuple[bool, str, str, bool]:
     now_utc = datetime.utcnow()
     grace_days = get_subscription_grace_days()
 
@@ -166,7 +166,7 @@ def require_active_subscription(
         raise HTTPException(status_code=403, detail="Library admin is not assigned to any library")
 
     subscription = ensure_subscription_for_library(db, admin.library_id)
-    allowed, effective_status, reason, changed = _evaluate_subscription_access(subscription)
+    allowed, effective_status, reason, changed = evaluate_subscription_access(subscription)
 
     if changed:
         db.commit()

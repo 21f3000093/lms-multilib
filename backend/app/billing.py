@@ -11,7 +11,12 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from sqlalchemy.orm import Session, joinedload
 
 from app import models, schemas
-from app.dependencies import ensure_subscription_for_library, get_current_admin, get_db
+from app.dependencies import (
+    ensure_subscription_for_library,
+    evaluate_subscription_access,
+    get_current_admin,
+    get_db,
+)
 
 _RAZORPAY_IMPORT_ERROR: Exception | None = None
 try:
@@ -109,6 +114,20 @@ def _load_subscription_with_plan(db: Session, subscription_id: int):
     )
 
 
+def _is_first_paid_subscription(
+    db: Session,
+    library_id: int,
+    exclude_transaction_id: int | None = None,
+) -> bool:
+    query = db.query(models.SubscriptionTransaction.id).filter(
+        models.SubscriptionTransaction.library_id == library_id,
+        models.SubscriptionTransaction.status == "captured",
+    )
+    if exclude_transaction_id is not None:
+        query = query.filter(models.SubscriptionTransaction.id != exclude_transaction_id)
+    return query.first() is None
+
+
 def _apply_captured_transaction(
     db: Session,
     tx: models.SubscriptionTransaction,
@@ -122,7 +141,13 @@ def _apply_captured_transaction(
 
     subscription = _get_or_create_subscription(db, tx.library_id)
     start_date = _get_subscription_start_date(subscription)
-    total_months = int(tx.billing_months) + max(0, int(plan.bonus_months))
+    is_first_paid_subscription = _is_first_paid_subscription(
+        db,
+        tx.library_id,
+        exclude_transaction_id=tx.id,
+    )
+    bonus_months_to_apply = max(0, int(plan.bonus_months)) if is_first_paid_subscription else 0
+    total_months = int(tx.billing_months) + bonus_months_to_apply
     period_end = _compute_period_end(start_date, total_months)
     now_utc = datetime.utcnow()
 
@@ -140,6 +165,8 @@ def _apply_captured_transaction(
     payload_store: dict = {}
     if payment_data:
         payload_store["payment"] = payment_data
+    payload_store["bonus_months_applied"] = bonus_months_to_apply
+    payload_store["is_first_paid_subscription"] = is_first_paid_subscription
     tx.gateway_payload_json = json.dumps(payload_store, ensure_ascii=False)
 
     subscription.plan = plan.code
@@ -181,6 +208,10 @@ def get_my_subscription(
 ):
     _require_admin(admin)
     subscription = _get_or_create_subscription(db, admin.library_id)  # type: ignore[arg-type]
+    _, _, _, changed = evaluate_subscription_access(subscription)
+    if changed:
+        db.commit()
+        db.refresh(subscription)
     response_item = _load_subscription_with_plan(db, subscription.id)
     if not response_item:
         raise HTTPException(status_code=500, detail="Failed to load subscription")
@@ -325,7 +356,9 @@ def create_checkout_order(
         raise HTTPException(status_code=502, detail="Payment gateway did not return order id")
 
     start_date = _get_subscription_start_date(subscription)
-    total_months = int(plan.billing_months) + max(0, int(plan.bonus_months))
+    apply_bonus = _is_first_paid_subscription(db, library.id)
+    bonus_months_for_estimate = max(0, int(plan.bonus_months)) if apply_bonus else 0
+    total_months = int(plan.billing_months) + bonus_months_for_estimate
     expected_end = _compute_period_end(start_date, total_months)
 
     tx = models.SubscriptionTransaction(
