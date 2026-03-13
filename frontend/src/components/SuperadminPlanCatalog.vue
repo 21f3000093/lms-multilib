@@ -105,30 +105,92 @@
           </thead>
           <tbody>
             <tr v-for="plan in plans" :key="plan.id">
-              <td><input v-model="plan.edit.code" type="text" class="cell-input" /></td>
-              <td><input v-model="plan.edit.name" type="text" class="cell-input" /></td>
-              <td><input v-model.number="plan.edit.billing_months" type="number" min="1" max="36" class="cell-input num" /></td>
-              <td><input v-model.number="plan.edit.price_per_seat_paise" type="number" min="1" class="cell-input num" /></td>
-              <td><input v-model.number="plan.edit.discount_percent" type="number" min="0" max="100" class="cell-input num" /></td>
-              <td><input v-model.number="plan.edit.bonus_months" type="number" min="0" max="12" class="cell-input num" /></td>
-              <td><input v-model.number="plan.edit.sort_order" type="number" class="cell-input num" /></td>
               <td>
-                <label class="checkbox compact">
+                <input v-if="isEditing(plan)" v-model="plan.edit.code" type="text" class="cell-input" />
+                <span v-else class="cell-value mono">{{ plan.code }}</span>
+              </td>
+              <td>
+                <input v-if="isEditing(plan)" v-model="plan.edit.name" type="text" class="cell-input" />
+                <span v-else class="cell-value">{{ plan.name }}</span>
+              </td>
+              <td>
+                <input
+                  v-if="isEditing(plan)"
+                  v-model.number="plan.edit.billing_months"
+                  type="number"
+                  min="1"
+                  max="36"
+                  class="cell-input num"
+                />
+                <span v-else class="cell-value">{{ plan.billing_months }}</span>
+              </td>
+              <td>
+                <input
+                  v-if="isEditing(plan)"
+                  v-model.number="plan.edit.price_per_seat_paise"
+                  type="number"
+                  min="1"
+                  class="cell-input num"
+                />
+                <span v-else class="cell-value">{{ plan.price_per_seat_paise }}</span>
+              </td>
+              <td>
+                <input
+                  v-if="isEditing(plan)"
+                  v-model.number="plan.edit.discount_percent"
+                  type="number"
+                  min="0"
+                  max="100"
+                  class="cell-input num"
+                />
+                <span v-else class="cell-value">{{ plan.discount_percent }}%</span>
+              </td>
+              <td>
+                <input
+                  v-if="isEditing(plan)"
+                  v-model.number="plan.edit.bonus_months"
+                  type="number"
+                  min="0"
+                  max="12"
+                  class="cell-input num"
+                />
+                <span v-else class="cell-value">{{ plan.bonus_months }}</span>
+              </td>
+              <td>
+                <input v-if="isEditing(plan)" v-model.number="plan.edit.sort_order" type="number" class="cell-input num" />
+                <span v-else class="cell-value">{{ plan.sort_order }}</span>
+              </td>
+              <td>
+                <label v-if="isEditing(plan)" class="checkbox compact">
                   <input v-model="plan.edit.is_active" type="checkbox" />
                   <span>{{ plan.edit.is_active ? 'Yes' : 'No' }}</span>
                 </label>
+                <span v-else class="status-pill" :class="plan.is_active ? 'status-active' : 'status-inactive'">
+                  {{ plan.is_active ? 'Active' : 'Inactive' }}
+                </span>
               </td>
               <td>
-                <textarea v-model="plan.edit.description" rows="2" class="cell-textarea"></textarea>
+                <textarea v-if="isEditing(plan)" v-model="plan.edit.description" rows="2" class="cell-textarea"></textarea>
+                <span v-else class="cell-value description">{{ plan.description || '—' }}</span>
               </td>
               <td>
                 <div class="row-actions">
-                  <button class="btn btn-solid tiny" type="button" :disabled="busyPlanId === plan.id" @click="savePlan(plan)">
-                    Save
-                  </button>
-                  <button class="btn btn-ghost tiny" type="button" :disabled="busyPlanId === plan.id" @click="togglePlanActive(plan)">
-                    {{ plan.edit.is_active ? 'Deactivate' : 'Activate' }}
-                  </button>
+                  <template v-if="isEditing(plan)">
+                    <button class="btn btn-solid tiny" type="button" :disabled="busyPlanId === plan.id" @click="savePlan(plan)">
+                      Save
+                    </button>
+                    <button class="btn btn-ghost tiny" type="button" :disabled="busyPlanId === plan.id" @click="cancelEdit(plan)">
+                      Cancel
+                    </button>
+                  </template>
+                  <template v-else>
+                    <button class="btn btn-ghost tiny" type="button" :disabled="busyPlanId === plan.id" @click="startEdit(plan)">
+                      Edit
+                    </button>
+                    <button class="btn btn-ghost tiny" type="button" :disabled="busyPlanId === plan.id" @click="togglePlanActive(plan)">
+                      {{ plan.is_active ? 'Deactivate' : 'Activate' }}
+                    </button>
+                  </template>
                   <button class="btn btn-danger tiny" type="button" :disabled="busyPlanId === plan.id" @click="deletePlan(plan)">
                     Delete
                   </button>
@@ -149,6 +211,7 @@ import API from '../api'
 const loading = ref(true)
 const createBusy = ref(false)
 const busyPlanId = ref(null)
+const editingPlanId = ref(null)
 const error = ref('')
 const bannerType = ref('success')
 const bannerText = ref('')
@@ -199,6 +262,27 @@ function normalizePlanRows(rawPlans) {
   }))
 }
 
+function isEditing(plan) {
+  return editingPlanId.value === plan.id
+}
+
+function startEdit(plan) {
+  if (busyPlanId.value) return
+  if (editingPlanId.value !== null && editingPlanId.value !== plan.id) {
+    const ok = window.confirm('You have unsaved changes in another row. Switch edit mode to this plan?')
+    if (!ok) return
+  }
+  plan.edit = toEditModel(plan)
+  editingPlanId.value = plan.id
+}
+
+function cancelEdit(plan) {
+  plan.edit = toEditModel(plan)
+  if (editingPlanId.value === plan.id) {
+    editingPlanId.value = null
+  }
+}
+
 async function loadPlans() {
   loading.value = true
   error.value = ''
@@ -207,6 +291,7 @@ async function loadPlans() {
       params: { include_inactive: true },
     })
     plans.value = normalizePlanRows(Array.isArray(res.data) ? res.data : [])
+    editingPlanId.value = null
   } catch (err) {
     error.value = extractError(err, 'Failed to load plans')
   } finally {
@@ -270,6 +355,7 @@ async function createPlan() {
 }
 
 async function savePlan(plan) {
+  if (!isEditing(plan)) return
   const payload = getSanitizedPayload(plan.edit)
   const validationError = validatePlanPayload(payload)
   if (validationError) {
@@ -281,6 +367,7 @@ async function savePlan(plan) {
   try {
     const res = await API.patch(`/superadmin/subscription-plans/${plan.id}`, payload)
     setBanner('success', `Plan "${res.data?.name || payload.name}" updated`)
+    editingPlanId.value = null
     await loadPlans()
   } catch (err) {
     setBanner('error', extractError(err, 'Failed to update plan'))
@@ -292,9 +379,12 @@ async function savePlan(plan) {
 async function togglePlanActive(plan) {
   busyPlanId.value = plan.id
   try {
-    const nextActive = !plan.edit.is_active
+    const nextActive = !plan.is_active
     const res = await API.patch(`/superadmin/subscription-plans/${plan.id}`, { is_active: nextActive })
     setBanner('success', `Plan "${res.data?.name || plan.name}" ${nextActive ? 'activated' : 'deactivated'}`)
+    if (editingPlanId.value === plan.id) {
+      editingPlanId.value = null
+    }
     await loadPlans()
   } catch (err) {
     setBanner('error', extractError(err, 'Failed to update plan status'))
@@ -311,6 +401,9 @@ async function deletePlan(plan) {
   try {
     const res = await API.delete(`/superadmin/subscription-plans/${plan.id}`)
     setBanner('success', res.data?.message || 'Plan processed successfully')
+    if (editingPlanId.value === plan.id) {
+      editingPlanId.value = null
+    }
     await loadPlans()
   } catch (err) {
     setBanner('error', extractError(err, 'Failed to delete/deactivate plan'))
@@ -552,12 +645,47 @@ th {
   padding: 0.36rem 0.45rem;
 }
 
+.cell-value {
+  display: inline-block;
+  color: #e2e8f0;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.cell-value.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+}
+
+.cell-value.description {
+  color: #cbd5e1;
+  max-width: 240px;
+}
+
 .cell-input.num {
   min-width: 90px;
 }
 
 .cell-textarea {
   min-width: 160px;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.22rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.status-active {
+  background: rgba(34, 197, 94, 0.22);
+  color: #86efac;
+}
+
+.status-inactive {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fecaca;
 }
 
 .checkbox.compact {
