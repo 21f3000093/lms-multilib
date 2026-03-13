@@ -31,6 +31,10 @@
             <strong>{{ currentPlanName }}</strong>
           </p>
           <p>
+            <span>Billing Basis</span>
+            <strong>{{ seatsBilled > 0 ? `${seatsBilled} seats` : '—' }}</strong>
+          </p>
+          <p>
             <span>Valid Until</span>
             <strong>{{ formatDate(subscription?.valid_until) }}</strong>
           </p>
@@ -46,9 +50,11 @@
           <p class="label">How Billing Works</p>
         </header>
         <ul>
-          <li>Plan charges are calculated automatically based on your configured seat capacity.</li>
-          <li>After payment success, your subscription period is extended immediately.</li>
-          <li>Use the same action anytime to renew early and avoid expiry disruptions.</li>
+          <li>Charges are calculated from your configured seat capacity: <strong>{{ seatsBilled > 0 ? seatsBilled : '—' }} seats</strong>.</li>
+          <li>Next paid period starts from <strong>{{ expectedStartDateLabel }}</strong>.</li>
+          <li v-if="isFirstPaidSubscription">First paid subscription bonus is eligible and applied where plan bonus months exist.</li>
+          <li v-else>First paid subscription bonus is already consumed; renewals include base billing months only.</li>
+          <li>After payment capture, your subscription period extends immediately.</li>
         </ul>
       </article>
     </section>
@@ -98,7 +104,8 @@
 
           <div class="plan-price">
             <p class="price-value">₹{{ formatPaise(plan.price_per_seat_paise) }}</p>
-            <p class="price-note">per seat / month</p>
+            <p class="price-note">per seat / month (base rate)</p>
+            <p class="pay-now">Pay now: ₹{{ formatPaise(payableNowPaise(plan)) }}</p>
           </div>
 
           <div class="plan-metrics">
@@ -107,12 +114,28 @@
               <strong>{{ plan.billing_months }} month{{ plan.billing_months > 1 ? 's' : '' }}</strong>
             </p>
             <p>
-              <span>Discount</span>
-              <strong>{{ plan.discount_percent }}%</strong>
+              <span>Seats billed</span>
+              <strong>{{ seatsForPlan(plan) }}</strong>
             </p>
             <p>
-              <span>Bonus months</span>
-              <strong>{{ plan.bonus_months }}</strong>
+              <span>Bonus applied now</span>
+              <strong>{{ bonusMonthsApplied(plan) }}</strong>
+            </p>
+            <p>
+              <span>Coverage months</span>
+              <strong>{{ coverageMonths(plan) }}</strong>
+            </p>
+            <p>
+              <span>Effective monthly total</span>
+              <strong>₹{{ formatPaise(effectiveMonthlyTotalPaise(plan)) }}</strong>
+            </p>
+            <p>
+              <span>Effective per seat / month</span>
+              <strong>₹{{ formatPaise(effectiveMonthlyPerSeatPaise(plan)) }}</strong>
+            </p>
+            <p>
+              <span>Estimated period</span>
+              <strong>{{ periodWindowText(plan) }}</strong>
             </p>
           </div>
 
@@ -144,6 +167,11 @@ import API from '../api'
 
 const plans = ref([])
 const subscription = ref(null)
+const quoteContext = ref({
+  seats_billed: 0,
+  is_first_paid_subscription: false,
+  expected_start_date: null,
+})
 const isPageLoading = ref(true)
 const pageError = ref('')
 
@@ -190,6 +218,12 @@ const currentPeriodText = computed(() => {
   return `${start} to ${end}`
 })
 
+const seatsBilled = computed(() => Number(quoteContext.value?.seats_billed || 0))
+
+const isFirstPaidSubscription = computed(() => Boolean(quoteContext.value?.is_first_paid_subscription))
+
+const expectedStartDateLabel = computed(() => formatDate(quoteContext.value?.expected_start_date))
+
 const messageTypeClass = computed(() => {
   return messageType.value === 'success' ? 'message-success' : 'message-error'
 })
@@ -232,6 +266,7 @@ function extractError(error, fallback) {
   const detail = error?.response?.data?.detail
   if (typeof detail === 'string' && detail.trim()) return detail
   if (typeof detail === 'object' && detail?.message) return detail.message
+  if (typeof error?.message === 'string' && error.message.trim()) return error.message
   return fallback
 }
 
@@ -290,8 +325,31 @@ async function retryLastVerification() {
 }
 
 async function loadPlans() {
-  const res = await API.get('/billing/plans')
-  plans.value = Array.isArray(res.data) ? res.data : []
+  try {
+    const res = await API.get('/billing/plan-quotes')
+    const data = res.data || {}
+    quoteContext.value = {
+      seats_billed: Number(data?.seats_billed || 0),
+      is_first_paid_subscription: Boolean(data?.is_first_paid_subscription),
+      expected_start_date: data?.expected_start_date || null,
+    }
+    const quotes = Array.isArray(data?.quotes) ? data.quotes : []
+    plans.value = quotes
+      .map((quote) => ({
+        ...(quote?.plan || {}),
+        quote,
+      }))
+      .filter((plan) => Boolean(plan.code))
+    return
+  } catch (error) {
+    const fallbackRes = await API.get('/billing/plans')
+    plans.value = Array.isArray(fallbackRes.data) ? fallbackRes.data : []
+    quoteContext.value = {
+      seats_billed: Number(subscription.value?.library?.max_seats || 0),
+      is_first_paid_subscription: false,
+      expected_start_date: null,
+    }
+  }
 }
 
 async function loadSubscription() {
@@ -316,6 +374,53 @@ function createIdempotencyKey() {
     return crypto.randomUUID()
   }
   return `idem_${Date.now()}_${Math.random().toString(16).slice(2)}`
+}
+
+function getPlanQuote(plan) {
+  return plan?.quote || null
+}
+
+function seatsForPlan(plan) {
+  const seats = Number(getPlanQuote(plan)?.seats_billed || seatsBilled.value || 0)
+  return seats > 0 ? seats : 0
+}
+
+function bonusMonthsApplied(plan) {
+  return Number(getPlanQuote(plan)?.bonus_months_applied || 0)
+}
+
+function coverageMonths(plan) {
+  const coverage = Number(getPlanQuote(plan)?.coverage_months || plan?.billing_months || 0)
+  return coverage > 0 ? coverage : 0
+}
+
+function payableNowPaise(plan) {
+  const quoteAmount = Number(getPlanQuote(plan)?.payable_now_paise || 0)
+  if (quoteAmount > 0) return quoteAmount
+
+  const seats = Math.max(1, seatsForPlan(plan))
+  return seats * Number(plan?.price_per_seat_paise || 0) * Number(plan?.billing_months || 1)
+}
+
+function effectiveMonthlyTotalPaise(plan) {
+  const coverage = Math.max(1, coverageMonths(plan))
+  return payableNowPaise(plan) / coverage
+}
+
+function effectiveMonthlyPerSeatPaise(plan) {
+  const seats = Math.max(1, seatsForPlan(plan))
+  return effectiveMonthlyTotalPaise(plan) / seats
+}
+
+function periodWindowText(plan) {
+  const quote = getPlanQuote(plan)
+  const start = formatDate(quote?.expected_period_start || quoteContext.value?.expected_start_date)
+  const end = formatDate(quote?.expected_period_end)
+
+  if (start === '—' && end === '—') return '—'
+  if (end === '—') return start
+  if (start === '—') return `Ends ${end}`
+  return `${start} to ${end}`
 }
 
 function ensureRazorpayScript() {
@@ -373,6 +478,10 @@ async function startCheckout(plan) {
       idempotency_key: idempotencyKey,
     })
     const order = orderRes.data
+    const expectedAmount = Math.round(payableNowPaise(plan))
+    if (expectedAmount > 0 && Number(order.amount_paise || 0) !== expectedAmount) {
+      throw new Error('Plan pricing changed on server. Please refresh and try again.')
+    }
 
     if (!window.Razorpay) {
       throw new Error('Razorpay SDK unavailable')
@@ -749,6 +858,13 @@ onMounted(async () => {
   margin: 0;
   color: #94a3b8;
   font-size: 0.85rem;
+}
+
+.pay-now {
+  margin: 0.2rem 0 0;
+  color: #c7f9ff;
+  font-size: 0.88rem;
+  font-weight: 600;
 }
 
 .plan-metrics {

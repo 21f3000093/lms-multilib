@@ -377,6 +377,26 @@ class BillingCheckoutOrderOut(BaseModel):
     plan: SubscriptionPlanOut
 
 
+class BillingPlanQuoteOut(BaseModel):
+    plan: SubscriptionPlanOut
+    seats_billed: int
+    currency: str
+    payable_now_paise: int
+    base_billing_months: int
+    bonus_months_applied: int
+    coverage_months: int
+    is_first_paid_subscription: bool
+    expected_period_start: date
+    expected_period_end: date
+
+
+class BillingPlanQuotesOut(BaseModel):
+    seats_billed: int
+    is_first_paid_subscription: bool
+    expected_start_date: date
+    quotes: List[BillingPlanQuoteOut]
+
+
 class BillingVerifyPaymentRequest(BaseModel):
     razorpay_order_id: str = Field(..., min_length=1)
     razorpay_payment_id: str = Field(..., min_length=1)

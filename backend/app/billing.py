@@ -128,6 +128,32 @@ def _is_first_paid_subscription(
     return query.first() is None
 
 
+def _build_plan_quote_payload(
+    plan: models.SubscriptionPlan,
+    seats_billed: int,
+    expected_start_date: date,
+    is_first_paid_subscription: bool,
+) -> dict:
+    base_billing_months = int(plan.billing_months)
+    bonus_months_applied = max(0, int(plan.bonus_months)) if is_first_paid_subscription else 0
+    coverage_months = max(1, base_billing_months + bonus_months_applied)
+    payable_now_paise = seats_billed * int(plan.price_per_seat_paise) * base_billing_months
+    expected_period_end = _compute_period_end(expected_start_date, coverage_months)
+
+    return {
+        "plan": plan,
+        "seats_billed": seats_billed,
+        "currency": "INR",
+        "payable_now_paise": payable_now_paise,
+        "base_billing_months": base_billing_months,
+        "bonus_months_applied": bonus_months_applied,
+        "coverage_months": coverage_months,
+        "is_first_paid_subscription": is_first_paid_subscription,
+        "expected_period_start": expected_start_date,
+        "expected_period_end": expected_period_end,
+    }
+
+
 def _apply_captured_transaction(
     db: Session,
     tx: models.SubscriptionTransaction,
@@ -199,6 +225,54 @@ def list_subscription_plans(
         .order_by(models.SubscriptionPlan.sort_order.asc(), models.SubscriptionPlan.id.asc())
         .all()
     )
+
+
+@router.get("/plan-quotes", response_model=schemas.BillingPlanQuotesOut)
+def list_plan_quotes(
+    db: Session = Depends(get_db),
+    admin: models.Admin = Depends(get_current_admin),
+):
+    _require_admin(admin)
+
+    library = db.query(models.Library).filter(models.Library.id == admin.library_id).first()
+    if not library:
+        raise HTTPException(status_code=404, detail="Library not found")
+
+    seats_billed = max(1, int(library.max_seats))
+    subscription = _get_or_create_subscription(db, admin.library_id)  # type: ignore[arg-type]
+    _, _, _, changed = evaluate_subscription_access(subscription)
+    if changed:
+        db.commit()
+        db.refresh(subscription)
+
+    expected_start_date = _get_subscription_start_date(subscription)
+    is_first_paid_subscription = _is_first_paid_subscription(db, library.id)
+
+    active_plans = (
+        db.query(models.SubscriptionPlan)
+        .filter(models.SubscriptionPlan.is_active.is_(True))
+        .order_by(models.SubscriptionPlan.sort_order.asc(), models.SubscriptionPlan.id.asc())
+        .all()
+    )
+
+    quotes: list[dict] = []
+    for plan in active_plans:
+        quote = _build_plan_quote_payload(
+            plan=plan,
+            seats_billed=seats_billed,
+            expected_start_date=expected_start_date,
+            is_first_paid_subscription=is_first_paid_subscription,
+        )
+        if quote["payable_now_paise"] <= 0:
+            continue
+        quotes.append(quote)
+
+    return {
+        "seats_billed": seats_billed,
+        "is_first_paid_subscription": is_first_paid_subscription,
+        "expected_start_date": expected_start_date,
+        "quotes": quotes,
+    }
 
 
 @router.get("/me", response_model=schemas.SubscriptionOut)
