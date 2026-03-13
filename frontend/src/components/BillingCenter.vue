@@ -57,7 +57,17 @@
       <div class="message-banner" :class="messageTypeClass">
         <CheckCircle2 v-if="messageType === 'success'" class="message-icon" aria-hidden="true" />
         <AlertTriangle v-else class="message-icon" aria-hidden="true" />
-        <span>{{ messageText }}</span>
+        <span class="message-text">{{ messageText }}</span>
+        <button
+          v-if="showRetryVerifyButton"
+          type="button"
+          class="btn btn-ghost btn-mini"
+          :disabled="verifyLoading || isAnyCheckoutBusy"
+          @click="retryLastVerification"
+        >
+          <LoaderCircle v-if="verifyLoading" class="btn-spin" aria-hidden="true" />
+          <span>{{ verifyLoading ? 'Retrying...' : 'Retry Verify' }}</span>
+        </button>
       </div>
     </section>
 
@@ -141,6 +151,7 @@ const checkoutLoadingCode = ref('')
 const verifyLoading = ref(false)
 const messageText = ref('')
 const messageType = ref('success')
+const lastVerificationPayload = ref(null)
 
 const isAnyCheckoutBusy = computed(() => Boolean(checkoutLoadingCode.value))
 
@@ -183,6 +194,10 @@ const messageTypeClass = computed(() => {
   return messageType.value === 'success' ? 'message-success' : 'message-error'
 })
 
+const showRetryVerifyButton = computed(() => {
+  return messageType.value === 'error' && Boolean(lastVerificationPayload.value)
+})
+
 function formatDate(value) {
   if (!value) return '—'
   const dt = new Date(value)
@@ -218,6 +233,60 @@ function extractError(error, fallback) {
   if (typeof detail === 'string' && detail.trim()) return detail
   if (typeof detail === 'object' && detail?.message) return detail.message
   return fallback
+}
+
+function getErrorDetailText(error) {
+  const detail = error?.response?.data?.detail
+  return typeof detail === 'string' ? detail : ''
+}
+
+function isRetryableVerifyError(error) {
+  const status = Number(error?.response?.status || 0)
+  const detailText = getErrorDetailText(error)
+  if (status === 409 && detailText.includes('authorized but not captured')) return true
+  if (status === 502 && detailText.includes('Unable to confirm payment capture')) return true
+  return false
+}
+
+function mapVerifyPaymentError(error) {
+  const status = Number(error?.response?.status || 0)
+  const detailText = getErrorDetailText(error)
+
+  if (status === 409 && detailText.includes('authorized but not captured')) {
+    return 'Payment is authorized but capture is still in progress. Please wait a few seconds and try again.'
+  }
+
+  if (status === 502 && detailText.includes('Unable to confirm payment capture')) {
+    return 'Could not confirm payment capture from gateway yet. Please wait a few seconds and retry.'
+  }
+
+  return extractError(error, 'Payment verification failed')
+}
+
+async function verifyPaymentRequest(verifyPayload) {
+  verifyLoading.value = true
+  try {
+    const verifyRes = await API.post('/billing/verify-payment', verifyPayload)
+    subscription.value = verifyRes.data.subscription
+    messageType.value = 'success'
+    messageText.value = verifyRes.data.message || 'Payment verified successfully'
+    lastVerificationPayload.value = null
+  } catch (error) {
+    messageType.value = 'error'
+    messageText.value = mapVerifyPaymentError(error)
+    if (!isRetryableVerifyError(error)) {
+      lastVerificationPayload.value = null
+    }
+  } finally {
+    verifyLoading.value = false
+    checkoutLoadingCode.value = ''
+    await loadSubscription().catch(() => {})
+  }
+}
+
+async function retryLastVerification() {
+  if (!lastVerificationPayload.value || verifyLoading.value || isAnyCheckoutBusy.value) return
+  await verifyPaymentRequest(lastVerificationPayload.value)
 }
 
 async function loadPlans() {
@@ -293,6 +362,7 @@ async function startCheckout(plan) {
 
   checkoutLoadingCode.value = plan.code
   messageText.value = ''
+  lastVerificationPayload.value = null
 
   try {
     await ensureRazorpayScript()
@@ -329,25 +399,13 @@ async function startCheckout(plan) {
         },
       },
       handler: async (response) => {
-        verifyLoading.value = true
-        try {
-          const verifyRes = await API.post('/billing/verify-payment', {
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature,
-          })
-
-          subscription.value = verifyRes.data.subscription
-          messageType.value = 'success'
-          messageText.value = verifyRes.data.message || 'Payment verified successfully'
-        } catch (error) {
-          messageType.value = 'error'
-          messageText.value = extractError(error, 'Payment verification failed')
-        } finally {
-          verifyLoading.value = false
-          checkoutLoadingCode.value = ''
-          await loadSubscription().catch(() => {})
+        const verifyPayload = {
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_signature: response.razorpay_signature,
         }
+        lastVerificationPayload.value = verifyPayload
+        await verifyPaymentRequest(verifyPayload)
       },
     })
 
@@ -568,6 +626,18 @@ onMounted(async () => {
   align-items: center;
   gap: 0.55rem;
   border: 1px solid transparent;
+}
+
+.message-text {
+  flex: 1;
+}
+
+.btn-mini {
+  padding: 0.42rem 0.7rem;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
 }
 
 .message-success {

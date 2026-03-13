@@ -410,23 +410,37 @@ def verify_payment(
     except Exception:
         payment_data = None
 
-    if payment_data:
-        payment_status = str(payment_data.get("status") or "").lower()
-        payment_amount = int(payment_data.get("amount") or 0)
-        payment_currency = str(payment_data.get("currency") or "INR")
+    if not payment_data:
+        tx.gateway_payload_json = json.dumps({"verify_request": signature_payload}, ensure_ascii=False)
+        db.commit()
+        raise HTTPException(
+            status_code=502,
+            detail="Unable to confirm payment capture with gateway. Please retry verification.",
+        )
 
-        if payment_amount != tx.amount_paise:
-            raise HTTPException(status_code=400, detail="Payment amount mismatch")
-        if payment_currency.upper() != str(tx.currency).upper():
-            raise HTTPException(status_code=400, detail="Payment currency mismatch")
-        if payment_status not in {"captured", "authorized"}:
-            tx.status = "failed"
-            tx.gateway_payload_json = json.dumps(
-                {"verify_request": signature_payload, "payment": payment_data},
-                ensure_ascii=False,
-            )
-            db.commit()
-            raise HTTPException(status_code=400, detail=f"Payment status is {payment_status or 'unknown'}")
+    payment_status = str(payment_data.get("status") or "").lower()
+    payment_amount = int(payment_data.get("amount") or 0)
+    payment_currency = str(payment_data.get("currency") or "INR")
+
+    if payment_amount != tx.amount_paise:
+        raise HTTPException(status_code=400, detail="Payment amount mismatch")
+    if payment_currency.upper() != str(tx.currency).upper():
+        raise HTTPException(status_code=400, detail="Payment currency mismatch")
+    if payment_status == "authorized":
+        tx.gateway_payload_json = json.dumps(
+            {"verify_request": signature_payload, "payment": payment_data},
+            ensure_ascii=False,
+        )
+        db.commit()
+        raise HTTPException(status_code=409, detail="Payment is authorized but not captured yet")
+    if payment_status != "captured":
+        tx.status = "failed"
+        tx.gateway_payload_json = json.dumps(
+            {"verify_request": signature_payload, "payment": payment_data},
+            ensure_ascii=False,
+        )
+        db.commit()
+        raise HTTPException(status_code=400, detail=f"Payment status is {payment_status or 'unknown'}")
 
     tx, subscription = _apply_captured_transaction(
         db=db,
@@ -502,7 +516,7 @@ async def handle_razorpay_webhook(
         payment_wrapper = payload_root.get("payment") or {}
         payment_entity = payment_wrapper.get("entity") or {}
 
-        if event_type in {"payment.captured", "payment.authorized"}:
+        if event_type == "payment.captured":
             order_id = str(payment_entity.get("order_id") or "").strip()
             payment_id = str(payment_entity.get("id") or "").strip()
             if not order_id:
@@ -527,6 +541,18 @@ async def handle_razorpay_webhook(
                 elif payment_id and not tx.gateway_payment_id:
                     tx.gateway_payment_id = payment_id
                 result_message = "payment_captured_processed"
+
+        elif event_type == "payment.authorized":
+            order_id = str(payment_entity.get("order_id") or "").strip()
+            payment_id = str(payment_entity.get("id") or "").strip()
+            tx = (
+                db.query(models.SubscriptionTransaction)
+                .filter(models.SubscriptionTransaction.gateway_order_id == order_id)
+                .first()
+            ) if order_id else None
+            if tx and payment_id and not tx.gateway_payment_id:
+                tx.gateway_payment_id = payment_id
+            result_message = "payment_authorized_recorded_waiting_capture"
 
         elif event_type == "payment.failed":
             order_id = str(payment_entity.get("order_id") or "").strip()
