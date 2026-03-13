@@ -93,6 +93,7 @@ def ensure_subscription_for_library(db: Session, library_id: int) -> models.Subs
         cancel_at_period_end=False,
         is_trial=is_trial,
         trial_valid_until=trial_valid_until,
+        bonus_eligible=True,
     )
     db.add(subscription)
     db.commit()

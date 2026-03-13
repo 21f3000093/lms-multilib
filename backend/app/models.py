@@ -216,6 +216,7 @@ class Subscription(Base):
     last_payment_at = Column(DateTime)            # NEW: tracks last payment timestamp
     is_trial = Column(Boolean, default=False)     # NEW: is user on trial
     trial_valid_until = Column(DateTime)          # NEW: trial end timestamp
+    bonus_eligible = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 

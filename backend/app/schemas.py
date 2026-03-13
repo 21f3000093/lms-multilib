@@ -314,6 +314,7 @@ class SubscriptionOut(BaseModel):
     last_payment_at: Optional[datetime] = None
     is_trial: bool = False
     trial_valid_until: Optional[datetime] = None
+    bonus_eligible: bool = True
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     plan_config: Optional[SubscriptionPlanOut] = None
@@ -441,6 +442,7 @@ class SuperadminSubscriptionPatchRequest(BaseModel):
     extend_days: Optional[int] = Field(default=None, ge=1, le=3650)
     valid_until: Optional[datetime] = None
     clear_trial: bool = False
+    bonus_eligible: Optional[bool] = None
 
 
 class SuperadminSubscriptionPatchOut(BaseModel):

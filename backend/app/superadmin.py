@@ -450,6 +450,9 @@ def patch_subscription(
         subscription.is_trial = False # type: ignore
         subscription.trial_valid_until = None # type: ignore
 
+    if payload.bonus_eligible is not None:
+        subscription.bonus_eligible = payload.bonus_eligible # type: ignore
+
     if payload.status:
         normalized_status = payload.status.strip().lower()
         allowed_statuses = {"active", "inactive", "grace", "expired", "trialing", "canceled"}

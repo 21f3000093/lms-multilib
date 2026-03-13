@@ -114,7 +114,7 @@ def _load_subscription_with_plan(db: Session, subscription_id: int):
     )
 
 
-def _is_first_paid_subscription(
+def _has_captured_subscription_payment(
     db: Session,
     library_id: int,
     exclude_transaction_id: int | None = None,
@@ -125,7 +125,11 @@ def _is_first_paid_subscription(
     )
     if exclude_transaction_id is not None:
         query = query.filter(models.SubscriptionTransaction.id != exclude_transaction_id)
-    return query.first() is None
+    return query.first() is not None
+
+
+def _is_bonus_eligible(subscription: models.Subscription, has_captured_payment: bool) -> bool:
+    return bool(getattr(subscription, "bonus_eligible", True)) and not has_captured_payment
 
 
 def _build_plan_quote_payload(
@@ -167,12 +171,13 @@ def _apply_captured_transaction(
 
     subscription = _get_or_create_subscription(db, tx.library_id)
     start_date = _get_subscription_start_date(subscription)
-    is_first_paid_subscription = _is_first_paid_subscription(
+    has_prior_captured_payment = _has_captured_subscription_payment(
         db,
         tx.library_id,
         exclude_transaction_id=tx.id,
     )
-    bonus_months_to_apply = max(0, int(plan.bonus_months)) if is_first_paid_subscription else 0
+    apply_bonus = _is_bonus_eligible(subscription, has_prior_captured_payment)
+    bonus_months_to_apply = max(0, int(plan.bonus_months)) if apply_bonus else 0
     total_months = int(tx.billing_months) + bonus_months_to_apply
     period_end = _compute_period_end(start_date, total_months)
     now_utc = datetime.utcnow()
@@ -192,7 +197,7 @@ def _apply_captured_transaction(
     if payment_data:
         payload_store["payment"] = payment_data
     payload_store["bonus_months_applied"] = bonus_months_to_apply
-    payload_store["is_first_paid_subscription"] = is_first_paid_subscription
+    payload_store["is_first_paid_subscription"] = apply_bonus
     tx.gateway_payload_json = json.dumps(payload_store, ensure_ascii=False)
 
     subscription.plan = plan.code
@@ -205,6 +210,7 @@ def _apply_captured_transaction(
     subscription.last_payment_at = now_utc
     subscription.is_trial = False
     subscription.trial_valid_until = None
+    subscription.bonus_eligible = False
     if payment_id:
         subscription.payment_gateway_id = payment_id
     if payment_data and payment_data.get("customer_id"):
@@ -246,7 +252,8 @@ def list_plan_quotes(
         db.refresh(subscription)
 
     expected_start_date = _get_subscription_start_date(subscription)
-    is_first_paid_subscription = _is_first_paid_subscription(db, library.id)
+    has_captured_payment = _has_captured_subscription_payment(db, library.id)
+    is_first_paid_subscription = _is_bonus_eligible(subscription, has_captured_payment)
 
     active_plans = (
         db.query(models.SubscriptionPlan)
@@ -430,7 +437,8 @@ def create_checkout_order(
         raise HTTPException(status_code=502, detail="Payment gateway did not return order id")
 
     start_date = _get_subscription_start_date(subscription)
-    apply_bonus = _is_first_paid_subscription(db, library.id)
+    has_captured_payment = _has_captured_subscription_payment(db, library.id)
+    apply_bonus = _is_bonus_eligible(subscription, has_captured_payment)
     bonus_months_for_estimate = max(0, int(plan.bonus_months)) if apply_bonus else 0
     total_months = int(plan.billing_months) + bonus_months_for_estimate
     expected_end = _compute_period_end(start_date, total_months)
