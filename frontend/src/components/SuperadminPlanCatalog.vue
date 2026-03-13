@@ -292,7 +292,7 @@ async function savePlan(plan) {
 async function togglePlanActive(plan) {
   busyPlanId.value = plan.id
   try {
-    const nextActive = !Boolean(plan.edit.is_active)
+    const nextActive = !plan.edit.is_active
     const res = await API.patch(`/superadmin/subscription-plans/${plan.id}`, { is_active: nextActive })
     setBanner('success', `Plan "${res.data?.name || plan.name}" ${nextActive ? 'activated' : 'deactivated'}`)
     await loadPlans()
