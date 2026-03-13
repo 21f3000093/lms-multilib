@@ -50,6 +50,13 @@ def _resolve_subscription_plan(
     return plan
 
 
+def _normalize_plan_code(raw_code: str) -> str:
+    normalized = raw_code.strip().lower().replace(" ", "_")
+    if not normalized:
+        raise HTTPException(status_code=400, detail="Plan code cannot be empty")
+    return normalized
+
+
 # routes for superadmin to manage libraries 
 @superadmin_router.get("/libraries", response_model=list[schemas.LibraryOut])
 def get_libraries(db: Session = Depends(get_db),admin = Depends(get_current_admin)):
@@ -265,6 +272,145 @@ def list_subscription_plans_for_superadmin(
         query = query.filter(models.SubscriptionPlan.is_active.is_(True))
 
     return query.order_by(models.SubscriptionPlan.sort_order.asc(), models.SubscriptionPlan.id.asc()).all()
+
+
+@superadmin_router.post("/subscription-plans", response_model=schemas.SubscriptionPlanOut)
+def create_subscription_plan(
+    payload: schemas.SubscriptionPlanCreate,
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin),
+):
+    _require_superadmin(admin)
+
+    normalized_code = _normalize_plan_code(payload.code)
+    existing = (
+        db.query(models.SubscriptionPlan)
+        .filter(models.SubscriptionPlan.code == normalized_code)
+        .first()
+    )
+    if existing:
+        raise HTTPException(status_code=409, detail="Subscription plan code already exists")
+
+    plan = models.SubscriptionPlan(
+        code=normalized_code,
+        name=payload.name.strip(),
+        description=(payload.description.strip() if isinstance(payload.description, str) else payload.description),
+        billing_months=payload.billing_months,
+        price_per_seat_paise=payload.price_per_seat_paise,
+        discount_percent=payload.discount_percent,
+        bonus_months=payload.bonus_months,
+        is_active=payload.is_active,
+        sort_order=payload.sort_order,
+    )
+    db.add(plan)
+    db.commit()
+    db.refresh(plan)
+    return plan
+
+
+@superadmin_router.patch("/subscription-plans/{plan_id}", response_model=schemas.SubscriptionPlanOut)
+def patch_subscription_plan(
+    plan_id: int,
+    payload: schemas.SubscriptionPlanUpdate,
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin),
+):
+    _require_superadmin(admin)
+
+    plan = db.query(models.SubscriptionPlan).filter(models.SubscriptionPlan.id == plan_id).first()
+    if not plan:
+        raise HTTPException(status_code=404, detail="Subscription plan not found")
+
+    update_data = payload.dict(exclude_unset=True)
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No fields provided for update")
+
+    if "code" in update_data and update_data["code"] is not None:
+        normalized_code = _normalize_plan_code(update_data["code"])
+        existing = (
+            db.query(models.SubscriptionPlan)
+            .filter(
+                models.SubscriptionPlan.code == normalized_code,
+                models.SubscriptionPlan.id != plan_id,
+            )
+            .first()
+        )
+        if existing:
+            raise HTTPException(status_code=409, detail="Subscription plan code already exists")
+        plan.code = normalized_code # type: ignore
+
+    if "name" in update_data and update_data["name"] is not None:
+        plan.name = update_data["name"].strip() # type: ignore
+    if "description" in update_data:
+        if update_data["description"] is None:
+            plan.description = None # type: ignore
+        else:
+            plan.description = str(update_data["description"]).strip() # type: ignore
+    if "billing_months" in update_data and update_data["billing_months"] is not None:
+        plan.billing_months = int(update_data["billing_months"]) # type: ignore
+    if "price_per_seat_paise" in update_data and update_data["price_per_seat_paise"] is not None:
+        plan.price_per_seat_paise = int(update_data["price_per_seat_paise"]) # type: ignore
+    if "discount_percent" in update_data and update_data["discount_percent"] is not None:
+        plan.discount_percent = int(update_data["discount_percent"]) # type: ignore
+    if "bonus_months" in update_data and update_data["bonus_months"] is not None:
+        plan.bonus_months = int(update_data["bonus_months"]) # type: ignore
+    if "is_active" in update_data and update_data["is_active"] is not None:
+        plan.is_active = bool(update_data["is_active"]) # type: ignore
+    if "sort_order" in update_data and update_data["sort_order"] is not None:
+        plan.sort_order = int(update_data["sort_order"]) # type: ignore
+
+    db.commit()
+    db.refresh(plan)
+    return plan
+
+
+@superadmin_router.delete(
+    "/subscription-plans/{plan_id}",
+    response_model=schemas.SubscriptionPlanDeleteOut,
+)
+def delete_subscription_plan(
+    plan_id: int,
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin),
+):
+    _require_superadmin(admin)
+
+    plan = db.query(models.SubscriptionPlan).filter(models.SubscriptionPlan.id == plan_id).first()
+    if not plan:
+        raise HTTPException(status_code=404, detail="Subscription plan not found")
+
+    has_active_references = (
+        db.query(models.Subscription.id)
+        .filter(models.Subscription.plan_id == plan_id)
+        .first()
+        is not None
+    ) or (
+        db.query(models.SubscriptionTransaction.id)
+        .filter(models.SubscriptionTransaction.plan_id == plan_id)
+        .first()
+        is not None
+    )
+
+    if has_active_references:
+        plan.is_active = False # type: ignore
+        db.commit()
+        db.refresh(plan)
+        return {
+            "message": "Plan is in use, so it was deactivated instead of hard deleted",
+            "deleted": False,
+            "plan_id": plan.id,
+            "plan": plan,
+        }
+
+    deleted_plan_id = plan.id
+    db.delete(plan)
+    db.commit()
+    return {
+        "message": "Plan deleted successfully",
+        "deleted": True,
+        "plan_id": deleted_plan_id,
+        "plan": None,
+    }
 
 
 @superadmin_router.patch(

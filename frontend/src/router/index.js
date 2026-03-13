@@ -22,6 +22,7 @@ import NotificationCenter from '@/components/NotificationCenter.vue'
 import SuperadminNotifications from '@/components/SuperadminNotifications.vue'
 import BillingCenter from '@/components/BillingCenter.vue'
 import SuperadminSubscriptions from '@/components/SuperadminSubscriptions.vue'
+import SuperadminPlanCatalog from '@/components/SuperadminPlanCatalog.vue'
 
 
 
@@ -71,6 +72,12 @@ const routes = [
     path: '/superadmin/subscriptions',
     name: 'SuperadminSubscriptions',
     component: SuperadminSubscriptions,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/superadmin/plan-catalog',
+    name: 'SuperadminPlanCatalog',
+    component: SuperadminPlanCatalog,
     meta: { requiresAuth: true }
   },
   {

@@ -268,6 +268,18 @@ class SubscriptionPlanCreate(SubscriptionPlanBase):
     pass
 
 
+class SubscriptionPlanUpdate(BaseModel):
+    code: Optional[str] = Field(default=None, min_length=1, max_length=50)
+    name: Optional[str] = Field(default=None, min_length=1, max_length=120)
+    description: Optional[str] = Field(default=None, max_length=500)
+    billing_months: Optional[int] = Field(default=None, ge=1, le=36)
+    price_per_seat_paise: Optional[int] = Field(default=None, ge=1)
+    discount_percent: Optional[int] = Field(default=None, ge=0, le=100)
+    bonus_months: Optional[int] = Field(default=None, ge=0, le=12)
+    is_active: Optional[bool] = None
+    sort_order: Optional[int] = None
+
+
 class SubscriptionPlanOut(SubscriptionPlanBase):
     id: int
     created_at: datetime
@@ -275,6 +287,13 @@ class SubscriptionPlanOut(SubscriptionPlanBase):
 
     class Config:
         orm_mode = True
+
+
+class SubscriptionPlanDeleteOut(BaseModel):
+    message: str
+    deleted: bool
+    plan_id: Optional[int] = None
+    plan: Optional[SubscriptionPlanOut] = None
 
 
 class SubscriptionOut(BaseModel):

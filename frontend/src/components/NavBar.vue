@@ -167,6 +167,7 @@ import {
   Menu,
   ReceiptText,
   Shield,
+  SlidersHorizontal,
   UserCircle2,
   UserPlus,
   Users,
@@ -189,6 +190,7 @@ export default {
     Menu,
     ReceiptText,
     Shield,
+    SlidersHorizontal,
     UserCircle2,
     UserPlus,
     Users,
@@ -233,6 +235,7 @@ export default {
       return [
         { key: 'superadmin-dashboard', to: '/superadmin', label: 'Dashboard', icon: 'Shield' },
         { key: 'superadmin-subscriptions', to: '/superadmin/subscriptions', label: 'Subscriptions', icon: 'CircleDollarSign' },
+        { key: 'superadmin-plan-catalog', to: '/superadmin/plan-catalog', label: 'Plan Catalog', icon: 'SlidersHorizontal' },
         { key: 'superadmin-notifications', to: '/superadmin/notifications', label: 'Notifications', icon: 'Bell' },
       ]
     },
@@ -335,12 +338,17 @@ export default {
         return (
           currentPath.startsWith('/superadmin') &&
           !currentPath.startsWith('/superadmin/notifications') &&
-          !currentPath.startsWith('/superadmin/subscriptions')
+          !currentPath.startsWith('/superadmin/subscriptions') &&
+          !currentPath.startsWith('/superadmin/plan-catalog')
         )
       }
 
       if (item.key === 'superadmin-subscriptions') {
         return currentPath === '/superadmin/subscriptions'
+      }
+
+      if (item.key === 'superadmin-plan-catalog') {
+        return currentPath === '/superadmin/plan-catalog'
       }
 
       if (item.key === 'superadmin-notifications') {
