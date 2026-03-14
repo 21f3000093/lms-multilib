@@ -92,66 +92,7 @@
         <p>Longer commitments reduce cost per seat and unlock additional free months.</p>
       </header>
 
-      <!-- <div class="pricing-grid">
-        <article
-          v-for="(plan, index) in plans"
-          :key="plan.name"
-          class="pricing-card reveal"
-          :class="{ featured: plan.featured, 'best-value': plan.bestValue }"
-          :data-stagger="(index % 5) + 1"
-        >
-          <div v-if="plan.badge" class="plan-badge" :class="plan.badgeTone">{{ plan.badge }}</div>
-
-          <div class="card-header">
-            <div class="plan-icon-wrap">
-              <component :is="plan.icon" class="plan-icon" aria-hidden="true" />
-            </div>
-            <h3>{{ plan.name }}</h3>
-            <p>{{ plan.description }}</p>
-          </div>
-
-          <div class="price-box">
-            <div class="price-main">
-              <span class="currency">₹</span>
-              <span class="amount">{{ plan.price.toFixed(2) }}</span>
-              <span class="unit">/seat/mo</span>
-            </div>
-            <p class="billing-note">{{ plan.duration }}</p>
-
-            <div v-if="plan.discount" class="savings-badge">
-              <span>{{ plan.discount }}% OFF</span>
-              <span>Save ₹{{ formatCurrency(calculateSavings(plan)) }}</span>
-            </div>
-          </div>
-
-          <ul class="feature-list">
-            <li v-for="feature in plan.features" :key="feature">
-              <Check class="check-icon" aria-hidden="true" />
-              <span>{{ feature }}</span>
-            </li>
-          </ul>
-
-          <div class="total-box">
-            <div class="total-row">
-              <span>Total billed</span>
-              <strong>₹{{ formatCurrency(calculateTotal(plan)) }}</strong>
-            </div>
-
-            <div v-if="plan.extraMonth" class="bonus-row">
-              <Gift class="bonus-icon" aria-hidden="true" />
-              <div>
-                <strong>+{{ plan.extraMonth }} free month{{ plan.extraMonth > 1 ? 's' : '' }}</strong>
-                <p>For first-time purchase</p>
-              </div>
-            </div>
-
-            <p class="effective-note">
-              Effective: ₹{{ effectivePerSeat(plan) }}/seat/mo
-              <span>across {{ plan.multiplier + (plan.extraMonth || 0) }} months</span>
-            </p>
-          </div>
-        </article>
-      </div> -->
+      
 
       <div class="pricing-carousel-wrapper">
         <swiper
@@ -1200,9 +1141,8 @@ onBeforeUnmount(() => {
   transition: all 0.3s ease;
 
   svg{
-    width: 20%;
-    /* height: 50%; */
-    stroke-width: 2.5;
+    width : 20% ;
+    stroke-width : 2.5;
   }
 }
 
@@ -1220,13 +1160,7 @@ onBeforeUnmount(() => {
   font-weight: 800;
 }
 
-/* Hide arrows on mobile screens to save space (users will swipe)
-@media (max-width: 767px) {
-  :deep(.swiper-button-next),
-  :deep(.swiper-button-prev) {
-    display: none;
-  }
-} */
+
 
 @keyframes mesh-drift {
   0% {
@@ -1307,12 +1241,6 @@ onBeforeUnmount(() => {
   .calculator-card input {
     width: 90%;
   }
-/* 
-  :deep(.swiper-button-prev) {
-    left: 4vw;
-  }
-  :deep(.swiper-button-next) {
-    right: 4vw;
-  } */
+
 }
 </style>

@@ -86,76 +86,6 @@
       <div v-if="isPageLoading" class="state-text">Loading plans...</div>
       <div v-else-if="pageError" class="state-text error">{{ pageError }}</div>
       <div v-else-if="!plans.length" class="state-text">No active plans available right now.</div>
-
-      <!-- <div v-else class="plans-grid">
-        <article
-          v-for="plan in plans"
-          :key="plan.code"
-          class="plan-card"
-          :class="{ current: isCurrentPlan(plan) }"
-        >
-          <div class="plan-head">
-            <div>
-              <h3>{{ plan.name }}</h3>
-              <p>{{ plan.description || 'Subscription plan' }}</p>
-            </div>
-            <span v-if="isCurrentPlan(plan)" class="current-pill">Current</span>
-          </div>
-
-          <div class="plan-price">
-            <p class="price-value">₹{{ formatPaise(plan.price_per_seat_paise) }}</p>
-            <p class="price-note">per seat / month (base rate)</p>
-            <p class="pay-now">Pay now: ₹{{ formatPaise(payableNowPaise(plan)) }}</p>
-          </div>
-
-          <div class="plan-metrics">
-            <p>
-              <span>Billing cycle</span>
-              <strong>{{ plan.billing_months }} month{{ plan.billing_months > 1 ? 's' : '' }}</strong>
-            </p>
-            <p>
-              <span>Seats billed</span>
-              <strong>{{ seatsForPlan(plan) }}</strong>
-            </p>
-            <p>
-              <span>Bonus applied now</span>
-              <strong>{{ bonusMonthsApplied(plan) }}</strong>
-            </p>
-            <p>
-              <span>Coverage months</span>
-              <strong>{{ coverageMonths(plan) }}</strong>
-            </p>
-            <p>
-              <span>Effective monthly total</span>
-              <strong>₹{{ formatPaise(effectiveMonthlyTotalPaise(plan)) }}</strong>
-            </p>
-            <p>
-              <span>Effective per seat / month</span>
-              <strong>₹{{ formatPaise(effectiveMonthlyPerSeatPaise(plan)) }}</strong>
-            </p>
-            <p>
-              <span>Estimated period</span>
-              <strong>{{ periodWindowText(plan) }}</strong>
-            </p>
-          </div>
-
-          <button
-            type="button"
-            class="btn btn-solid full"
-            :disabled="isAnyCheckoutBusy || verifyLoading"
-            @click="startCheckout(plan)"
-          >
-            <LoaderCircle
-              v-if="checkoutLoadingCode === plan.code || verifyLoading"
-              class="btn-spin"
-              aria-hidden="true"
-            />
-            <span>
-              {{ checkoutLoadingCode === plan.code ? 'Creating order...' : verifyLoading ? 'Verifying payment...' : checkoutLabel(plan) }}
-            </span>
-          </button>
-        </article>
-      </div> -->
     
       <div v-else class="pricing-carousel-wrapper">
         <swiper
@@ -254,6 +184,64 @@
         </swiper>
       </div>
     </section>
+
+    <section class="section-shell history-shell glass-card">
+      <header class="history-header">
+        <h2>Recent Transactions</h2>
+        <p>Your latest subscription payments and attempts.</p>
+      </header>
+
+      <div v-if="transactionsLoading" class="state-text">Loading transactions...</div>
+      <div v-else-if="transactionsError" class="state-text error">{{ transactionsError }}</div>
+      <div v-else-if="!transactions.length" class="state-text">No subscription transactions yet.</div>
+
+      <template v-else>
+        <div class="history-table-wrap">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Plan</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Period</th>
+                <th>Paid At</th>
+                <th>Gateway Ref</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="tx in transactions" :key="tx.id">
+                <td>#{{ tx.id }}</td>
+                <td>{{ transactionPlanName(tx) }}</td>
+                <td>₹{{ formatPaise(tx.amount_paise) }}</td>
+                <td>
+                  <span class="tx-pill" :class="transactionStatusClass(tx.status)">
+                    {{ transactionStatusLabel(tx.status) }}
+                  </span>
+                </td>
+                <td>{{ transactionPeriodText(tx) }}</td>
+                <td>{{ formatDateTime(tx.paid_at || tx.created_at) }}</td>
+                <td class="gateway-ref">
+                  {{ tx.gateway_payment_id || tx.gateway_order_id || '—' }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="history-actions" v-if="transactionsHasMore">
+          <button
+            type="button"
+            class="btn btn-ghost btn-mini"
+            :disabled="transactionsLoadingMore"
+            @click="loadMoreTransactions"
+          >
+            <LoaderCircle v-if="transactionsLoadingMore" class="btn-spin" aria-hidden="true" />
+            <span>{{ transactionsLoadingMore ? 'Loading...' : 'Load More' }}</span>
+          </button>
+        </div>
+      </template>
+    </section>
   </main>
 </template>
 
@@ -276,6 +264,13 @@ const quoteContext = ref({
   is_first_paid_subscription: false,
   expected_start_date: null,
 })
+const transactions = ref([])
+const transactionLimit = 10
+const transactionOffset = ref(0)
+const transactionsHasMore = ref(false)
+const transactionsLoading = ref(false)
+const transactionsLoadingMore = ref(false)
+const transactionsError = ref('')
 const isPageLoading = ref(true)
 const pageError = ref('')
 
@@ -336,6 +331,17 @@ const showRetryVerifyButton = computed(() => {
   return messageType.value === 'error' && Boolean(lastVerificationPayload.value)
 })
 
+const planNameById = computed(() => {
+  const map = {}
+  for (const plan of plans.value) {
+    const planId = Number(plan?.id || 0)
+    if (planId > 0 && typeof plan?.name === 'string' && plan.name.trim()) {
+      map[planId] = plan.name
+    }
+  }
+  return map
+})
+
 function formatDate(value) {
   if (!value) return '—'
   const dt = new Date(value)
@@ -344,6 +350,19 @@ function formatDate(value) {
     year: 'numeric',
     month: 'short',
     day: '2-digit',
+  })
+}
+
+function formatDateTime(value) {
+  if (!value) return '—'
+  const dt = new Date(value)
+  if (Number.isNaN(dt.getTime())) return '—'
+  return dt.toLocaleString('en-IN', {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
   })
 }
 
@@ -402,6 +421,37 @@ function mapVerifyPaymentError(error) {
   return extractError(error, 'Payment verification failed')
 }
 
+function transactionStatusClass(status) {
+  const normalized = String(status || '').trim().toLowerCase()
+  if (normalized === 'captured') return 'tx-captured'
+  if (normalized === 'created' || normalized === 'authorized') return 'tx-pending'
+  if (normalized === 'failed') return 'tx-failed'
+  if (normalized === 'refunded') return 'tx-refunded'
+  return 'tx-default'
+}
+
+function transactionStatusLabel(status) {
+  const normalized = String(status || '').trim().toLowerCase()
+  if (!normalized) return 'Unknown'
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1)
+}
+
+function transactionPlanName(tx) {
+  const planId = Number(tx?.plan_id || 0)
+  if (planId > 0 && planNameById.value[planId]) return planNameById.value[planId]
+  if (planId > 0) return `Plan #${planId}`
+  return '—'
+}
+
+function transactionPeriodText(tx) {
+  const start = formatDate(tx?.period_start)
+  const end = formatDate(tx?.period_end)
+  if (start === '—' && end === '—') return '—'
+  if (end === '—') return start
+  if (start === '—') return `Ends ${end}`
+  return `${start} to ${end}`
+}
+
 async function verifyPaymentRequest(verifyPayload) {
   verifyLoading.value = true
   try {
@@ -419,13 +469,68 @@ async function verifyPaymentRequest(verifyPayload) {
   } finally {
     verifyLoading.value = false
     checkoutLoadingCode.value = ''
-    await loadSubscription().catch(() => {})
+    await Promise.all([
+      loadSubscription().catch(() => {}),
+      loadTransactions().catch(() => {}),
+    ])
   }
 }
 
 async function retryLastVerification() {
   if (!lastVerificationPayload.value || verifyLoading.value || isAnyCheckoutBusy.value) return
   await verifyPaymentRequest(lastVerificationPayload.value)
+}
+
+async function loadTransactions(options = {}) {
+  const append = options.append === true
+  const targetOffset = append ? transactionOffset.value : 0
+
+  if (append) {
+    transactionsLoadingMore.value = true
+  } else {
+    transactionsLoading.value = true
+    transactionsError.value = ''
+  }
+
+  try {
+    const res = await API.get('/billing/transactions', {
+      params: {
+        limit: transactionLimit,
+        offset: targetOffset,
+      },
+    })
+    const rows = Array.isArray(res.data) ? res.data : []
+
+    if (append) {
+      transactions.value = [...transactions.value, ...rows]
+    } else {
+      transactions.value = rows
+    }
+
+    transactionOffset.value = targetOffset + rows.length
+    transactionsHasMore.value = rows.length === transactionLimit
+  } catch (error) {
+    if (append) {
+      messageType.value = 'error'
+      messageText.value = extractError(error, 'Failed to load more transactions')
+    } else {
+      transactionsError.value = extractError(error, 'Failed to load transactions')
+      transactions.value = []
+      transactionOffset.value = 0
+      transactionsHasMore.value = false
+    }
+  } finally {
+    if (append) {
+      transactionsLoadingMore.value = false
+    } else {
+      transactionsLoading.value = false
+    }
+  }
+}
+
+async function loadMoreTransactions() {
+  if (transactionsLoading.value || transactionsLoadingMore.value || !transactionsHasMore.value) return
+  await loadTransactions({ append: true })
 }
 
 async function loadPlans() {
@@ -465,7 +570,7 @@ async function refreshAll() {
   isPageLoading.value = true
   pageError.value = ''
   try {
-    await Promise.all([loadPlans(), loadSubscription()])
+    await Promise.all([loadPlans(), loadSubscription(), loadTransactions()])
   } catch (error) {
     pageError.value = extractError(error, 'Failed to load billing data')
   } finally {
@@ -899,6 +1004,107 @@ onMounted(async () => {
 
 .state-text.error {
   color: #fca5a5;
+}
+
+.history-shell {
+  margin-top: 0.95rem;
+  padding: 1rem;
+}
+
+.history-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.history-header p {
+  margin: 0.35rem 0 0;
+  color: #94a3b8;
+}
+
+.history-table-wrap {
+  margin-top: 0.9rem;
+  overflow-x: auto;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 14px;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+.history-table th,
+.history-table td {
+  text-align: left;
+  padding: 0.62rem 0.72rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+  vertical-align: middle;
+}
+
+.history-table thead th {
+  color: #94a3b8;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: rgba(15, 23, 42, 0.65);
+}
+
+.history-table tbody td {
+  color: #dbe7ff;
+  font-size: 0.86rem;
+}
+
+.history-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tx-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.18rem 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+.tx-captured {
+  background: rgba(34, 197, 94, 0.2);
+  color: #86efac;
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+.tx-pending {
+  background: rgba(14, 165, 233, 0.2);
+  color: #67e8f9;
+  border-color: rgba(14, 165, 233, 0.35);
+}
+
+.tx-failed {
+  background: rgba(248, 113, 113, 0.16);
+  color: #fca5a5;
+  border-color: rgba(248, 113, 113, 0.35);
+}
+
+.tx-refunded,
+.tx-default {
+  background: rgba(148, 163, 184, 0.18);
+  color: #cbd5e1;
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+.gateway-ref {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.8rem;
+  color: #bfdbfe;
+  word-break: break-all;
+}
+
+.history-actions {
+  margin-top: 0.8rem;
+  display: flex;
+  justify-content: center;
 }
 
 /* 
