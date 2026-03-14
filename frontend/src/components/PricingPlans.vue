@@ -92,7 +92,7 @@
         <p>Longer commitments reduce cost per seat and unlock additional free months.</p>
       </header>
 
-      <div class="pricing-grid">
+      <!-- <div class="pricing-grid">
         <article
           v-for="(plan, index) in plans"
           :key="plan.name"
@@ -151,7 +151,85 @@
             </p>
           </div>
         </article>
+      </div> -->
+
+      <div class="pricing-carousel-wrapper">
+        <swiper
+          :modules="swiperModules"
+          :slides-per-view="'auto'"
+          :centered-slides="true"
+          :space-between="20"
+          :initial-slide="2" 
+          :pagination="{ clickable: true }"
+          :navigation="true"
+          :grab-cursor="true"
+          class="pricing-swiper"
+        >
+        
+          <swiper-slide v-for="plan in plans" :key="plan.name" class="pricing-slide">
+            
+            <article
+              class="pricing-card"
+              :class="{ featured: plan.featured, 'best-value': plan.bestValue }"
+            >
+              <div v-if="plan.badge" class="plan-badge" :class="plan.badgeTone">{{ plan.badge }}</div>
+
+              <div class="card-header">
+                <div class="plan-icon-wrap">
+                  <component :is="plan.icon" class="plan-icon" aria-hidden="true" />
+                </div>
+                <h3>{{ plan.name }}</h3>
+                <p>{{ plan.description }}</p>
+              </div>
+
+              <div class="price-box">
+                <div class="price-main">
+                  <span class="currency">₹</span>
+                  <span class="amount">{{ plan.price.toFixed(2) }}</span>
+                  <span class="unit">/seat/mo</span>
+                </div>
+                <p class="billing-note">{{ plan.duration }}</p>
+
+                <div v-if="plan.discount" class="savings-badge">
+                  <span>{{ plan.discount }}% OFF</span>
+                  <span>Save ₹{{ formatCurrency(calculateSavings(plan)) }}</span>
+                </div>
+              </div>
+
+              <ul class="feature-list">
+                <li v-for="feature in plan.features" :key="feature">
+                  <Check class="check-icon" aria-hidden="true" />
+                  <span>{{ feature }}</span>
+                </li>
+              </ul>
+
+              <div class="total-box">
+                <div class="total-row">
+                  <span>Total billed</span>
+                  <strong>₹{{ formatCurrency(calculateTotal(plan)) }}</strong>
+                </div>
+
+                <div v-if="plan.extraMonth" class="bonus-row">
+                  <Gift class="bonus-icon" aria-hidden="true" />
+                  <div>
+                    <strong>+{{ plan.extraMonth }} free month{{ plan.extraMonth > 1 ? 's' : '' }}</strong>
+                    <p>For first-time purchase</p>
+                  </div>
+                </div>
+
+                <p class="effective-note">
+                  Effective: ₹{{ effectivePerSeat(plan) }}/seat/mo
+                  <span>across {{ plan.multiplier + (plan.extraMonth || 0) }} months</span>
+                </p>
+              </div>
+            </article>
+
+          </swiper-slide>
+        </swiper>
       </div>
+
+
+
     </section>
 
     <section class="included section-shell reveal" data-stagger="1">
@@ -196,7 +274,14 @@
 </template>
 
 <script setup>
+/* eslint-disable */
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { Swiper, SwiperSlide } from 'swiper/vue'
+import { Pagination, Navigation, EffectCreative } from 'swiper/modules'
+import 'swiper/css'
+import 'swiper/css/pagination'
+import 'swiper/css/navigation'
+import 'swiper/css/effect-creative'
 import {
   BadgeCheck,
   BarChart3,
@@ -219,6 +304,8 @@ import {
 
 const pageRoot = ref(null)
 let observer = null
+
+const swiperModules = [Pagination, Navigation]
 
 const seatCount = ref(100)
 const presetSeats = [35, 50, 70, 100, 120]
@@ -547,15 +634,10 @@ onBeforeUnmount(() => {
 }
 
 .hero-orb {
-  /* width: min(340px, 84vw); */
   aspect-ratio: 1;
   border-radius: 28px;
   border: 1px solid var(--surface-border);
-  /* background:
-    linear-gradient(145deg, rgba(148, 163, 184, 0.14), rgba(148, 163, 184, 0.02)),
-    rgba(148, 163, 184, 0.02); */
   backdrop-filter: blur(12px);
-  /* box-shadow: 0 26px 60px rgba(2, 6, 23, 0.45); */
   display: grid;
   place-items: center;
 }
@@ -691,19 +773,74 @@ onBeforeUnmount(() => {
   margin-bottom: 1.1rem;
 }
 
-.pricing-grid {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 0.85rem;
+/* --- SWIPER CAROUSEL STYLES --- */
+.pricing-carousel-wrapper {
+  /* This lets the carousel bleed to the edges of the screen on mobile for a native feel */
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  padding: 1rem 0 3rem 0; /* Extra bottom padding for pagination dots */
 }
 
+.pricing-swiper {
+  width: 100%;
+  padding-bottom: 3rem !important; /* Forces room for the pagination dots */
+  overflow: visible; /* Lets shadows render outside the container */
+}
+
+.pricing-slide {
+  width: 320px; /* Fixed width for the cards */
+  height: auto;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+  
+  /* Dim and shrink the cards that are NOT in the center */
+  opacity: 0.5;
+  transform: scale(0.85) translateY(10px); 
+}
+
+/* The card that is currently centered */
+.swiper-slide-active {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  z-index: 10;
+}
+
+/* Ensure the article inside takes full height */
+.pricing-slide .pricing-card {
+  height: 100%;
+  margin: 0; /* Reset margins */
+}
+
+/* --- CUSTOMIZE SWIPER PAGINATION DOTS --- */
+:deep(.swiper-pagination-bullet) {
+  background: var(--text-secondary);
+  opacity: 0.4;
+  width: 8px;
+  height: 8px;
+  transition: all 0.3s ease;
+}
+
+:deep(.swiper-pagination-bullet-active) {
+  background: var(--brand-a);
+  opacity: 1;
+  width: 24px; /* Makes the active dot look like a pill/dash */
+  border-radius: 4px;
+}
+
+/* Base Pricing Card Styles (Cleaned up for Swiper) */
 .pricing-card {
   position: relative;
   overflow: hidden;
   border-radius: 18px;
-  grid-column: span 4;
   padding: 1.1rem;
   transition: transform 240ms ease, box-shadow 240ms ease, border-color 240ms ease;
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .pricing-card::before {
@@ -729,7 +866,6 @@ onBeforeUnmount(() => {
 }
 
 .pricing-card.featured {
-  grid-column: span 8;
   border-color: rgba(14, 165, 233, 0.58);
 }
 
@@ -1049,6 +1185,49 @@ onBeforeUnmount(() => {
   animation: float 6s ease-in-out infinite;
 }
 
+
+/* --- CUSTOMIZE SWIPER NAVIGATION ARROWS --- */
+:deep(.swiper-button-next),
+:deep(.swiper-button-prev) {
+  color: var(--brand-a); /* Uses your cyan gradient color */
+  background: rgba(15, 23, 42, 0.75); /* Matches your card background */
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+
+  svg{
+    width: 20%;
+    /* height: 50%; */
+    stroke-width: 2.5;
+  }
+}
+
+:deep(.swiper-button-next:hover),
+:deep(.swiper-button-prev:hover) {
+  background: rgba(15, 23, 42, 0.95);
+  border-color: var(--brand-a);
+  transform: scale(1.05);
+}
+
+/* Make the actual arrow icon smaller and bolder */
+:deep(.swiper-button-next::after),
+:deep(.swiper-button-prev::after) {
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+/* Hide arrows on mobile screens to save space (users will swipe)
+@media (max-width: 767px) {
+  :deep(.swiper-button-next),
+  :deep(.swiper-button-prev) {
+    display: none;
+  }
+} */
+
 @keyframes mesh-drift {
   0% {
     transform: translate3d(0, 0, 0) scale(1);
@@ -1068,21 +1247,36 @@ onBeforeUnmount(() => {
   }
 }
 
-@media (max-width: 1200px) {
-  .pricing-card,
-  .pricing-card.featured {
-    grid-column: span 6;
+@media (min-width: 1080px) {
+  :deep(.swiper-button-prev) {
+    /* 320px is your card width. This safely anchors the arrow outside it */
+    left: calc(50% - 380px); 
   }
+  
+  :deep(.swiper-button-next) {
+    right: calc(50% - 380px);
+  }
+}
 
+/* For mid-sized screens (tablets/small laptops), just give them safe padding */
+@media (min-width: 768px) and (max-width: 1079px) {
+  :deep(.swiper-button-prev) {
+    left: 4vw;
+  }
+  :deep(.swiper-button-next) {
+    right: 4vw;
+  }
+}
+
+@media (max-width: 1200px) {
   .included-grid,
   .faq-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 1024px) {
-
-  .pricing-page{
+@media (max-width: 1080px) {
+  .pricing-page {
     padding: 2rem 1rem 4.5rem 1rem;
   }
 
@@ -1100,19 +1294,9 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 767px) {
-  /* .pricing-page {
-    padding-top: 7rem;
-  } */
-
-  .pricing-grid,
   .included-grid,
   .faq-grid {
     grid-template-columns: 1fr;
-  }
-
-  .pricing-card,
-  .pricing-card.featured {
-    grid-column: span 1;
   }
 
   .cta-card,
@@ -1120,8 +1304,15 @@ onBeforeUnmount(() => {
     padding: 1.2rem;
   }
 
-  .calculator-card input{
+  .calculator-card input {
     width: 90%;
   }
+/* 
+  :deep(.swiper-button-prev) {
+    left: 4vw;
+  }
+  :deep(.swiper-button-next) {
+    right: 4vw;
+  } */
 }
 </style>
