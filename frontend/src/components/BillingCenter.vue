@@ -87,7 +87,7 @@
       <div v-else-if="pageError" class="state-text error">{{ pageError }}</div>
       <div v-else-if="!plans.length" class="state-text">No active plans available right now.</div>
 
-      <div v-else class="plans-grid">
+      <!-- <div v-else class="plans-grid">
         <article
           v-for="plan in plans"
           :key="plan.code"
@@ -155,6 +155,103 @@
             </span>
           </button>
         </article>
+      </div> -->
+    
+      <div v-else class="pricing-carousel-wrapper">
+        <swiper
+          :modules="swiperModules"
+          :slides-per-view="'auto'"
+          :centered-slides="true"
+          :space-between="20"
+          :initial-slide="1" 
+          :pagination="{ clickable: true }"
+          :navigation="true"
+          :grab-cursor="true"
+          class="pricing-swiper"
+        >
+          <swiper-slide v-for="plan in plans" :key="plan.code" class="pricing-slide">
+            <article
+              class="plan-card"
+              :class="{ current: isCurrentPlan(plan) }"
+            >
+              <div class="card-glow"></div>
+
+              <div class="plan-head">
+                <div>
+                  <h3>{{ plan.name }}</h3>
+                  <p>{{ plan.description || 'Subscription plan' }}</p>
+                </div>
+                <div class="head-tags">
+                  <span v-if="discountPercent(plan) > 0" class="discount-pill">
+                    {{ discountPercent(plan) }}% OFF
+                  </span>
+                  <span v-if="isCurrentPlan(plan)" class="current-pill">Current</span>
+                </div>
+              </div>
+
+              <div class="plan-price">
+                <p class="price-value">₹{{ formatPaise(plan.price_per_seat_paise) }}</p>
+                <p class="price-note">per seat / month (base rate)</p>
+                <p class="pay-now">Pay now: ₹{{ formatPaise(payableNowPaise(plan)) }}</p>
+                <div v-if="discountPercent(plan) > 0" class="savings-badge">
+                  <span>{{ discountPercent(plan) }}% OFF</span>
+                  <span>Discount on monthly seat rate</span>
+                </div>
+              </div>
+
+              <div class="plan-metrics">
+                <p>
+                  <span>Billing cycle</span>
+                  <strong>{{ plan.billing_months }} month{{ plan.billing_months > 1 ? 's' : '' }}</strong>
+                </p>
+                <p>
+                  <span>Discount</span>
+                  <strong>{{ discountPercent(plan) }}%</strong>
+                </p>
+                <p>
+                  <span>Seats billed</span>
+                  <strong>{{ seatsForPlan(plan) }}</strong>
+                </p>
+                <p>
+                  <span>Bonus applied</span>
+                  <strong>{{ bonusMonthsApplied(plan) }}</strong>
+                </p>
+                <p>
+                  <span>Coverage</span>
+                  <strong>{{ coverageMonths(plan) }} months</strong>
+                </p>
+                <p>
+                  <span>Effective monthly</span>
+                  <strong>₹{{ formatPaise(effectiveMonthlyTotalPaise(plan)) }}</strong>
+                </p>
+                <p>
+                  <span>Effective per seat</span>
+                  <strong>₹{{ formatPaise(effectiveMonthlyPerSeatPaise(plan)) }}</strong>
+                </p>
+                <p>
+                  <span>Estimated period</span>
+                  <strong>{{ periodWindowText(plan) }}</strong>
+                </p>
+              </div>
+
+              <button
+                type="button"
+                class="btn btn-solid full"
+                :disabled="isAnyCheckoutBusy || verifyLoading"
+                @click="startCheckout(plan)"
+              >
+                <LoaderCircle
+                  v-if="checkoutLoadingCode === plan.code || verifyLoading"
+                  class="btn-spin"
+                  aria-hidden="true"
+                />
+                <span>
+                  {{ checkoutLoadingCode === plan.code ? 'Creating order...' : verifyLoading ? 'Verifying payment...' : checkoutLabel(plan) }}
+                </span>
+              </button>
+            </article>
+          </swiper-slide>
+        </swiper>
       </div>
     </section>
   </main>
@@ -163,8 +260,15 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { AlertTriangle, CheckCircle2, LoaderCircle } from 'lucide-vue-next'
+// --- SWIPER IMPORTS ---
+import { Swiper, SwiperSlide } from 'swiper/vue'
+import { Pagination, Navigation } from 'swiper/modules'
+import 'swiper/css'
+import 'swiper/css/pagination'
+import 'swiper/css/navigation'
 import API from '../api'
 
+const swiperModules = [Pagination, Navigation]
 const plans = ref([])
 const subscription = ref(null)
 const quoteContext = ref({
@@ -385,6 +489,11 @@ function seatsForPlan(plan) {
   return seats > 0 ? seats : 0
 }
 
+function discountPercent(plan) {
+  const discount = Number(getPlanQuote(plan)?.plan?.discount_percent || plan?.discount_percent || 0)
+  return discount > 0 ? discount : 0
+}
+
 function bonusMonthsApplied(plan) {
   return Number(getPlanQuote(plan)?.bonus_months_applied || 0)
 }
@@ -566,6 +675,7 @@ onMounted(async () => {
 .section-shell {
   width: min(1140px, calc(100% - 2rem));
   margin: 0 auto;
+  overflow-x: hidden;
 }
 
 .hero {
@@ -791,14 +901,15 @@ onMounted(async () => {
   color: #fca5a5;
 }
 
+/* 
 .plans-grid {
   margin-top: 0.9rem;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.75rem;
-}
+} */
 
-.plan-card {
+/* .plan-card {
   border-radius: 16px;
   border: 1px solid rgba(148, 163, 184, 0.22);
   background: rgba(15, 23, 42, 0.45);
@@ -810,6 +921,131 @@ onMounted(async () => {
 .plan-card.current {
   border-color: rgba(14, 165, 233, 0.62);
   box-shadow: 0 0 0 1px rgba(14, 165, 233, 0.2) inset;
+} */
+
+/* --- SWIPER CAROUSEL STYLES --- */
+.pricing-carousel-wrapper {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  padding: 1rem 0 3rem 0; 
+}
+
+.pricing-swiper {
+  width: 100%;
+  padding-bottom: 3rem !important; 
+  overflow: visible; 
+}
+
+.pricing-slide {
+  width: 320px; 
+  height: auto;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+  opacity: 0.5;
+  transform: scale(0.85) translateY(10px); 
+}
+
+.swiper-slide-active {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  z-index: 10;
+}
+
+.pricing-slide .plan-card {
+  height: 100%;
+  margin: 0; 
+}
+
+/* --- UPGRADED PLAN CARD STYLES --- */
+.plan-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 1.25rem;
+  display: grid;
+  gap: 1rem;
+  transition: transform 240ms ease, box-shadow 240ms ease, border-color 240ms ease;
+}
+
+.plan-card .card-glow {
+  position: absolute;
+  inset: -40% auto auto -20%;
+  width: 13rem;
+  height: 13rem;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.2), transparent 70%);
+  opacity: 0;
+  transition: opacity 260ms ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.plan-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(34, 211, 238, 0.32);
+  box-shadow: 0 20px 34px rgba(2, 6, 23, 0.42);
+}
+
+.plan-card:hover .card-glow {
+  opacity: 1;
+}
+
+.plan-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.plan-card.current {
+  border-color: rgba(14, 165, 233, 0.62);
+  box-shadow: 0 0 0 1px rgba(14, 165, 233, 0.2) inset;
+}
+
+/* --- SWIPER PAGINATION & NAVIGATION --- */
+:deep(.swiper-pagination-bullet) {
+  background: #94a3b8;
+  opacity: 0.4;
+  width: 8px;
+  height: 8px;
+  transition: all 0.3s ease;
+}
+
+:deep(.swiper-pagination-bullet-active) {
+  background: #22d3ee;
+  opacity: 1;
+  width: 24px; 
+  border-radius: 4px;
+}
+
+:deep(.swiper-button-next),
+:deep(.swiper-button-prev) {
+  color: #22d3ee; 
+  background: rgba(15, 23, 42, 0.75); 
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+}
+
+:deep(.swiper-button-next:hover),
+:deep(.swiper-button-prev:hover) {
+  background: rgba(15, 23, 42, 0.95);
+  border-color: #22d3ee;
+  transform: scale(1.05);
+}
+
+:deep(.swiper-button-next svg),
+:deep(.swiper-button-prev svg) {
+  width: 20%;
+  stroke-width: 2.5;
 }
 
 .plan-head {
@@ -829,6 +1065,25 @@ onMounted(async () => {
   color: #94a3b8;
   font-size: 0.9rem;
   line-height: 1.45;
+}
+
+.head-tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.discount-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.22rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fef08a;
+  background: rgba(234, 179, 8, 0.2);
+  border: 1px solid rgba(234, 179, 8, 0.35);
 }
 
 .current-pill {
@@ -865,6 +1120,30 @@ onMounted(async () => {
   color: #c7f9ff;
   font-size: 0.88rem;
   font-weight: 600;
+}
+
+.savings-badge {
+  margin-top: 0.5rem;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.14rem;
+  border-radius: 12px;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  background: rgba(234, 179, 8, 0.13);
+}
+
+.savings-badge span:first-child {
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fde68a;
+}
+
+.savings-badge span:last-child {
+  font-size: 0.74rem;
+  color: #fef3c7;
 }
 
 .plan-metrics {
@@ -924,17 +1203,23 @@ onMounted(async () => {
   }
 }
 
+@media (min-width: 1080px) {
+  :deep(.swiper-button-prev) { left: calc(50% - 380px); }
+  :deep(.swiper-button-next) { right: calc(50% - 380px); }
+}
+
+@media (min-width: 768px) and (max-width: 1079px) {
+  :deep(.swiper-button-prev) { left: 5vw; }
+  :deep(.swiper-button-next) { right: 5vw; }
+}
+
 @media (max-width: 1080px) {
   .billing-page {
     padding: 1.35rem 1rem 2rem;
   }
-
   .section-shell {
-    width: min(1140px, 100%);
-  }
-
-  .plans-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    /* width: min(1140px, 100%); */
+    overflow-x: hidden;
   }
 }
 
@@ -943,13 +1228,11 @@ onMounted(async () => {
     flex-direction: column;
     align-items: flex-start;
   }
-
   .status-grid {
     grid-template-columns: 1fr;
   }
 
-  .plans-grid {
-    grid-template-columns: 1fr;
-  }
+  :deep(.swiper-button-prev) { left: 1rem; }
+  :deep(.swiper-button-next) { right: 1rem; }
 }
 </style>
