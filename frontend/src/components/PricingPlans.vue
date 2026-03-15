@@ -622,7 +622,7 @@ onBeforeUnmount(() => {
 .hero-orb {
   aspect-ratio: 1;
   border-radius: 28px;
-  border: 1px solid var(--surface-border);
+  /* border: 1px solid var(--surface-border); */
   backdrop-filter: blur(12px);
   display: grid;
   place-items: center;

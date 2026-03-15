@@ -1443,6 +1443,7 @@ onMounted(async () => {
 
 .plan-metrics p span {
   color: #94a3b8;
+  text-align: left;
 }
 
 .btn-solid {

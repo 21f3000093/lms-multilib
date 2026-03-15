@@ -311,7 +311,7 @@ onBeforeUnmount(() => {
   /* width: min(360px, 84vw); */
   aspect-ratio: 1;
   border-radius: 28px;
-  border: 1px solid var(--surface-border);
+  /* border: 1px solid var(--surface-border); */
   /* background:
     linear-gradient(145deg, rgba(148, 163, 184, 0.14), rgba(148, 163, 184, 0.02)),
     rgba(148, 163, 184, 0.02); */
