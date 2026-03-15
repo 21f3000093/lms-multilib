@@ -357,10 +357,10 @@ const planNameById = computed(() => {
 })
 
 function formatDate(value) {
-  if (!value) return '—'
-  const dt = new Date(value)
+  const dt = parseServerDate(value)
   if (Number.isNaN(dt.getTime())) return '—'
   return dt.toLocaleDateString('en-IN', {
+    timeZone: 'Asia/Kolkata',
     year: 'numeric',
     month: 'short',
     day: '2-digit',
@@ -368,16 +368,36 @@ function formatDate(value) {
 }
 
 function formatDateTime(value) {
-  if (!value) return '—'
-  const dt = new Date(value)
+  const dt = parseServerDate(value)
   if (Number.isNaN(dt.getTime())) return '—'
   return dt.toLocaleString('en-IN', {
+    timeZone: 'Asia/Kolkata',
     year: 'numeric',
     month: 'short',
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
   })
+}
+
+function parseServerDate(value) {
+  if (!value) return new Date(NaN)
+  if (value instanceof Date) return value
+
+  const raw = String(value).trim()
+  if (!raw) return new Date(NaN)
+
+  // Date-only fields should stay calendar-accurate for India.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    return new Date(`${raw}T00:00:00+05:30`)
+  }
+
+  // If timezone isn't present, backend timestamps are treated as UTC.
+  if (raw.includes('T') && !/(Z|[+-]\d{2}:\d{2})$/.test(raw)) {
+    return new Date(`${raw}Z`)
+  }
+
+  return new Date(raw)
 }
 
 function formatPaise(paise) {
@@ -497,7 +517,12 @@ function transactionStatusClass(status) {
 function transactionStatusLabel(status) {
   const normalized = String(status || '').trim().toLowerCase()
   if (!normalized) return 'Unknown'
-  return normalized.charAt(0).toUpperCase() + normalized.slice(1)
+  if (normalized === 'captured') return 'Successful'
+  if (normalized === 'created') return 'Initiated'
+  if (normalized === 'authorized') return 'Authorized'
+  if (normalized === 'failed') return 'Failed'
+  if (normalized === 'refunded') return 'Refunded'
+  return 'Processing'
 }
 
 function transactionPlanName(tx) {
@@ -1054,7 +1079,7 @@ onMounted(async () => {
 
 .plans-shell {
   margin-top: 0.95rem;
-  padding: 1rem;
+  /* padding: 1rem; */
 }
 
 .plans-header h2 {
@@ -1078,7 +1103,7 @@ onMounted(async () => {
 
 .history-shell {
   margin-top: 0.95rem;
-  padding: 1rem;
+  /* padding: 1rem; */
 }
 
 .history-header h2 {
@@ -1092,7 +1117,7 @@ onMounted(async () => {
 }
 
 .history-table-wrap {
-  margin-top: 0.9rem;
+  margin: 0.9rem;
   overflow-x: auto;
   border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 14px;
