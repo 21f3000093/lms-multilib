@@ -99,19 +99,23 @@
           :modules="swiperModules"
           :slides-per-view="'auto'"
           :centered-slides="true"
+          :slide-to-clicked-slide="true"
           :space-between="20"
-          :initial-slide="2" 
+          :initial-slide="initialPlanSlideIndex" 
           :pagination="{ clickable: true }"
           :navigation="true"
           :grab-cursor="true"
           class="pricing-swiper"
+          @swiper="onPricingSwiperInit"
+          @slideChange="onPricingSwiperChange"
         >
         
-          <swiper-slide v-for="plan in plans" :key="plan.name" class="pricing-slide">
+          <swiper-slide v-for="(plan, index) in plans" :key="plan.name" class="pricing-slide">
             
             <article
               class="pricing-card"
-              :class="{ featured: plan.featured, 'best-value': plan.bestValue }"
+              :class="{ featured: plan.featured, 'best-value': plan.bestValue, 'is-focused': isPlanFocused(index) }"
+              @click="focusPlan(index)"
             >
               <div v-if="plan.badge" class="plan-badge" :class="plan.badgeTone">{{ plan.badge }}</div>
 
@@ -247,6 +251,9 @@ const pageRoot = ref(null)
 let observer = null
 
 const swiperModules = [Pagination, Navigation]
+const initialPlanSlideIndex = 2
+const pricingSwiper = ref(null)
+const activePlanSlideIndex = ref(initialPlanSlideIndex)
 
 const seatCount = ref(100)
 const presetSeats = [35, 50, 70, 100, 120]
@@ -406,6 +413,44 @@ function effectivePerSeat(plan) {
 
 function formatCurrency(value) {
   return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(Math.round(value))
+}
+
+function boundedPlanIndex(index) {
+  if (!plans.length) return -1
+  const normalized = Number(index)
+  if (!Number.isFinite(normalized)) return -1
+  return Math.min(Math.max(0, normalized), plans.length - 1)
+}
+
+function syncActivePlanSlide(swiper) {
+  const nextIndex = boundedPlanIndex(swiper?.activeIndex ?? initialPlanSlideIndex)
+  if (nextIndex >= 0) {
+    activePlanSlideIndex.value = nextIndex
+  }
+}
+
+function onPricingSwiperInit(swiper) {
+  pricingSwiper.value = swiper
+  syncActivePlanSlide(swiper)
+}
+
+function onPricingSwiperChange(swiper) {
+  syncActivePlanSlide(swiper)
+}
+
+function isPlanFocused(index) {
+  return boundedPlanIndex(index) === activePlanSlideIndex.value
+}
+
+function focusPlan(index) {
+  const targetIndex = boundedPlanIndex(index)
+  if (targetIndex < 0) return
+  if (!pricingSwiper.value) {
+    activePlanSlideIndex.value = targetIndex
+    return
+  }
+  if (pricingSwiper.value.activeIndex === targetIndex) return
+  pricingSwiper.value.slideTo(targetIndex)
 }
 
 const onMagneticMove = (event) => {
@@ -777,11 +822,16 @@ onBeforeUnmount(() => {
   overflow: hidden;
   border-radius: 18px;
   padding: 1.1rem;
+  cursor: pointer;
   transition: transform 240ms ease, box-shadow 240ms ease, border-color 240ms ease;
   background: var(--surface);
   border: 1px solid var(--surface-border);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+}
+
+.pricing-card.is-focused {
+  cursor: default;
 }
 
 .pricing-card::before {

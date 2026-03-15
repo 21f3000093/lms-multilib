@@ -92,7 +92,6 @@
           :modules="swiperModules"
           :slides-per-view="'auto'"
           :centered-slides="true"
-          :slide-to-clicked-slide="true"
           :space-between="20"
           :initial-slide="1" 
           :pagination="{ clickable: true }"
@@ -171,7 +170,7 @@
               <button
                 type="button"
                 class="btn btn-solid full"
-                :disabled="!isPlanFocused(index) || isAnyCheckoutBusy || verifyLoading"
+                :disabled="isAnyCheckoutBusy || verifyLoading"
                 @click.stop="startCheckout(plan, index)"
               >
                 <LoaderCircle
@@ -187,7 +186,7 @@
                         ? 'Verifying payment...'
                         : isPlanFocused(index)
                           ? checkoutLabel(plan)
-                          : 'Tap card to focus'
+                          : 'Tap to focus'
                   }}
                 </span>
               </button>
