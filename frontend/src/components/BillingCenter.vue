@@ -92,17 +92,21 @@
           :modules="swiperModules"
           :slides-per-view="'auto'"
           :centered-slides="true"
+          :slide-to-clicked-slide="true"
           :space-between="20"
           :initial-slide="1" 
           :pagination="{ clickable: true }"
           :navigation="true"
           :grab-cursor="true"
           class="pricing-swiper"
+          @swiper="onBillingSwiperInit"
+          @slideChange="onBillingSwiperChange"
         >
-          <swiper-slide v-for="plan in plans" :key="plan.code" class="pricing-slide">
+          <swiper-slide v-for="(plan, index) in plans" :key="plan.code" class="pricing-slide">
             <article
               class="plan-card"
-              :class="{ current: isCurrentPlan(plan) }"
+              :class="{ current: isCurrentPlan(plan), 'is-focused': isPlanFocused(index) }"
+              @click="focusPlan(index)"
             >
               <div class="card-glow"></div>
 
@@ -167,8 +171,8 @@
               <button
                 type="button"
                 class="btn btn-solid full"
-                :disabled="isAnyCheckoutBusy || verifyLoading"
-                @click="startCheckout(plan)"
+                :disabled="!isPlanFocused(index) || isAnyCheckoutBusy || verifyLoading"
+                @click.stop="startCheckout(plan, index)"
               >
                 <LoaderCircle
                   v-if="checkoutLoadingCode === plan.code || verifyLoading"
@@ -176,7 +180,15 @@
                   aria-hidden="true"
                 />
                 <span>
-                  {{ checkoutLoadingCode === plan.code ? 'Creating order...' : verifyLoading ? 'Verifying payment...' : checkoutLabel(plan) }}
+                  {{
+                    checkoutLoadingCode === plan.code
+                      ? 'Creating order...'
+                      : verifyLoading
+                        ? 'Verifying payment...'
+                        : isPlanFocused(index)
+                          ? checkoutLabel(plan)
+                          : 'Tap card to focus'
+                  }}
                 </span>
               </button>
             </article>
@@ -257,6 +269,9 @@ import 'swiper/css/navigation'
 import API from '../api'
 
 const swiperModules = [Pagination, Navigation]
+const initialPlanSlideIndex = 1
+const billingSwiper = ref(null)
+const activePlanSlideIndex = ref(initialPlanSlideIndex)
 const plans = ref([])
 const subscription = ref(null)
 const quoteContext = ref({
@@ -383,6 +398,56 @@ function checkoutLabel(plan) {
     return 'Renew / Extend'
   }
   return 'Choose Plan'
+}
+
+function boundedPlanIndex(index) {
+  if (!plans.value.length) return -1
+  const normalized = Number(index)
+  if (!Number.isFinite(normalized)) return -1
+  return Math.min(Math.max(0, normalized), plans.value.length - 1)
+}
+
+function syncActivePlanSlide(swiper) {
+  const nextIndex = boundedPlanIndex(swiper?.activeIndex ?? 0)
+  if (nextIndex >= 0) {
+    activePlanSlideIndex.value = nextIndex
+  }
+}
+
+function onBillingSwiperInit(swiper) {
+  billingSwiper.value = swiper
+  syncActivePlanSlide(swiper)
+}
+
+function onBillingSwiperChange(swiper) {
+  syncActivePlanSlide(swiper)
+}
+
+function isPlanFocused(index) {
+  return boundedPlanIndex(index) === activePlanSlideIndex.value
+}
+
+function focusPlan(index) {
+  const targetIndex = boundedPlanIndex(index)
+  if (targetIndex < 0) return
+  if (!billingSwiper.value) {
+    activePlanSlideIndex.value = targetIndex
+    return
+  }
+  if (billingSwiper.value.activeIndex === targetIndex) return
+  billingSwiper.value.slideTo(targetIndex)
+}
+
+function resetPlanFocus() {
+  const targetIndex = boundedPlanIndex(initialPlanSlideIndex)
+  if (targetIndex < 0) {
+    activePlanSlideIndex.value = 0
+    return
+  }
+  activePlanSlideIndex.value = targetIndex
+  if (billingSwiper.value) {
+    billingSwiper.value.slideTo(targetIndex, 0)
+  }
 }
 
 function extractError(error, fallback) {
@@ -549,10 +614,12 @@ async function loadPlans() {
         quote,
       }))
       .filter((plan) => Boolean(plan.code))
+    resetPlanFocus()
     return
   } catch (error) {
     const fallbackRes = await API.get('/billing/plans')
     plans.value = Array.isArray(fallbackRes.data) ? fallbackRes.data : []
+    resetPlanFocus()
     quoteContext.value = {
       seats_billed: Number(subscription.value?.library?.max_seats || 0),
       is_first_paid_subscription: false,
@@ -676,8 +743,12 @@ function ensureRazorpayScript() {
   return window.__razorpayScriptPromise
 }
 
-async function startCheckout(plan) {
+async function startCheckout(plan, index) {
   if (!plan || isAnyCheckoutBusy.value || verifyLoading.value) return
+  if (!isPlanFocused(index)) {
+    focusPlan(index)
+    return
+  }
 
   checkoutLoadingCode.value = plan.code
   messageText.value = ''
@@ -1177,7 +1248,12 @@ onMounted(async () => {
   padding: 1.25rem;
   display: grid;
   gap: 1rem;
+  cursor: pointer;
   transition: transform 240ms ease, box-shadow 240ms ease, border-color 240ms ease;
+}
+
+.plan-card.is-focused {
+  cursor: default;
 }
 
 .plan-card .card-glow {

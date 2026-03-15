@@ -127,7 +127,7 @@
                 <div class="price-main">
                   <span class="currency">₹</span>
                   <span class="amount">{{ plan.price.toFixed(2) }}</span>
-                  <span class="unit">/seat/mo</span>
+                  <span class="unit">/seat per month</span>
                 </div>
                 <p class="billing-note">{{ plan.duration }}</p>
 
@@ -879,6 +879,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: baseline;
   gap: 0.3rem;
+  justify-content: center;
 }
 
 .currency {
