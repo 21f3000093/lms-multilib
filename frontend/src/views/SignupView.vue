@@ -6,37 +6,45 @@
       <article class="intro-card">
         <p class="kicker">Smart Library App</p>
         <h1>
-          Launch your library workspace with an
-          <span class="gradient-text">instant free trial</span>
+          {{ isResubmitMode ? 'Update your request and' : 'Launch your library workspace with an' }}
+          <span class="gradient-text">{{ isResubmitMode ? 'resubmit for approval' : 'approval-ready signup' }}</span>
         </h1>
         <p>
-          Create your library, set your seat capacity, and start managing students, payments, reminders,
-          and billing in one place.
+          {{
+            isResubmitMode
+              ? 'Make the requested changes, verify your email again, and your signup will return to the review queue.'
+              : 'Create a signup request for your library. After email verification, it moves to the superadmin approval queue before activation.'
+          }}
         </p>
 
         <div class="intro-points">
           <div class="point-chip">
             <ShieldCheck class="point-icon" aria-hidden="true" />
-            Secure owner access
+            Email verification first
           </div>
           <div class="point-chip">
             <Sparkles class="point-icon" aria-hidden="true" />
-            Trial starts immediately
+            Superadmin approval queue
           </div>
           <div class="point-chip">
             <CircleDollarSign class="point-icon" aria-hidden="true" />
-            Billing ready from day one
+            Trial starts after approval
           </div>
         </div>
       </article>
 
       <article class="form-card">
         <header class="form-head">
-          <h2>Create your library account</h2>
-          <p>Set up your workspace and owner login in one step.</p>
+          <h2>{{ isResubmitMode ? 'Resubmit signup request' : 'Create your library request' }}</h2>
+          <p>{{ isResubmitMode ? 'Review the rejected request and send the updated version.' : 'Submit your library details and owner account for verification and approval.' }}</p>
         </header>
 
-        <form class="signup-form" @submit.prevent="signup">
+        <p v-if="resubmitReason" class="info-banner">
+          <AlertTriangle class="info-icon" aria-hidden="true" />
+          <span><strong>Rejection reason:</strong> {{ resubmitReason }}</span>
+        </p>
+
+        <form class="signup-form" @submit.prevent="submitForm">
           <section class="form-section">
             <div class="section-label">
               <Building2 class="section-icon" aria-hidden="true" />
@@ -147,9 +155,17 @@
             </div>
           </section>
 
+          <TurnstileWidget
+            v-if="requiresCaptcha && turnstileConfig.enabled"
+            :site-key="turnstileConfig.site_key"
+            :reset-key="captchaResetKey"
+            @verified="onCaptchaVerified"
+            @expired="onCaptchaExpired"
+          />
+
           <button type="submit" class="signup-btn" :disabled="loading">
             <LoaderCircle v-if="loading" class="spinner" aria-hidden="true" />
-            <span>{{ loading ? 'Creating workspace...' : 'Start Free Trial' }}</span>
+            <span>{{ loading ? (isResubmitMode ? 'Resubmitting...' : 'Submitting...') : (isResubmitMode ? 'Resubmit Request' : 'Submit Signup Request') }}</span>
             <ArrowRight v-if="!loading" class="btn-arrow" aria-hidden="true" />
           </button>
 
@@ -162,9 +178,9 @@
         <div class="form-footer-links">
           <router-link to="/login">Already have an account?</router-link>
           <span>•</span>
-          <router-link to="/pricing-plans">Pricing</router-link>
+          <router-link to="/forgot-password">Forgot Password</router-link>
           <span>•</span>
-          <router-link to="/about">About</router-link>
+          <router-link to="/pricing-plans">Pricing</router-link>
         </div>
       </article>
     </section>
@@ -172,9 +188,10 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import {
   AlertCircle,
+  AlertTriangle,
   Armchair,
   ArrowRight,
   Building2,
@@ -191,13 +208,14 @@ import {
   User,
   UserRoundCog,
 } from 'lucide-vue-next'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useToast } from 'vue-toast-notification'
 import 'vue-toast-notification/dist/theme-sugar.css'
 import API from '../api'
-import { setupPushForCurrentAdmin } from '../utils/pushNotifications'
+import TurnstileWidget from '../components/TurnstileWidget.vue'
 
 const router = useRouter()
+const route = useRoute()
 const toast = useToast()
 
 const form = reactive({
@@ -211,22 +229,17 @@ const form = reactive({
   confirm_password: '',
 })
 
-const error = ref('')
 const loading = ref(false)
+const error = ref('')
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
+const resubmitReason = ref('')
+const requiresCaptcha = ref(false)
+const captchaToken = ref('')
+const captchaResetKey = ref(0)
+const turnstileConfig = ref({ enabled: false, site_key: null })
 
-const showSuccess = (message) => {
-  toast.success(message, {
-    position: 'top',
-    timeout: 2200,
-    style: {
-      backgroundColor: '#0ea5e9',
-      color: '#fff',
-      borderRadius: '12px',
-    },
-  })
-}
+const isResubmitMode = computed(() => Boolean(route.query.resubmit_token && route.query.public_id))
 
 const showError = (message) => {
   toast.error(message, {
@@ -241,31 +254,24 @@ const showError = (message) => {
 const normalizeLibraryName = () => {
   form.library_name = form.library_name.trim().replace(/\s+/g, ' ')
 }
-
 const normalizePhone = () => {
   form.contact_phone = form.contact_phone.trim().replace(/\s+/g, ' ')
 }
-
 const normalizeAddress = () => {
   form.address = form.address.trim().replace(/\s+/g, ' ')
 }
-
 const normalizeUsername = () => {
   form.admin_username = form.admin_username.trim().replace(/\s+/g, ' ')
 }
-
 const normalizeEmail = () => {
   form.admin_email = form.admin_email.trim().toLowerCase()
 }
-
 const normalizePassword = () => {
   form.password = form.password.trim()
 }
-
 const normalizeConfirmPassword = () => {
   form.confirm_password = form.confirm_password.trim()
 }
-
 const normalizeAll = () => {
   normalizeLibraryName()
   normalizePhone()
@@ -276,7 +282,51 @@ const normalizeAll = () => {
   normalizeConfirmPassword()
 }
 
-const signup = async () => {
+const loadTurnstileConfig = async () => {
+  try {
+    const res = await API.get('/auth/turnstile/config')
+    turnstileConfig.value = res.data
+  } catch (err) {
+    turnstileConfig.value = { enabled: false, site_key: null }
+  }
+}
+
+const loadResubmitContext = async () => {
+  if (!isResubmitMode.value) {
+    return
+  }
+  try {
+    const res = await API.get(`/auth/signup-requests/${route.query.public_id}`)
+    if (res.data.status !== 'rejected') {
+      error.value = 'This resubmit link is no longer available.'
+      return
+    }
+    form.library_name = res.data.library_name || ''
+    form.max_seats = res.data.max_seats || 25
+    form.contact_phone = res.data.contact_phone || ''
+    form.address = res.data.address || ''
+    form.admin_username = res.data.admin_username || ''
+    form.admin_email = res.data.admin_email || ''
+    resubmitReason.value = res.data.rejection_reason || ''
+  } catch (err) {
+    error.value = err.response?.data?.detail || 'Unable to load the rejected signup request.'
+  }
+}
+
+const applyAuthError = (err, fallbackMessage) => {
+  const detail = err.response?.data?.detail
+  if (detail && typeof detail === 'object') {
+    error.value = detail.message || fallbackMessage
+    if (detail.code === 'captcha_required' || detail.code === 'temporarily_locked') {
+      requiresCaptcha.value = true
+      captchaResetKey.value += 1
+    }
+    return
+  }
+  error.value = typeof detail === 'string' ? detail : fallbackMessage
+}
+
+const submitForm = async () => {
   error.value = ''
   normalizeAll()
 
@@ -285,13 +335,11 @@ const signup = async () => {
     showError('Please fill in all required fields')
     return
   }
-
   if (!Number.isInteger(Number(form.max_seats)) || Number(form.max_seats) < 1 || Number(form.max_seats) > 200) {
     error.value = 'Max seats must be between 1 and 200'
     showError('Please enter a valid seat count')
     return
   }
-
   if (form.password !== form.confirm_password) {
     error.value = 'Passwords do not match'
     showError('Passwords do not match')
@@ -300,7 +348,7 @@ const signup = async () => {
 
   loading.value = true
   try {
-    const res = await API.post('/auth/signup', {
+    const payload = {
       library_name: form.library_name,
       max_seats: Number(form.max_seats),
       contact_phone: form.contact_phone,
@@ -309,28 +357,35 @@ const signup = async () => {
       admin_email: form.admin_email,
       password: form.password,
       confirm_password: form.confirm_password,
-    })
-
-    localStorage.setItem('role', res.data.role)
-    localStorage.setItem('username', res.data.username)
-    localStorage.setItem('library_id', res.data.library_id ?? '')
-    localStorage.setItem('library_name', res.data.library?.name || '')
-
-    showSuccess('Workspace created successfully')
-
-    await setupPushForCurrentAdmin()
-    router.push('/dashboard')
-  } catch (err) {
-    if (err.response) {
-      const detail = err.response.data?.detail
-      error.value = typeof detail === 'string' ? detail : 'Signup failed. Please try again.'
-    } else {
-      error.value = 'Network error. Please check your connection.'
+      captcha_token: requiresCaptcha.value ? captchaToken.value : null,
     }
+
+    const res = isResubmitMode.value
+      ? await API.post('/auth/signup/resubmit', { ...payload, token: route.query.resubmit_token })
+      : await API.post('/auth/signup', payload)
+
+    requiresCaptcha.value = false
+    captchaToken.value = ''
+    captchaResetKey.value += 1
+    await router.push(`/signup/status/${res.data.public_id}`)
+  } catch (err) {
+    applyAuthError(err, isResubmitMode.value ? 'Unable to resubmit signup request.' : 'Unable to submit signup request.')
   } finally {
     loading.value = false
   }
 }
+
+const onCaptchaVerified = (token) => {
+  captchaToken.value = token
+}
+
+const onCaptchaExpired = () => {
+  captchaToken.value = ''
+}
+
+onMounted(async () => {
+  await Promise.all([loadTurnstileConfig(), loadResubmitContext()])
+})
 </script>
 
 <style scoped>
@@ -344,7 +399,6 @@ const signup = async () => {
   --text-secondary: #94a3b8;
   --brand-a: #22d3ee;
   --brand-b: #3b82f6;
-
   min-height: 100vh;
   position: relative;
   overflow: hidden;
@@ -364,8 +418,6 @@ const signup = async () => {
     radial-gradient(40rem 24rem at 86% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
     radial-gradient(36rem 22rem at 65% 88%, rgba(14, 165, 233, 0.11), transparent 70%),
     linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
-  filter: saturate(115%);
-  animation: mesh-drift 18s ease-in-out infinite alternate;
 }
 
 .signup-shell {
@@ -413,17 +465,24 @@ const signup = async () => {
   color: transparent;
 }
 
-.intro-card p {
-  margin: 1rem 0 0;
+.intro-card p,
+.form-head p,
+.label-hint,
+.form-footer-links {
   color: var(--text-secondary);
-  line-height: 1.65;
+}
+
+.intro-points,
+.signup-form,
+.form-section {
+  display: grid;
+  gap: 0.8rem;
 }
 
 .intro-points {
   margin-top: 1.1rem;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
 }
 
 .point-chip,
@@ -440,31 +499,15 @@ const signup = async () => {
 }
 
 .point-icon,
-.section-icon {
+.section-icon,
+.input-icon,
+.toggle-icon,
+.info-icon,
+.error-icon,
+.spinner,
+.btn-arrow {
   width: 1rem;
   height: 1rem;
-  color: #67e8f9;
-}
-
-.form-head h2 {
-  margin: 0;
-  font-size: 1.6rem;
-}
-
-.form-head p {
-  margin: 0.45rem 0 0;
-  color: var(--text-secondary);
-}
-
-.signup-form {
-  margin-top: 1rem;
-  display: grid;
-  gap: 1rem;
-}
-
-.form-section {
-  display: grid;
-  gap: 0.8rem;
 }
 
 .field-grid {
@@ -484,11 +527,6 @@ const signup = async () => {
   color: #cbd5e1;
 }
 
-.label-hint {
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
 .input-wrap {
   display: flex;
   align-items: center;
@@ -498,7 +536,6 @@ const signup = async () => {
   border: 1px solid rgba(148, 163, 184, 0.14);
   background: rgba(15, 23, 42, 0.62);
   padding: 0 0.95rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .input-wrap:focus-within {
@@ -510,17 +547,8 @@ const signup = async () => {
   border-color: rgba(248, 113, 113, 0.75);
 }
 
-.input-icon,
-.toggle-icon {
-  width: 1rem;
-  height: 1rem;
-  color: #7dd3fc;
-  flex-shrink: 0;
-}
-
 .input-wrap input {
   width: 100%;
-  height: 100%;
   border: 0;
   outline: 0;
   background: transparent;
@@ -528,18 +556,15 @@ const signup = async () => {
   font-size: 0.96rem;
 }
 
-.input-wrap input::placeholder {
-  color: rgba(148, 163, 184, 0.72);
+.toggle-btn,
+.signup-btn {
+  cursor: pointer;
 }
 
 .toggle-btn {
   border: 0;
   background: transparent;
   padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
 }
 
 .signup-btn {
@@ -555,13 +580,6 @@ const signup = async () => {
   color: #06111f;
   font-weight: 800;
   font-size: 1rem;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
-  box-shadow: 0 20px 44px rgba(14, 165, 233, 0.22);
-}
-
-.signup-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
 }
 
 .signup-btn:disabled {
@@ -569,33 +587,25 @@ const signup = async () => {
   cursor: not-allowed;
 }
 
-.btn-arrow,
-.spinner {
-  width: 1rem;
-  height: 1rem;
+.info-banner,
+.error-banner {
+  margin: 1rem 0 0;
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  padding: 0.85rem 0.95rem;
+  border-radius: 14px;
 }
 
-.spinner {
-  animation: spin 0.9s linear infinite;
+.info-banner {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fde68a;
 }
 
 .error-banner {
-  margin: 0;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.55rem;
   color: #fecaca;
   background: rgba(127, 29, 29, 0.35);
   border: 1px solid rgba(248, 113, 113, 0.25);
-  border-radius: 14px;
-  padding: 0.85rem 0.95rem;
-}
-
-.error-icon {
-  width: 1rem;
-  height: 1rem;
-  margin-top: 0.1rem;
-  flex-shrink: 0;
 }
 
 .form-footer-links {
@@ -605,7 +615,6 @@ const signup = async () => {
   align-items: center;
   justify-content: center;
   gap: 0.55rem;
-  color: var(--text-secondary);
   font-size: 0.92rem;
 }
 
@@ -614,30 +623,15 @@ const signup = async () => {
   text-decoration: none;
 }
 
-.form-footer-links a:hover {
-  color: #bae6fd;
-}
-
-@keyframes mesh-drift {
-  from {
-    transform: scale(1) translate3d(0, 0, 0);
-  }
-  to {
-    transform: scale(1.04) translate3d(-1.5%, 1.5%, 0);
-  }
+.spinner {
+  animation: spin 0.9s linear infinite;
 }
 
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
 @media (max-width: 760px) {
-  .signup-page {
-    padding: 1.25rem 0.9rem 2rem;
-  }
-
   .two-col {
     grid-template-columns: 1fr;
   }

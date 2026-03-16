@@ -68,6 +68,18 @@
             </button>
           </div>
 
+          <div class="helper-row">
+            <router-link to="/forgot-password" class="helper-link">Forgot password?</router-link>
+          </div>
+
+          <TurnstileWidget
+            v-if="requiresCaptcha && turnstileConfig.enabled"
+            :site-key="turnstileConfig.site_key"
+            :reset-key="captchaResetKey"
+            @verified="onCaptchaVerified"
+            @expired="onCaptchaExpired"
+          />
+
           <button type="submit" class="login-btn" :disabled="loading">
             <LoaderCircle v-if="loading" class="spinner" aria-hidden="true" />
             <span>{{ loading ? 'Signing in...' : 'Sign in' }}</span>
@@ -97,7 +109,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import {
   AlertCircle,
   ArrowRight,
@@ -115,6 +127,7 @@ import { useToast } from 'vue-toast-notification'
 import 'vue-toast-notification/dist/theme-sugar.css'
 import API from '../api'
 import { setupPushForCurrentAdmin } from '../utils/pushNotifications'
+import TurnstileWidget from '../components/TurnstileWidget.vue'
 
 const router = useRouter()
 const toast = useToast()
@@ -124,6 +137,10 @@ const password = ref('')
 const error = ref('')
 const showPassword = ref(false)
 const loading = ref(false)
+const requiresCaptcha = ref(false)
+const captchaToken = ref('')
+const captchaResetKey = ref(0)
+const turnstileConfig = ref({ enabled: false, site_key: null })
 
 const showSuccess = (message) => {
   toast.success(message, {
@@ -159,6 +176,38 @@ const onPasswordBlur = () => {
   password.value = password.value.trim()
 }
 
+const loadTurnstileConfig = async () => {
+  try {
+    const res = await API.get('/auth/turnstile/config')
+    turnstileConfig.value = res.data
+  } catch (err) {
+    turnstileConfig.value = { enabled: false, site_key: null }
+  }
+}
+
+const applyAuthError = (err, fallbackMessage) => {
+  const detail = err.response?.data?.detail
+  if (detail && typeof detail === 'object') {
+    error.value = detail.message || fallbackMessage
+    if (detail.code === 'captcha_required' || detail.code === 'temporarily_locked') {
+      requiresCaptcha.value = true
+      captchaResetKey.value += 1
+    }
+    showError(error.value)
+    return
+  }
+
+  error.value = typeof detail === 'string' ? detail : fallbackMessage
+}
+
+const onCaptchaVerified = (token) => {
+  captchaToken.value = token
+}
+
+const onCaptchaExpired = () => {
+  captchaToken.value = ''
+}
+
 const login = async () => {
   error.value = ''
   onIdentifierBlur()
@@ -185,8 +234,12 @@ const login = async () => {
     const res = await API.post('/auth/login', {
       identifier: identifier.value,
       password: password.value,
+      captcha_token: requiresCaptcha.value ? captchaToken.value : null,
     })
 
+    requiresCaptcha.value = false
+    captchaToken.value = ''
+    captchaResetKey.value += 1
     localStorage.setItem('role', res.data.role)
     localStorage.setItem('username', res.data.username)
     localStorage.setItem('library_id', res.data.library_id ?? '')
@@ -205,14 +258,19 @@ const login = async () => {
     }
   } catch (err) {
     if (err.response) {
-      error.value = err.response.data.detail || 'Invalid username, email, or password'
+      applyAuthError(err, 'Invalid username, email, or password')
     } else {
       error.value = 'Network error. Please check your connection.'
+      showError(error.value)
     }
   } finally {
     loading.value = false
   }
 }
+
+onMounted(() => {
+  loadTurnstileConfig()
+})
 </script>
 
 <style scoped>
@@ -337,6 +395,22 @@ const login = async () => {
   margin-top: 1rem;
   display: grid;
   gap: 0.7rem;
+}
+
+.helper-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.helper-link {
+  color: #7dd3fc;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.helper-link:hover {
+  color: #bae6fd;
 }
 
 .input-label {

@@ -951,10 +951,12 @@ def create_admin(
     library_id: int = None, # type: ignore
     email: str | None = None,
     status: str = "active",
+    email_verified_at: datetime | None = None,
 ):
     new_admin = models.Admin(
         username=username,
         email=(email or "").strip().lower() or None,
+        email_verified_at=email_verified_at,
         password=password,
         role=role,
         library_id=library_id,
@@ -1005,11 +1007,13 @@ def create_admin_account(
     email: str | None = None,
     status: str = "active",
     password_is_hashed: bool = False,
+    email_verified_at: datetime | None = None,
 ):
     stored_password = password if password_is_hashed else pwd_context.hash(password)
     new_admin = models.Admin(
         username=username.strip(),
         email=(email or "").strip().lower() or None,
+        email_verified_at=email_verified_at,
         password=stored_password,
         role=role,
         library_id=library_id,
