@@ -6,6 +6,7 @@
 </template>
 
 <script setup>
+/* global defineProps, defineEmits */
 import { nextTick, onMounted, ref, watch } from 'vue'
 
 const props = defineProps({
