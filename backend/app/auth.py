@@ -1,12 +1,32 @@
 # backend/app/auth.py
-
-from fastapi import APIRouter, Depends, HTTPException 
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi_jwt_auth import AuthJWT
-from sqlalchemy.orm import Session
-from . import schemas, crud
-from app.dependencies import get_db, get_current_admin
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session, joinedload
+
+from app import crud, models, schemas
+from app.dependencies import (
+    build_admin_jwt_subject,
+    get_current_admin,
+    get_db,
+    get_subscription_trial_days,
+)
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
+
+
+def _get_login_identifier(data: schemas.AdminLogin) -> str:
+    return (data.identifier or data.username or "").strip()
+
+
+def _load_admin_with_library(db: Session, admin_id: int):
+    return (
+        db.query(models.Admin)
+        .options(joinedload(models.Admin.library))
+        .filter(models.Admin.id == admin_id)
+        .first()
+    )
+
 
 @router.post("/login", response_model=schemas.AdminOut)
 def login(
@@ -14,19 +34,82 @@ def login(
     db: Session = Depends(get_db),
     Authorize: AuthJWT = Depends()
 ):
-    admin = crud.authenticate_admin(db, data.username, data.password)
+    identifier = _get_login_identifier(data)
+    if not identifier:
+        raise HTTPException(status_code=400, detail="username_or_email_required")
+
+    admin = crud.authenticate_admin(db, identifier, data.password)
     if not admin:
         raise HTTPException(status_code=401, detail="invalid_credentials")
 
     if admin.status != "active": # type: ignore
         raise HTTPException(status_code=403, detail="Your account is inactive")
 
-    access_token = Authorize.create_access_token(subject=admin.username) # type: ignore
+    access_token = Authorize.create_access_token(subject=build_admin_jwt_subject(admin.id)) # type: ignore
     Authorize.set_access_cookies(access_token)
-    
-    # ✅ Eagerly load the related library for response
-    db.refresh(admin)  # This ensures `admin.library` is populated
 
+    loaded_admin = _load_admin_with_library(db, admin.id)
+    if not loaded_admin:
+        raise HTTPException(status_code=500, detail="Admin could not be loaded")
+    return loaded_admin
+
+
+@router.post("/signup", response_model=schemas.AdminOut)
+def signup(
+    data: schemas.SelfServeSignupRequest,
+    db: Session = Depends(get_db),
+    Authorize: AuthJWT = Depends(),
+):
+    admin_username = data.admin_username.strip()
+    admin_email = data.admin_email.strip().lower()
+    contact_phone = data.contact_phone.strip()
+    library_name = data.library_name.strip()
+    address = data.address.strip() if isinstance(data.address, str) else None
+
+    if not library_name:
+        raise HTTPException(status_code=400, detail="Library name is required")
+    if not admin_username:
+        raise HTTPException(status_code=400, detail="Username is required")
+    if not admin_email:
+        raise HTTPException(status_code=400, detail="Email is required")
+    if not contact_phone:
+        raise HTTPException(status_code=400, detail="Contact phone is required")
+    if data.password != data.confirm_password:
+        raise HTTPException(status_code=400, detail="Passwords do not match")
+    if len(data.password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters long")
+
+    if crud.get_admin_by_username(db, admin_username):
+        raise HTTPException(status_code=409, detail="Username already exists")
+    if crud.get_admin_by_email(db, admin_email):
+        raise HTTPException(status_code=409, detail="Email already exists")
+
+    try:
+        _, admin = crud.provision_library_owner_signup(
+            db,
+            library_name=library_name,
+            max_seats=data.max_seats,
+            contact_phone=contact_phone,
+            address=address,
+            admin_username=admin_username,
+            admin_email=admin_email,
+            password=data.password,
+            trial_days=get_subscription_trial_days(),
+        )
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Username or email already exists")
+    except Exception:
+        db.rollback()
+        raise
+
+    admin = _load_admin_with_library(db, admin.id)
+    if not admin:
+        raise HTTPException(status_code=500, detail="Signup completed but admin could not be loaded")
+
+    access_token = Authorize.create_access_token(subject=build_admin_jwt_subject(admin.id))
+    Authorize.set_access_cookies(access_token)
     return admin
 
 
@@ -66,5 +149,3 @@ def change_password(
         raise HTTPException(status_code=400, detail="Current password is incorrect")
     
     return {"message": "Password changed successfully"}
-
-

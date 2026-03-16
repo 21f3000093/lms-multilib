@@ -2,8 +2,9 @@
 
 from datetime import datetime, time, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
-from app import models, schemas
+from app import crud, models, schemas
 from app.dependencies import (
     ensure_subscription_for_library,
     evaluate_subscription_access,
@@ -14,9 +15,6 @@ from app.dependencies import (
 )
 from fastapi_jwt_auth import AuthJWT
 from typing import List
-from passlib.context import CryptContext
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 
@@ -68,23 +66,23 @@ def create_library(library: schemas.LibraryCreate, db: Session = Depends(get_db)
     _require_superadmin(admin)
     if library.max_seats < 1 or library.max_seats > 200:
         raise HTTPException(status_code=400, detail="max_seats must be between 1 and 200")
-    
-    new_library = models.Library(
+
+    new_library = crud.create_library_with_seats(
+        db,
         name=library.name,
         address=library.address,
         contact_email=library.contact_email,
         contact_phone=library.contact_phone,
-        max_seats=library.max_seats
-        
+        max_seats=library.max_seats,
     )
-    db.add(new_library)
+    crud.create_trial_subscription(
+        db,
+        library_id=new_library.id,
+        library_created_date=new_library.created_at,
+        trial_days=get_subscription_trial_days(),
+    )
     db.commit()
     db.refresh(new_library)
-
-    for seat_number in range(1, library.max_seats + 1):
-        seat = models.Seat(seat_number=seat_number, library_id=new_library.id)
-        db.add(seat)
-    db.commit() 
 
     return new_library
 
@@ -99,21 +97,33 @@ def list_admins(db: Session = Depends(get_db), admin = Depends(get_current_admin
 def create_admin(admin_data: schemas.AdminCreate, db: Session = Depends(get_db), admin = Depends(get_current_admin)):
     _require_superadmin(admin)
 
-    existing = db.query(models.Admin).filter_by(username=admin_data.username).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="Admin username already exists")
-    
-    hashed_password = pwd_context.hash(admin_data.password) 
+    if crud.get_admin_by_username(db, admin_data.username.strip()):
+        raise HTTPException(status_code=409, detail="Admin username already exists")
 
+    cleaned_email = admin_data.email.strip().lower() if isinstance(admin_data.email, str) else None
+    if cleaned_email and crud.get_admin_by_email(db, cleaned_email):
+        raise HTTPException(status_code=409, detail="Admin email already exists")
 
-    new_admin = models.Admin(
-        username=admin_data.username,
-        password=hashed_password,  # 🛑 Consider hashing here!
-        role="admin",
-        library_id=admin_data.library_id
-    )
-    db.add(new_admin)
-    db.commit()
+    if admin_data.library_id is not None:
+        library = db.query(models.Library).filter(models.Library.id == admin_data.library_id).first()
+        if not library:
+            raise HTTPException(status_code=404, detail="Library not found")
+
+    try:
+        new_admin = crud.create_admin_account(
+            db,
+            username=admin_data.username,
+            password=admin_data.password,
+            role="admin",
+            library_id=admin_data.library_id,
+            email=cleaned_email,
+            status="active",
+        )
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Admin username or email already exists")
+
     db.refresh(new_admin)
     return new_admin
 

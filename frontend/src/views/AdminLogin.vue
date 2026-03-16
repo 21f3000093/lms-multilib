@@ -36,17 +36,17 @@
         </header>
 
         <form class="login-form" @submit.prevent="login">
-          <label class="input-label" for="username">Username</label>
-          <div class="input-wrap" :class="{ error: error && !username }">
+          <label class="input-label" for="identifier">Username or Email</label>
+          <div class="input-wrap" :class="{ error: error && !identifier }">
             <User class="input-icon" aria-hidden="true" />
             <input
-              id="username"
-              v-model="username"
+              id="identifier"
+              v-model="identifier"
               type="text"
-              placeholder="Enter username"
+              placeholder="Enter username or email"
               required
               autocomplete="username"
-              @blur="onUsernameBlur"
+              @blur="onIdentifierBlur"
             />
           </div>
 
@@ -81,6 +81,8 @@
         </form>
 
         <div class="form-footer-links">
+          <router-link to="/signup">Start Free Trial</router-link>
+          <span>•</span>
           <router-link to="/pricing-plans">Pricing</router-link>
           <span>•</span>
           <router-link to="/about">About</router-link>
@@ -117,7 +119,7 @@ import { setupPushForCurrentAdmin } from '../utils/pushNotifications'
 const router = useRouter()
 const toast = useToast()
 
-const username = ref('')
+const identifier = ref('')
 const password = ref('')
 const error = ref('')
 const showPassword = ref(false)
@@ -149,8 +151,8 @@ const togglePassword = () => {
   showPassword.value = !showPassword.value
 }
 
-const onUsernameBlur = () => {
-  username.value = username.value.trim().replace(/\s+/g, ' ')
+const onIdentifierBlur = () => {
+  identifier.value = identifier.value.trim().replace(/\s+/g, ' ')
 }
 
 const onPasswordBlur = () => {
@@ -159,11 +161,11 @@ const onPasswordBlur = () => {
 
 const login = async () => {
   error.value = ''
-  onUsernameBlur()
+  onIdentifierBlur()
   onPasswordBlur()
 
-  if (!username.value || !password.value) {
-    error.value = 'Please enter both username and password'
+  if (!identifier.value || !password.value) {
+    error.value = 'Please enter your username or email and password'
     showError('Please fill in all fields')
     return
   }
@@ -181,7 +183,7 @@ const login = async () => {
   loading.value = true
   try {
     const res = await API.post('/auth/login', {
-      username: username.value,
+      identifier: identifier.value,
       password: password.value,
     })
 
@@ -203,7 +205,7 @@ const login = async () => {
     }
   } catch (err) {
     if (err.response) {
-      error.value = err.response.data.detail || 'Invalid username or password'
+      error.value = err.response.data.detail || 'Invalid username, email, or password'
     } else {
       error.value = 'Network error. Please check your connection.'
     }

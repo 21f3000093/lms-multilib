@@ -40,6 +40,7 @@ class Admin(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=True)
     password = Column(String, nullable=False)
     role = Column(String, default="admin",index=True)  # admin / superadmin
     library_id = Column(Integer, ForeignKey("libraries.id", ondelete="CASCADE"),index=True, nullable=True)

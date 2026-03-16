@@ -173,7 +173,9 @@
         </swiper>
       </div>
 
-
+      <div class="pricing-actions reveal" data-stagger="1">
+        <router-link class="btn btn-solid" to="/signup">Start Free Trial</router-link>
+      </div>
 
     </section>
 
@@ -206,6 +208,9 @@
         </p>
 
         <div class="cta-actions">
+          <router-link class="btn btn-solid magnetic" to="/signup" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
+            Create Library Account
+          </router-link>
           <a class="btn btn-solid magnetic" href="mailto:shubham.libraryapp@gmail.com" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
             Contact Sales
           </a>
@@ -757,6 +762,12 @@ onBeforeUnmount(() => {
 
 .section-header {
   margin-bottom: 1.1rem;
+}
+
+.pricing-actions {
+  margin-top: 0.8rem;
+  display: flex;
+  justify-content: center;
 }
 
 /* --- SWIPER CAROUSEL STYLES --- */

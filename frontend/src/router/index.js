@@ -9,6 +9,7 @@ import StudentList from '@/components/StudentList.vue'
 import MonthlyPayments from '@/components/MonthlyPayments.vue'
 import StudentDetail from '@/components/StudentDetail.vue'
 import AdminLogin from '@/views/AdminLogin.vue'
+import SignupView from '@/views/SignupView.vue'
 import SeatMap from '@/components/SeatMap.vue'
 import SuperAdminDashboard from '@/views/SuperAdminDashboard.vue'
 import LibraryStudentList from '@/components/LibraryStudentList.vue'
@@ -30,6 +31,7 @@ import SuperadminPlanCatalog from '@/components/SuperadminPlanCatalog.vue'
 
 const routes = [
   { path: '/login', name: 'AdminLogin', component: AdminLogin, meta: { guestOnly: true } },
+  { path: '/signup', name: 'SignupView', component: SignupView, meta: { guestOnly: true } },
   { path: '/', redirect: '/dashboard',meta: { requiresAuth: true } },
 
   { path: '/about', name: 'AboutView', component: AboutView },

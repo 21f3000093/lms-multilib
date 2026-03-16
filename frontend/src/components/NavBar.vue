@@ -42,6 +42,7 @@
         <div class="topbar-actions" v-if="!isLoggedIn">
           <router-link to="/pricing-plans" class="public-link desktop-only">Pricing</router-link>
           <router-link to="/about" class="public-link desktop-only">About</router-link>
+          <router-link to="/signup" class="public-link desktop-only">Signup</router-link>
           <router-link to="/login" class="public-link public-link-primary desktop-only">Login</router-link>
         </div>
 
@@ -247,6 +248,7 @@ export default {
     },
     publicMobileItems() {
       return [
+        { key: 'public-signup', to: '/signup', label: 'Signup', icon: 'UserPlus' },
         { key: 'public-login', to: '/login', label: 'Login', icon: 'LogIn' },
         { key: 'public-pricing', to: '/pricing-plans', label: 'Plans & Pricing', icon: 'CircleDollarSign' },
         { key: 'public-about', to: '/about', label: 'About', icon: 'Info' },

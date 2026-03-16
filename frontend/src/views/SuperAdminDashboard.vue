@@ -60,6 +60,7 @@
 
         <form class="grid-form" @submit.prevent="createAdmin">
           <input v-model="newAdmin.username" placeholder="Username" required />
+          <input v-model="newAdmin.email" type="email" placeholder="Email (optional)" />
           <input v-model="newAdmin.password" type="password" placeholder="Password" required />
 
           <select v-model="newAdmin.library_id" required>
@@ -129,6 +130,7 @@
               <tr>
                 <th>ID</th>
                 <th>Username</th>
+                <th>Email</th>
                 <th>Role</th>
                 <th>Library ID</th>
                 <th>Status</th>
@@ -139,6 +141,7 @@
               <tr v-for="admin in admins" :key="admin.id">
                 <td>{{ admin.id }}</td>
                 <td>{{ admin.username }}</td>
+                <td>{{ admin.email || '—' }}</td>
                 <td>{{ admin.role }}</td>
                 <td>{{ admin.library_id || '—' }}</td>
                 <td>
@@ -177,6 +180,7 @@ export default {
       admins: [],
       newAdmin: {
         username: '',
+        email: '',
         password: '',
         library_id: ''
       },
@@ -199,12 +203,13 @@ export default {
       try {
         const payload = {
           username: this.newAdmin.username,
+          email: this.newAdmin.email || null,
           password: this.newAdmin.password,
           library_id: parseInt(this.newAdmin.library_id)
         }
         await API.post('/superadmin/admins', payload)
         this.loadAdmins()
-        this.newAdmin = { username: '', password: '', library_id: '' }
+        this.newAdmin = { username: '', email: '', password: '', library_id: '' }
         alert('Admin created successfully!')
       } catch (err) {
         alert('Failed to create admin')

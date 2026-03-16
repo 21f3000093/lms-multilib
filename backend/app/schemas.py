@@ -89,7 +89,8 @@ class StudentBulkPaymentResult(BaseModel):
 
 
 class AdminLogin(BaseModel):
-    username: str
+    identifier: Optional[str] = None
+    username: Optional[str] = None
     password: str
 
 # class AdminOut(BaseModel):
@@ -122,6 +123,32 @@ class AdminCreate(BaseModel):
     username: str
     password: str
     library_id: Optional[int] = None
+    email: Optional[str] = None
+
+    class Config:
+        orm_mode = True
+
+
+class SelfServeSignupRequest(BaseModel):
+    library_name: str
+    max_seats: int = Field(..., ge=1, le=200)
+    contact_phone: str
+    address: Optional[str] = None
+    admin_username: str
+    admin_email: str
+    password: str
+    confirm_password: str
+
+
+class SelfServeSignupOut(BaseModel):
+    id: int
+    username: str
+    email: Optional[str] = None
+    role: str
+    library_id: Optional[int]
+    status: str
+    created_at: Optional[date]
+    library: Optional[LibraryOut]
 
     class Config:
         orm_mode = True
@@ -130,6 +157,7 @@ class AdminCreate(BaseModel):
 class AdminOut(BaseModel):
     id: int
     username: str
+    email: Optional[str] = None
     role: str
     library_id: Optional[int]
     status: str

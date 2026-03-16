@@ -92,7 +92,7 @@ API.interceptors.response.use(
       } 
       else if (status === 401) {
         if (detail === 'invalid_credentials') {
-          showErrorToast('Invalid username or password.');
+          showErrorToast('Invalid username, email, or password.');
         } else if (detail === 'token_expired_or_invalid') {
           showWarningToast('Your session has expired. Please log in again.');
         } else {
