@@ -125,16 +125,25 @@ def _decode_receipt_share_token(token: str) -> tuple[int, int]:
 
 
 
+def _get_cookie_samesite() -> str:
+    raw = (os.getenv("AUTHJWT_COOKIE_SAMESITE") or "none").strip().lower()
+    return raw if raw in {"none", "lax", "strict"} else "none"
+
+
+def _get_cookie_domain() -> str | None:
+    raw = (os.getenv("AUTHJWT_COOKIE_DOMAIN") or "").strip()
+    return raw or None
+
+
 class Settings(BaseModel):
     authjwt_secret_key: str = os.getenv("JWT_SECRET_KEY") # type: ignore
     authjwt_token_location: set = {"cookies"}  # <- Important!
     authjwt_cookie_csrf_protect: bool = False  # Optional
     authjwt_access_token_expires: int = 60 * 60 * 24  # 24 hours
     authjwt_cookie_max_age: int = 60 * 60 * 24
-    authjwt_cookie_samesite: str = "none" # keep it "none" for local testing with secure cookies, change to "lax" for production if you want to allow cross-origin GETs without credentials
+    authjwt_cookie_samesite: str = _get_cookie_samesite()
     authjwt_cookie_secure: bool = True
-    # authjwt_cookie_samesite: str = "lax"   # ✅ allow cross-origin GETs without credentials, change to "none" for local testing with secure cookies
-    # authjwt_cookie_domain: str = ".smartlibraryapp.in"  # ✅ important for matching frontend domain, adjust as needed for local testing vs production
+    authjwt_cookie_domain: str | None = _get_cookie_domain()
     
 
 @AuthJWT.load_config # type:ignore
@@ -165,10 +174,10 @@ def _parse_allowed_origins(raw_origins: str | None) -> list[str]:
 
 configured_origins = _parse_allowed_origins(os.getenv("ALLOWED_ORIGINS"))
 default_origins = [
-    "http://localhost:8080",
+    # "http://localhost:8080",
     "https://www.smartlibraryapp.in",
     "https://app.smartlibraryapp.in",
-    "https://lms-git-ios-shubham-nagars-projects-0c121e37.vercel.app",
+    # "https://lms-git-ios-shubham-nagars-projects-0c121e37.vercel.app",
 ]
 
 # CORS config

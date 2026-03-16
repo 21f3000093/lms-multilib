@@ -40,7 +40,7 @@
           </p>
           <p>
             <span>Current Period</span>
-            <strong>{{ currentPeriodText }}</strong>
+            <strong style="text-align: end;">{{ currentPeriodText }}</strong>
           </p>
         </div>
       </article>
@@ -853,7 +853,7 @@ onMounted(async () => {
 .billing-page {
   position: relative;
   min-height: 100vh;
-  padding: 2rem 2rem 2.8rem;
+  padding: 2rem 2rem 5rem;
   color: #e2e8f0;
   isolation: isolate;
   overflow: hidden;
@@ -876,6 +876,7 @@ onMounted(async () => {
   width: min(1140px, calc(100% - 2rem));
   margin: 0 auto;
   overflow-x: hidden;
+  padding-top: 1rem;
 }
 
 .hero {
@@ -1026,6 +1027,11 @@ onMounted(async () => {
 
 .status-details p span {
   color: #94a3b8;
+  text-align: left;
+}
+
+.status-details p strong {
+  text-align: end;
 }
 
 .info-card ul {
@@ -1471,6 +1477,11 @@ onMounted(async () => {
   text-align: left;
 }
 
+.plan-metrics p strong {
+  /* color: #67e8f9; */
+  text-align: end;
+}
+
 .btn-solid {
   background: linear-gradient(120deg, #06b6d4, #2563eb);
   color: #fff;
@@ -1522,11 +1533,11 @@ onMounted(async () => {
 
 @media (max-width: 1080px) {
   .billing-page {
-    padding: 1.35rem 1rem 2rem;
+    padding: 1.35rem 1rem 5rem;
   }
   .section-shell {
     /* width: min(1140px, 100%); */
-    overflow-x: hidden;
+    overflow-x: visible;
   }
 }
 
