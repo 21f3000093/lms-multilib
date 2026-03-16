@@ -22,6 +22,7 @@ class Library(Base):
     seats = relationship("Seat", back_populates="library")
     monthly_payments = relationship("MonthlyPayment", back_populates="library")
     subscription = relationship("Subscription", uselist=False, back_populates="library")
+    subscription_transactions = relationship("SubscriptionTransaction", back_populates="library")
     notifications = relationship("Notification", back_populates="target_library")
 
 
@@ -174,7 +175,27 @@ class MonthlyExpense(Base):
 
     library = relationship("Library", backref="monthly_expenses")
 
-    
+
+class SubscriptionPlan(Base):
+    __tablename__ = "subscription_plans"
+
+    id = Column(Integer, primary_key=True, index=True)
+    code = Column(String, unique=True, nullable=False, index=True)
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    billing_months = Column(Integer, nullable=False)
+    price_per_seat_paise = Column(Integer, nullable=False)
+    discount_percent = Column(Integer, default=0, nullable=False)
+    bonus_months = Column(Integer, default=0, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+    sort_order = Column(Integer, default=0, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    subscriptions = relationship("Subscription", back_populates="plan_config")
+    transactions = relationship("SubscriptionTransaction", back_populates="plan")
+
+
 class Subscription(Base):
     __tablename__ = "subscriptions"
     id = Column(Integer, primary_key=True, index=True)
@@ -182,17 +203,80 @@ class Subscription(Base):
     status = Column(String, default="inactive")   # "active", "inactive", etc.
     valid_until = Column(DateTime)
     plan = Column(String)                         # e.g., 'per_seat_monthly'
+    plan_id = Column(Integer, ForeignKey("subscription_plans.id", ondelete="SET NULL"), nullable=True)
+    current_period_start = Column(Date, nullable=True)
+    current_period_end = Column(Date, nullable=True)
+    grace_until = Column(DateTime, nullable=True)
+    auto_renew = Column(Boolean, default=False, nullable=False)
+    cancel_at_period_end = Column(Boolean, default=False, nullable=False)
     payment_gateway_id = Column(String)           # Razorpay sub ID, etc.
+    gateway_customer_id = Column(String, nullable=True)
+    gateway_subscription_id = Column(String, nullable=True)
 
     last_payment_at = Column(DateTime)            # NEW: tracks last payment timestamp
     is_trial = Column(Boolean, default=False)     # NEW: is user on trial
     trial_valid_until = Column(DateTime)          # NEW: trial end timestamp
+    bonus_eligible = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     library = relationship("Library", back_populates="subscription")
+    plan_config = relationship("SubscriptionPlan", back_populates="subscriptions")
+    transactions = relationship("SubscriptionTransaction", back_populates="subscription")
 
     __table_args__ = (
         Index("idx_subscriptions_library_status", "library_id", "status"),
+        Index("idx_subscriptions_status_valid_until", "status", "valid_until"),
+        Index("idx_subscriptions_grace_until", "grace_until"),
+        Index("idx_subscriptions_plan_id", "plan_id"),
     )
+
+
+class SubscriptionTransaction(Base):
+    __tablename__ = "subscription_transactions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    subscription_id = Column(Integer, ForeignKey("subscriptions.id", ondelete="SET NULL"), nullable=True, index=True)
+    library_id = Column(Integer, ForeignKey("libraries.id", ondelete="CASCADE"), nullable=False, index=True)
+    plan_id = Column(Integer, ForeignKey("subscription_plans.id", ondelete="SET NULL"), nullable=True, index=True)
+    amount_paise = Column(Integer, nullable=False)
+    currency = Column(String, nullable=False, default="INR")
+    seats_billed = Column(Integer, nullable=False)
+    billing_months = Column(Integer, nullable=False)
+    status = Column(String, nullable=False, default="created", index=True)  # created|captured|failed|refunded
+    gateway_order_id = Column(String, nullable=True, index=True)
+    gateway_payment_id = Column(String, nullable=True, index=True)
+    gateway_signature = Column(String, nullable=True)
+    idempotency_key = Column(String, nullable=False, unique=True, index=True)
+    period_start = Column(Date, nullable=True)
+    period_end = Column(Date, nullable=True)
+    paid_at = Column(DateTime, nullable=True)
+    gateway_payload_json = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    subscription = relationship("Subscription", back_populates="transactions")
+    library = relationship("Library", back_populates="subscription_transactions")
+    plan = relationship("SubscriptionPlan", back_populates="transactions")
+
+    __table_args__ = (
+        Index("idx_subscription_transactions_library_created", "library_id", "created_at"),
+        Index("idx_subscription_transactions_subscription_created", "subscription_id", "created_at"),
+        Index("idx_subscription_transactions_status_created", "status", "created_at"),
+    )
+
+
+class SubscriptionWebhookEvent(Base):
+    __tablename__ = "subscription_webhook_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    gateway_event_id = Column(String, nullable=False, unique=True, index=True)
+    event_type = Column(String, nullable=False, index=True)
+    payload_json = Column(Text, nullable=False)
+    processed = Column(Boolean, default=False, nullable=False, index=True)
+    processed_at = Column(DateTime, nullable=True)
+    error_message = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
 
 
 class Notification(Base):

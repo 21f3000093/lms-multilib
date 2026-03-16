@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query , HTTPException
 from sqlalchemy.orm import Session 
 from typing import List
-from app.dependencies import get_db , get_current_admin
+from app.dependencies import get_db, require_active_subscription
 from app.models import Seat
 
 router = APIRouter()
@@ -12,7 +12,7 @@ def get_seat_map(
     only_empty: bool = False,
     library_id: int = Query(...),
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin)
+    admin = Depends(require_active_subscription)
 ):
     seats = db.query(Seat).filter(Seat.library_id == admin.library_id).all()
     result = []
@@ -47,7 +47,7 @@ def get_seat_map(
 def get_seat_details(
     seat_number: int,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin)
+    admin = Depends(require_active_subscription)
 ):
     from app.models import Student
     

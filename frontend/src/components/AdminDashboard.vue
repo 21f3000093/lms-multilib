@@ -268,7 +268,7 @@
               <img src="../assets/svg/chart1.svg" class="svg" alt="Movement" loading="lazy">
             </div>
             <div>
-              <h3>Student Movement KPI</h3>
+              <h3>Enrollment & Exits</h3>
               <p>Growth vs churn (last {{ selectedMovementTrendMonths }} months)</p>
             </div>
           </div>
@@ -294,7 +294,7 @@
           </div>
         </header>
 
-        <div class="movement-grid">
+        <!-- <div class="movement-grid">
           <div class="movement-item">
             <span class="movement-label">New this month</span>
             <span class="movement-value">+{{ movementNewThisMonth }}</span>
@@ -316,7 +316,7 @@
               {{ movementNetThisMonth >= 0 ? '+' : '' }}{{ movementNetThisMonth }}
             </span>
           </div>
-        </div>
+        </div> -->
 
         <div v-if="movementChartData.length" class="movement-chart-wrap">
           <div class="movement-legend">
@@ -1268,7 +1268,7 @@ export default {
 
 .movement-chart {
   width: 100%;
-  height: 108px;
+  /* height: 108px; */
   display: block;
   margin-top: 0.38rem;
 }

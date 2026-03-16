@@ -9,7 +9,7 @@
 
     <template v-else-if="payment">
       <section class="section-shell controls no-print">
-        <button @click="printReceipt" class="action-btn print-btn" type="button">Print Receipt</button>
+        <!-- <button @click="printReceipt" class="action-btn print-btn" type="button">Print Receipt</button> -->
         <button @click="downloadPDF" class="action-btn download-btn" type="button">Download PDF</button>
         <button
           v-if="!isPublicMode"
@@ -20,7 +20,7 @@
         >
           {{ shareLinkLoading ? 'Preparing...' : 'Send on WhatsApp' }}
         </button>
-        <router-link v-if="!isPublicMode" to="/monthly-payments" class="action-btn back-btn">Back to Payments</router-link>
+        <!-- <router-link v-if="!isPublicMode" to="/monthly-payments" class="action-btn back-btn">Back to Payments</router-link> -->
       </section>
 
       <section id="receipt-content" class="section-shell receipt-wrapper">

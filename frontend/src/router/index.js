@@ -20,6 +20,9 @@ import AboutView from '@/views/AboutView.vue'
 import ReceiptPage from '@/components/ReceiptPage.vue'
 import NotificationCenter from '@/components/NotificationCenter.vue'
 import SuperadminNotifications from '@/components/SuperadminNotifications.vue'
+import BillingCenter from '@/components/BillingCenter.vue'
+import SuperadminSubscriptions from '@/components/SuperadminSubscriptions.vue'
+import SuperadminPlanCatalog from '@/components/SuperadminPlanCatalog.vue'
 
 
 
@@ -36,6 +39,7 @@ const routes = [
   { path: '/register', name: 'Register', component: StudentForm , meta: { requiresAuth: true }},
   { path: '/students', name: 'StudentList', component: StudentList , meta: { requiresAuth: true }},
   { path: '/monthly-payments',name: 'MonthlyPayments', component: MonthlyPayments , meta: { requiresAuth: true } },
+  { path: '/billing', name: 'BillingCenter', component: BillingCenter, meta: { requiresAuth: true } },
   { path: '/monthly-expenses',name: 'MonthlyExpenses', component: MonthlyExpenses , meta: { requiresAuth: true } },
   { path: '/students/:id', name: 'StudentDetail', component: StudentDetail , meta: { requiresAuth: true } },
   { path: '/seat-map', name: 'SeatMap', component: SeatMap , meta: { requiresAuth: true }},
@@ -62,6 +66,18 @@ const routes = [
     path: '/superadmin/notifications',
     name: 'SuperadminNotifications',
     component: SuperadminNotifications,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/superadmin/subscriptions',
+    name: 'SuperadminSubscriptions',
+    component: SuperadminSubscriptions,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/superadmin/plan-catalog',
+    name: 'SuperadminPlanCatalog',
+    component: SuperadminPlanCatalog,
     meta: { requiresAuth: true }
   },
   {

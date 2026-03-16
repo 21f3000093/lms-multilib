@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from datetime import date, timedelta
-from app.dependencies import get_db, get_current_admin
+from app.dependencies import get_db, require_active_subscription
 from app.models import MonthlyPayment, Student
 import calendar
 
@@ -11,7 +11,7 @@ router = APIRouter()
 def get_pending_reminders(
     month: str,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin)
+    admin = Depends(require_active_subscription)
 ):
     """
     Get pending fee reminders for a specific month
@@ -75,7 +75,7 @@ def get_pending_reminders(
 @router.get("/reminders/pending-fees")
 def get_current_month_reminders(
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin)
+    admin = Depends(require_active_subscription)
 ):
     """
     Get pending reminders for current month (backward compatibility)

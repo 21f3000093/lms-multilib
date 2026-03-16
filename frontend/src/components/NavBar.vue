@@ -75,6 +75,10 @@
                 <KeyRound class="dropdown-icon" aria-hidden="true" />
                 <span>Change Password</span>
               </button>
+              <button v-if="role === 'admin'" type="button" class="dropdown-item" @click="goBilling">
+                <CircleDollarSign class="dropdown-icon" aria-hidden="true" />
+                <span>Billing Center</span>
+              </button>
               <button type="button" class="dropdown-item" @click="goPricing">
                 <CircleDollarSign class="dropdown-icon" aria-hidden="true" />
                 <span>Pricing & Plans</span>
@@ -163,6 +167,7 @@ import {
   Menu,
   ReceiptText,
   Shield,
+  SlidersHorizontal,
   UserCircle2,
   UserPlus,
   Users,
@@ -185,6 +190,7 @@ export default {
     Menu,
     ReceiptText,
     Shield,
+    SlidersHorizontal,
     UserCircle2,
     UserPlus,
     Users,
@@ -221,12 +227,15 @@ export default {
         { key: 'fee-reminders', to: '/reminders', label: 'Fee Reminders', icon: 'Bell' },
         { key: 'seat-map', to: '/seat-map', label: 'Seat Map', icon: 'Grid3X3' },
         { key: 'monthly-expenses', to: '/monthly-expenses', label: 'Expenses', icon: 'ReceiptText' },
+        { key: 'billing', to: '/billing', label: 'Billing Center', icon: 'CircleDollarSign' },
         // { key: 'notifications', to: '/notifications', label: 'Notifications', icon: 'Bell', unread: true },
       ]
     },
     superAdminItems() {
       return [
         { key: 'superadmin-dashboard', to: '/superadmin', label: 'Dashboard', icon: 'Shield' },
+        { key: 'superadmin-subscriptions', to: '/superadmin/subscriptions', label: 'Subscriptions', icon: 'CircleDollarSign' },
+        { key: 'superadmin-plan-catalog', to: '/superadmin/plan-catalog', label: 'Plan Catalog', icon: 'SlidersHorizontal' },
         { key: 'superadmin-notifications', to: '/superadmin/notifications', label: 'Notifications', icon: 'Bell' },
       ]
     },
@@ -326,7 +335,20 @@ export default {
       }
 
       if (item.key === 'superadmin-dashboard') {
-        return currentPath.startsWith('/superadmin') && !currentPath.startsWith('/superadmin/notifications')
+        return (
+          currentPath.startsWith('/superadmin') &&
+          !currentPath.startsWith('/superadmin/notifications') &&
+          !currentPath.startsWith('/superadmin/subscriptions') &&
+          !currentPath.startsWith('/superadmin/plan-catalog')
+        )
+      }
+
+      if (item.key === 'superadmin-subscriptions') {
+        return currentPath === '/superadmin/subscriptions'
+      }
+
+      if (item.key === 'superadmin-plan-catalog') {
+        return currentPath === '/superadmin/plan-catalog'
       }
 
       if (item.key === 'superadmin-notifications') {
@@ -342,6 +364,10 @@ export default {
     goPricing() {
       this.dropdownOpen = false
       this.$router.push('/pricing-plans')
+    },
+    goBilling() {
+      this.dropdownOpen = false
+      this.$router.push('/billing')
     },
     goAbout() {
       this.dropdownOpen = false
@@ -842,6 +868,7 @@ export default {
 
   .bottom-nav.mobile-only {
     display: grid !important;
+    margin-bottom: 1rem;
   }
 
   .topbar {

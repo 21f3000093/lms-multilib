@@ -108,7 +108,7 @@ class LibraryCreate(BaseModel):
     address: Optional[str] = None
     contact_email: Optional[str] = None
     contact_phone: Optional[str] = None
-    max_seats: int
+    max_seats: int = Field(..., ge=1, le=200)
     
     
 class LibraryOut(LibraryCreate):
@@ -250,3 +250,201 @@ class PushSubscriptionOut(BaseModel):
 class PushConfigOut(BaseModel):
     enabled: bool
     vapid_public_key: Optional[str] = None
+
+
+class SubscriptionPlanBase(BaseModel):
+    code: str = Field(..., min_length=1, max_length=50)
+    name: str = Field(..., min_length=1, max_length=120)
+    description: Optional[str] = Field(default=None, max_length=500)
+    billing_months: int = Field(..., ge=1, le=36)
+    price_per_seat_paise: int = Field(..., ge=1)
+    discount_percent: int = Field(default=0, ge=0, le=100)
+    bonus_months: int = Field(default=0, ge=0, le=12)
+    is_active: bool = True
+    sort_order: int = 0
+
+
+class SubscriptionPlanCreate(SubscriptionPlanBase):
+    pass
+
+
+class SubscriptionPlanUpdate(BaseModel):
+    code: Optional[str] = Field(default=None, min_length=1, max_length=50)
+    name: Optional[str] = Field(default=None, min_length=1, max_length=120)
+    description: Optional[str] = Field(default=None, max_length=500)
+    billing_months: Optional[int] = Field(default=None, ge=1, le=36)
+    price_per_seat_paise: Optional[int] = Field(default=None, ge=1)
+    discount_percent: Optional[int] = Field(default=None, ge=0, le=100)
+    bonus_months: Optional[int] = Field(default=None, ge=0, le=12)
+    is_active: Optional[bool] = None
+    sort_order: Optional[int] = None
+
+
+class SubscriptionPlanOut(SubscriptionPlanBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class SubscriptionPlanDeleteOut(BaseModel):
+    message: str
+    deleted: bool
+    plan_id: Optional[int] = None
+    plan: Optional[SubscriptionPlanOut] = None
+
+
+class SubscriptionOut(BaseModel):
+    id: int
+    library_id: int
+    status: str
+    valid_until: Optional[datetime] = None
+    plan: Optional[str] = None
+    plan_id: Optional[int] = None
+    current_period_start: Optional[date] = None
+    current_period_end: Optional[date] = None
+    grace_until: Optional[datetime] = None
+    auto_renew: bool = False
+    cancel_at_period_end: bool = False
+    payment_gateway_id: Optional[str] = None
+    gateway_customer_id: Optional[str] = None
+    gateway_subscription_id: Optional[str] = None
+    last_payment_at: Optional[datetime] = None
+    is_trial: bool = False
+    trial_valid_until: Optional[datetime] = None
+    bonus_eligible: bool = True
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    plan_config: Optional[SubscriptionPlanOut] = None
+
+    class Config:
+        orm_mode = True
+
+
+class SubscriptionTransactionOut(BaseModel):
+    id: int
+    subscription_id: Optional[int] = None
+    library_id: int
+    plan_id: Optional[int] = None
+    amount_paise: int
+    currency: str
+    seats_billed: int
+    billing_months: int
+    status: str
+    gateway_order_id: Optional[str] = None
+    gateway_payment_id: Optional[str] = None
+    gateway_signature: Optional[str] = None
+    idempotency_key: str
+    period_start: Optional[date] = None
+    period_end: Optional[date] = None
+    paid_at: Optional[datetime] = None
+    gateway_payload_json: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class SubscriptionWebhookEventOut(BaseModel):
+    id: int
+    gateway_event_id: str
+    event_type: str
+    payload_json: str
+    processed: bool
+    processed_at: Optional[datetime] = None
+    error_message: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class BillingCheckoutOrderRequest(BaseModel):
+    plan_code: str = Field(..., min_length=1, max_length=50)
+    idempotency_key: Optional[str] = Field(default=None, min_length=8, max_length=100)
+
+
+class BillingCheckoutOrderOut(BaseModel):
+    order_id: str
+    key_id: str
+    amount_paise: int
+    currency: str
+    transaction_id: int
+    idempotency_key: str
+    subscription_id: int
+    plan: SubscriptionPlanOut
+
+
+class BillingPlanQuoteOut(BaseModel):
+    plan: SubscriptionPlanOut
+    seats_billed: int
+    currency: str
+    payable_now_paise: int
+    base_billing_months: int
+    bonus_months_applied: int
+    coverage_months: int
+    is_first_paid_subscription: bool
+    expected_period_start: date
+    expected_period_end: date
+
+
+class BillingPlanQuotesOut(BaseModel):
+    seats_billed: int
+    is_first_paid_subscription: bool
+    expected_start_date: date
+    quotes: List[BillingPlanQuoteOut]
+
+
+class BillingVerifyPaymentRequest(BaseModel):
+    razorpay_order_id: str = Field(..., min_length=1)
+    razorpay_payment_id: str = Field(..., min_length=1)
+    razorpay_signature: str = Field(..., min_length=1)
+
+
+class BillingVerifyPaymentOut(BaseModel):
+    message: str
+    transaction: SubscriptionTransactionOut
+    subscription: SubscriptionOut
+
+
+class SuperadminSubscriptionLibraryOut(BaseModel):
+    id: int
+    name: str
+    max_seats: int
+    contact_email: Optional[str] = None
+    contact_phone: Optional[str] = None
+
+    class Config:
+        orm_mode = True
+
+
+class SuperadminSubscriptionRowOut(BaseModel):
+    library: SuperadminSubscriptionLibraryOut
+    subscription: Optional[SubscriptionOut] = None
+
+
+class SubscriptionGrantTrialRequest(BaseModel):
+    days: Optional[int] = Field(default=None, ge=1, le=90)
+
+
+class SubscriptionGrantTrialOut(BaseModel):
+    message: str
+    subscription: SubscriptionOut
+
+
+class SuperadminSubscriptionPatchRequest(BaseModel):
+    status: Optional[str] = Field(default=None, min_length=1, max_length=30)
+    plan_id: Optional[int] = Field(default=None, ge=1)
+    plan_code: Optional[str] = Field(default=None, min_length=1, max_length=50)
+    extend_days: Optional[int] = Field(default=None, ge=1, le=3650)
+    valid_until: Optional[datetime] = None
+    clear_trial: bool = False
+    bonus_eligible: Optional[bool] = None
+
+
+class SuperadminSubscriptionPatchOut(BaseModel):
+    message: str
+    subscription: SubscriptionOut
