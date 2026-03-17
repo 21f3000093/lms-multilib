@@ -36,6 +36,21 @@
         </header>
 
         <form class="login-form" @submit.prevent="login">
+          <div class="social-block">
+            <GoogleAuthButton
+              text="continue_with"
+              hint="Use the same Google email that is linked to your Smart Library account."
+              @credential="handleGoogleCredential"
+              @error="handleGoogleError"
+            />
+          </div>
+
+          <div class="divider" aria-hidden="true">
+            <span></span>
+            <p>or continue with password</p>
+            <span></span>
+          </div>
+
           <label class="input-label" for="identifier">Username or Email</label>
           <div class="input-wrap" :class="{ error: error && !identifier }">
             <User class="input-icon" aria-hidden="true" />
@@ -70,21 +85,6 @@
 
           <div class="helper-row">
             <router-link to="/forgot-password" class="helper-link">Forgot password?</router-link>
-          </div>
-
-          <div class="social-block">
-            <GoogleAuthButton
-              text="continue_with"
-              hint="Use the same Google email that is linked to your Smart Library account."
-              @credential="handleGoogleCredential"
-              @error="handleGoogleError"
-            />
-          </div>
-
-          <div class="divider" aria-hidden="true">
-            <span></span>
-            <p>or continue with password</p>
-            <span></span>
           </div>
 
           <TurnstileWidget
