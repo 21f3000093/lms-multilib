@@ -588,13 +588,13 @@ onMounted(async () => {
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 .signup-page {
-  --bg: #0f172a;
-  --surface: rgba(148, 163, 184, 0.03);
-  --surface-border: rgba(255, 255, 255, 0.03);
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
-  --brand-a: #22d3ee;
-  --brand-b: #3b82f6;
+  --bg: var(--theme-page-bg);
+  --surface: var(--theme-surface);
+  --surface-border: var(--theme-surface-border);
+  --text-primary: var(--theme-text-primary);
+  --text-secondary: var(--theme-text-secondary);
+  --brand-a: var(--theme-brand-a);
+  --brand-b: var(--theme-brand-b);
   min-height: 100vh;
   position: relative;
   overflow: hidden;
@@ -609,11 +609,7 @@ onMounted(async () => {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background:
-    radial-gradient(45rem 24rem at 10% 15%, rgba(34, 211, 238, 0.14), transparent 70%),
-    radial-gradient(40rem 24rem at 86% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
-    radial-gradient(36rem 22rem at 65% 88%, rgba(14, 165, 233, 0.11), transparent 70%),
-    linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
+  background: var(--theme-mesh-background);
 }
 
 .signup-shell {
@@ -638,12 +634,12 @@ onMounted(async () => {
   display: inline-flex;
   padding: 0.4rem 0.8rem;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  border: 1px solid var(--theme-border);
   font-size: 0.8rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #cbd5e1;
-  background: rgba(148, 163, 184, 0.07);
+  color: var(--theme-text-soft);
+  background: var(--theme-surface-soft);
 }
 
 .intro-card h1 {
@@ -679,7 +675,7 @@ onMounted(async () => {
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 0.8rem;
-  color: #64748b;
+  color: var(--theme-text-muted);
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -687,7 +683,7 @@ onMounted(async () => {
 
 .divider span {
   height: 1px;
-  background: rgba(148, 163, 184, 0.2);
+  background: var(--theme-border-soft);
 }
 
 .divider p {
@@ -713,11 +709,11 @@ onMounted(async () => {
   align-items: center;
   gap: 0.5rem;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid var(--theme-border-soft);
+  background: var(--theme-panel);
   padding: 0.55rem 0.85rem;
   font-size: 0.9rem;
-  color: #dbeafe;
+  color: var(--theme-text-info);
 }
 
 .point-icon,
@@ -746,7 +742,7 @@ onMounted(async () => {
   margin-bottom: 0.38rem;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #cbd5e1;
+  color: var(--theme-text-soft);
 }
 
 .input-wrap {
@@ -755,18 +751,18 @@ onMounted(async () => {
   gap: 0.7rem;
   min-height: 3.2rem;
   border-radius: 16px;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  background: rgba(15, 23, 42, 0.62);
+  border: 1px solid var(--theme-border-soft);
+  background: var(--theme-input-bg-soft);
   padding: 0 0.95rem;
 }
 
 .input-wrap:focus-within {
-  border-color: rgba(56, 189, 248, 0.7);
-  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.12);
+  border-color: var(--theme-brand-border);
+  box-shadow: 0 0 0 4px var(--theme-brand-ring);
 }
 
 .input-wrap.error {
-  border-color: rgba(248, 113, 113, 0.75);
+  border-color: var(--theme-danger-border);
 }
 
 .input-wrap.readonly {
@@ -804,7 +800,7 @@ onMounted(async () => {
   justify-content: center;
   gap: 0.6rem;
   background: linear-gradient(135deg, var(--brand-a), var(--brand-b));
-  color: #06111f;
+  color: var(--theme-brand-on);
   font-weight: 800;
   font-size: 1rem;
 }
@@ -825,14 +821,14 @@ onMounted(async () => {
 }
 
 .info-banner {
-  background: rgba(245, 158, 11, 0.12);
-  color: #fde68a;
+  background: var(--theme-warning-soft);
+  color: var(--theme-warning-text);
 }
 
 .error-banner {
-  color: #fecaca;
-  background: rgba(127, 29, 29, 0.35);
-  border: 1px solid rgba(248, 113, 113, 0.25);
+  color: var(--theme-danger-text);
+  background: var(--theme-danger-soft);
+  border: 1px solid var(--theme-danger-border);
 }
 
 .form-footer-links {
@@ -846,7 +842,7 @@ onMounted(async () => {
 }
 
 .form-footer-links a {
-  color: #7dd3fc;
+  color: var(--theme-brand-pill-text);
   text-decoration: none;
 }
 

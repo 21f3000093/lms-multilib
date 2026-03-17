@@ -429,7 +429,7 @@ export default {
   position: relative;
   min-height: 100vh;
   padding: 2rem 1rem 2.8rem 3rem;
-  color: #e2e8f0;
+  color: var(--theme-text-primary);
   overflow: hidden;
   isolation: isolate;
 }
@@ -438,11 +438,7 @@ export default {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background:
-    radial-gradient(45rem 24rem at 10% 15%, rgba(34, 211, 238, 0.14), transparent 70%),
-    radial-gradient(40rem 24rem at 86% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
-    radial-gradient(36rem 22rem at 65% 88%, rgba(14, 165, 233, 0.11), transparent 70%),
-    linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
+  background: var(--theme-mesh-background);
   filter: saturate(115%);
   animation: mesh-drift 18s ease-in-out infinite alternate;
 }
@@ -453,8 +449,8 @@ export default {
 }
 
 .glass-card {
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  background: rgba(148, 163, 184, 0.03);
+  border: 1px solid var(--theme-surface-border);
+  background: var(--theme-surface);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -473,8 +469,8 @@ export default {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 3px solid rgba(148, 163, 184, 0.4);
-  border-top-color: #22d3ee;
+  border: 3px solid var(--theme-border-strong);
+  border-top-color: var(--theme-brand-a);
   animation: spin 1s linear infinite;
 }
 
@@ -519,9 +515,9 @@ export default {
 }
 
 .back-btn {
-  background: rgba(148, 163, 184, 0.16);
-  border-color: rgba(148, 163, 184, 0.35);
-  color: #e2e8f0;
+  background: var(--theme-surface-soft-strong);
+  border-color: var(--theme-border-strong);
+  color: var(--theme-text-primary);
 }
 
 .action-btn:disabled {

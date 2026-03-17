@@ -43,6 +43,11 @@
           <router-link to="/pricing-plans" class="public-link desktop-only">Pricing</router-link>
           <router-link to="/about" class="public-link desktop-only">About</router-link>
           <router-link to="/signup" class="public-link desktop-only">Signup</router-link>
+          <button type="button" class="theme-toggle public-link desktop-only" @click="handleThemeToggle(false)">
+            <Sun v-if="themeState.current === 'dark'" class="theme-toggle-icon" aria-hidden="true" />
+            <Moon v-else class="theme-toggle-icon" aria-hidden="true" />
+            <span>{{ nextThemeLabel }}</span>
+          </button>
           <router-link to="/login" class="public-link public-link-primary desktop-only">Login</router-link>
         </div>
 
@@ -93,6 +98,11 @@
                 <Info class="dropdown-icon" aria-hidden="true" />
                 <span>About</span>
               </button>
+              <button type="button" class="dropdown-item" @click="handleThemeToggle()">
+                <Sun v-if="themeState.current === 'dark'" class="dropdown-icon" aria-hidden="true" />
+                <Moon v-else class="dropdown-icon" aria-hidden="true" />
+                <span>{{ nextThemeLabel }}</span>
+              </button>
 
               <div class="dropdown-divider"></div>
 
@@ -132,6 +142,11 @@
           <component :is="item.icon" class="nav-icon" aria-hidden="true" />
           <span class="mobile-label">{{ item.label }}</span>
         </router-link>
+        <button type="button" class="mobile-link mobile-theme-toggle" @click="handleThemeToggle(true)">
+          <Sun v-if="themeState.current === 'dark'" class="nav-icon" aria-hidden="true" />
+          <Moon v-else class="nav-icon" aria-hidden="true" />
+          <span class="mobile-label">{{ nextThemeLabel }}</span>
+        </button>
       </div>
     </nav>
 
@@ -153,6 +168,7 @@
 <script>
 import API from '../api'
 import { unsubscribeCurrentBrowserPush } from '../utils/pushNotifications'
+import { initTheme, themeState, toggleTheme } from '../utils/theme'
 import {
   Armchair,
   Banknote,
@@ -166,9 +182,11 @@ import {
   LogIn,
   LogOut,
   Menu,
+  Moon,
   ReceiptText,
   Shield,
   SlidersHorizontal,
+  Sun,
   UserCircle2,
   UserPlus,
   Users,
@@ -189,9 +207,11 @@ export default {
     LogIn,
     LogOut,
     Menu,
+    Moon,
     ReceiptText,
     Shield,
     SlidersHorizontal,
+    Sun,
     UserCircle2,
     UserPlus,
     Users,
@@ -205,6 +225,7 @@ export default {
       username: localStorage.getItem('username'),
       library_name: localStorage.getItem('library_name') || 'Smart Library',
       role: localStorage.getItem('role') || '',
+      themeState,
       unreadCount: 0,
       unreadPollIntervalId: null,
     }
@@ -218,6 +239,9 @@ export default {
     },
     unreadBadge() {
       return this.unreadCount > 99 ? '99+' : String(this.unreadCount)
+    },
+    nextThemeLabel() {
+      return this.themeState.current === 'dark' ? 'Light theme' : 'Dark theme'
     },
     adminItems() {
       return [
@@ -267,6 +291,7 @@ export default {
     },
   },
   mounted() {
+    initTheme()
     this.checkLoginStatus()
     this.fetchUnreadCount()
     document.addEventListener('click', this.handleDocumentClick)
@@ -294,6 +319,13 @@ export default {
     toggleDropdown() {
       this.dropdownOpen = !this.dropdownOpen
       this.menuOpen = false
+    },
+    handleThemeToggle(closeMenu = true) {
+      toggleTheme()
+      if (closeMenu) {
+        this.dropdownOpen = false
+        this.menuOpen = false
+      }
     },
     handleDocumentClick(event) {
       if (!this.$el.contains(event.target)) {
@@ -430,6 +462,7 @@ export default {
 <style scoped>
 .layout-wrapper {
   position: relative;
+  color: var(--theme-text-primary);
 }
 
 .sidebar {
@@ -442,10 +475,10 @@ export default {
   display: flex;
   flex-direction: column;
   padding: 1rem 0.85rem;
-  border-right: 1px solid rgba(148, 163, 184, 0.2);
+  border-right: 1px solid var(--theme-border);
   background:
     radial-gradient(120% 80% at 20% 0%, rgba(56, 189, 248, 0.12), transparent 45%),
-    rgba(15, 23, 42, 0.92);
+    var(--theme-nav-surface);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
@@ -455,7 +488,7 @@ export default {
   align-items: center;
   gap: 0.72rem;
   text-decoration: none;
-  color: #e2e8f0;
+  color: var(--theme-text-primary);
   padding: 0.45rem 0.5rem;
   border-radius: 12px;
 }
@@ -466,14 +499,14 @@ export default {
   border-radius: 10px;
   display: grid;
   place-items: center;
-  background: rgba(148, 163, 184, 0.14);
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: var(--theme-surface-soft-strong);
+  border: 1px solid var(--theme-border);
 }
 
 .brand-icon {
   width: 1.1rem;
   height: 1.1rem;
-  color: #67e8f9;
+  color: var(--theme-brand-pill-text);
 }
 
 .brand-text-wrap {
@@ -489,7 +522,7 @@ export default {
 
 .brand-subtitle {
   font-size: 0.73rem;
-  color: #94a3b8;
+  color: var(--theme-text-secondary);
   margin-top: 0.2rem;
   max-width: 172px;
   white-space: nowrap;
@@ -508,7 +541,7 @@ export default {
   align-items: center;
   gap: 0.62rem;
   text-decoration: none;
-  color: #cbd5e1;
+  color: var(--theme-text-soft);
   padding: 0.62rem 0.68rem;
   border-radius: 10px;
   border: 1px solid transparent;
@@ -516,14 +549,14 @@ export default {
 }
 
 .sidebar-link:hover {
-  background: rgba(148, 163, 184, 0.12);
-  color: #f8fafc;
+  background: var(--theme-surface-soft-strong);
+  color: var(--theme-text-strong);
 }
 
 .sidebar-link.is-active {
-  border-color: rgba(56, 189, 248, 0.45);
-  background: rgba(14, 165, 233, 0.18);
-  color: #f8fafc;
+  border-color: var(--theme-brand-border);
+  background: var(--theme-brand-soft);
+  color: var(--theme-text-strong);
 }
 
 .nav-icon {
@@ -562,8 +595,8 @@ export default {
   right: 0;
   height: 68px;
   z-index: 1070;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.22);
-  background: rgba(15, 23, 42, 0.9);
+  border-bottom: 1px solid var(--theme-border);
+  background: var(--theme-nav-surface);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
@@ -585,7 +618,7 @@ export default {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: #e2e8f0;
+  color: var(--theme-text-primary);
   text-decoration: none;
   font-weight: 700;
   font-size: 0.97rem;
@@ -594,7 +627,7 @@ export default {
 .topbar-brand-icon {
   width: 1.05rem;
   height: 1.05rem;
-  color: #67e8f9;
+  color: var(--theme-brand-pill-text);
 }
 
 .topbar-actions {
@@ -605,35 +638,49 @@ export default {
 
 .public-link {
   text-decoration: none;
-  color: #cbd5e1;
+  color: var(--theme-text-soft);
   font-size: 0.88rem;
   font-weight: 600;
   padding: 0.4rem 0.65rem;
   border-radius: 9px;
   border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .public-link:hover {
-  border-color: rgba(148, 163, 184, 0.35);
-  color: #f8fafc;
+  border-color: var(--theme-border-strong);
+  color: var(--theme-text-strong);
 }
 
 .public-link-primary {
-  border-color: rgba(56, 189, 248, 0.45);
-  background: rgba(14, 165, 233, 0.2);
-  color: #f8fafc;
+  border-color: var(--theme-brand-border);
+  background: var(--theme-brand-soft-strong);
+  color: var(--theme-text-strong);
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+}
+
+.theme-toggle-icon {
+  width: 0.95rem;
+  height: 0.95rem;
 }
 
 .menu-btn {
   width: 2.2rem;
   height: 2.2rem;
   border-radius: 10px;
-  border: 1px solid rgba(148, 163, 184, 0.28);
+  border: 1px solid var(--theme-border-strong);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(148, 163, 184, 0.08);
-  color: #f8fafc;
+  background: var(--theme-surface-soft);
+  color: var(--theme-text-strong);
   cursor: pointer;
 }
 
@@ -648,12 +695,12 @@ export default {
   width: 2.2rem;
   height: 2.2rem;
   border-radius: 10px;
-  border: 1px solid rgba(148, 163, 184, 0.28);
+  border: 1px solid var(--theme-border-strong);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(148, 163, 184, 0.08);
-  color: #e2e8f0;
+  background: var(--theme-surface-soft);
+  color: var(--theme-text-primary);
   cursor: pointer;
 }
 
@@ -678,11 +725,11 @@ export default {
   width: 2.2rem;
   height: 2.2rem;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.3);
+  border: 1px solid var(--theme-border-strong);
   overflow: hidden;
   cursor: pointer;
   padding: 0;
-  background: rgba(148, 163, 184, 0.1);
+  background: var(--theme-surface-soft);
 }
 
 .user-avatar {
@@ -697,9 +744,9 @@ export default {
   right: 0;
   min-width: 260px;
   border-radius: 14px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  background: rgba(15, 23, 42, 0.96);
-  box-shadow: 0 20px 40px rgba(2, 6, 23, 0.45);
+  border: 1px solid var(--theme-border);
+  background: var(--theme-panel-solid);
+  box-shadow: var(--theme-shadow-soft);
   padding: 0.45rem;
   opacity: 0;
   visibility: hidden;
@@ -719,7 +766,7 @@ export default {
   gap: 0.65rem;
   border-radius: 10px;
   padding: 0.55rem;
-  background: rgba(148, 163, 184, 0.08);
+  background: var(--theme-surface-soft);
   margin-bottom: 0.3rem;
 }
 
@@ -731,14 +778,14 @@ export default {
 
 .dropdown-title {
   margin: 0;
-  color: #e2e8f0;
+  color: var(--theme-text-primary);
   font-size: 0.84rem;
   font-weight: 700;
 }
 
 .dropdown-subtitle {
   margin: 0.2rem 0 0;
-  color: #94a3b8;
+  color: var(--theme-text-secondary);
   font-size: 0.75rem;
 }
 
@@ -746,7 +793,7 @@ export default {
   width: 100%;
   border: none;
   background: transparent;
-  color: #cbd5e1;
+  color: var(--theme-text-soft);
   border-radius: 10px;
   padding: 0.57rem 0.6rem;
   display: flex;
@@ -759,8 +806,8 @@ export default {
 }
 
 .dropdown-item:hover {
-  background: rgba(148, 163, 184, 0.14);
-  color: #f8fafc;
+  background: var(--theme-surface-soft-strong);
+  color: var(--theme-text-strong);
 }
 
 .dropdown-item.danger {
@@ -768,8 +815,8 @@ export default {
 }
 
 .dropdown-item.danger:hover {
-  background: rgba(239, 68, 68, 0.18);
-  color: #fecaca;
+  background: var(--theme-danger-soft);
+  color: var(--theme-danger-text);
 }
 
 .dropdown-icon {
@@ -779,7 +826,7 @@ export default {
 
 .dropdown-divider {
   height: 1px;
-  background: rgba(148, 163, 184, 0.24);
+  background: var(--theme-border);
   margin: 0.35rem 0;
 }
 
@@ -791,8 +838,8 @@ export default {
   transform: translateX(-180%);
   transition: transform 220ms ease;
   z-index: 1065;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
-  background: rgba(15, 23, 42, 0.98);
+  border-bottom: 1px solid var(--theme-border);
+  background: var(--theme-nav-surface-strong);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
@@ -806,14 +853,18 @@ export default {
   align-items: center;
   gap: 0.58rem;
   text-decoration: none;
-  color: #cbd5e1;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+  color: var(--theme-text-soft);
+  border-bottom: 1px solid var(--theme-border-soft);
   padding: 0.85rem 1rem;
+  background: transparent;
+  font: inherit;
+  width: 100%;
+  cursor: pointer;
 }
 
 .mobile-link.is-active {
-  background: rgba(14, 165, 233, 0.18);
-  color: #f8fafc;
+  background: var(--theme-brand-soft);
+  color: var(--theme-text-strong);
 }
 
 .mobile-label {
@@ -828,14 +879,14 @@ export default {
   bottom: calc(0.55rem + env(safe-area-inset-bottom));
   z-index: 1068;
   border-radius: 16px;
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid var(--theme-border);
+  background: var(--theme-panel-solid);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   padding: 0.4rem;
-  box-shadow: 0 20px 35px rgba(2, 6, 23, 0.35);
+  box-shadow: var(--theme-shadow-elevated);
 }
 
 .bottom-link {
@@ -843,13 +894,13 @@ export default {
   border-radius: 10px;
   display: grid;
   place-items: center;
-  color: #94a3b8;
+  color: var(--theme-text-secondary);
   text-decoration: none;
 }
 
 .bottom-link.is-active {
-  background: rgba(14, 165, 233, 0.22);
-  color: #e2e8f0;
+  background: var(--theme-brand-soft-strong);
+  color: var(--theme-text-primary);
 }
 
 .bottom-icon {
@@ -901,12 +952,12 @@ export default {
 
 .sidebar::-webkit-scrollbar-track,
 .mobile-panel::-webkit-scrollbar-track {
-  background: rgba(148, 163, 184, 0.12);
+  background: var(--theme-surface-soft-strong);
 }
 
 .sidebar::-webkit-scrollbar-thumb,
 .mobile-panel::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.45);
+  background: var(--theme-surface-muted);
   border-radius: 999px;
 }
 </style>

@@ -128,7 +128,7 @@ export default {
 
 .google-hint {
   margin: 0;
-  color: #94a3b8;
+  color: var(--theme-text-secondary);
   font-size: 0.82rem;
   text-align: center;
 }

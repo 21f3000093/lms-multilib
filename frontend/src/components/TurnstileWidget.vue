@@ -8,6 +8,7 @@
 <script setup>
 /* global defineProps, defineEmits */
 import { nextTick, onMounted, ref, watch } from 'vue'
+import { themeState } from '../utils/theme'
 
 const props = defineProps({
   siteKey: {
@@ -74,7 +75,7 @@ const renderWidget = async () => {
 
   widgetId = turnstile.render(widgetRef.value, {
     sitekey: props.siteKey,
-    theme: 'dark',
+    theme: themeState.current === 'light' ? 'light' : 'dark',
     callback: (token) => emit('verified', token),
     'expired-callback': () => emit('expired'),
     'error-callback': () => emit('expired'),
@@ -93,6 +94,10 @@ watch(() => props.resetKey, () => {
   emit('expired')
   renderWidget()
 })
+
+watch(() => themeState.current, () => {
+  renderWidget()
+})
 </script>
 
 <style scoped>
@@ -105,7 +110,7 @@ watch(() => props.resetKey, () => {
 .turnstile-hint {
   margin: 0;
   font-size: 0.82rem;
-  color: #94a3b8;
+  color: var(--theme-text-secondary);
   text-align: center;
 }
 </style>

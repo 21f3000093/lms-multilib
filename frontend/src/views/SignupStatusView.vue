@@ -355,18 +355,14 @@ watch(() => route.query.verify_token, () => {
 .status-page {
   min-height: 100vh;
   padding: 2rem 1rem 3rem;
-  color: #e2e8f0;
+  color: var(--theme-text-primary);
 }
 
 .mesh-layer {
   position: fixed;
   inset: 0;
   z-index: -1;
-  background:
-    radial-gradient(45rem 24rem at 10% 15%, rgba(34, 211, 238, 0.14), transparent 70%),
-    radial-gradient(40rem 24rem at 86% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
-    radial-gradient(36rem 22rem at 65% 88%, rgba(14, 165, 233, 0.11), transparent 70%),
-    linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
+  background: var(--theme-mesh-background);
 }
 
 .status-shell {
@@ -378,8 +374,8 @@ watch(() => route.query.verify_token, () => {
 .glass-card,
 .state-card,
 .step-card {
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  background: rgba(148, 163, 184, 0.03);
+  border: 1px solid var(--theme-surface-border);
+  background: var(--theme-surface);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-radius: 20px;
@@ -387,7 +383,7 @@ watch(() => route.query.verify_token, () => {
 
 .kicker {
   margin: 0;
-  color: #7dd3fc;
+  color: var(--theme-brand-pill-text);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: 0.78rem;
@@ -400,7 +396,7 @@ watch(() => route.query.verify_token, () => {
 
 .status-head p {
   margin: 0;
-  color: #94a3b8;
+  color: var(--theme-text-secondary);
 }
 
 .steps-grid,
@@ -419,21 +415,21 @@ watch(() => route.query.verify_token, () => {
   display: flex;
   align-items: center;
   gap: 0.7rem;
-  color: #94a3b8;
+  color: var(--theme-text-secondary);
 }
 
 .step-card.is-complete {
-  border-color: rgba(45, 212, 191, 0.35);
-  color: #d1fae5;
+  border-color: var(--theme-success-border);
+  color: var(--theme-success-text);
 }
 
 .step-card.is-active {
-  border-color: rgba(56, 189, 248, 0.4);
-  color: #e0f2fe;
+  border-color: var(--theme-brand-border);
+  color: var(--theme-text-info);
 }
 
 .step-card.is-rejected {
-  border-color: rgba(248, 113, 113, 0.35);
+  border-color: var(--theme-danger-border);
 }
 
 .step-icon,
@@ -480,30 +476,30 @@ watch(() => route.query.verify_token, () => {
 
 .status-pending_email_verification,
 .status-expired {
-  background: rgba(59, 130, 246, 0.15);
-  color: #bfdbfe;
+  background: var(--theme-info-soft);
+  color: var(--theme-info-text);
 }
 
 .status-pending_approval {
-  background: rgba(245, 158, 11, 0.15);
-  color: #fde68a;
+  background: var(--theme-warning-soft);
+  color: var(--theme-warning-text);
 }
 
 .status-approved {
-  background: rgba(16, 185, 129, 0.15);
-  color: #bbf7d0;
+  background: var(--theme-success-soft);
+  color: var(--theme-success-text);
 }
 
 .status-rejected {
-  background: rgba(239, 68, 68, 0.15);
-  color: #fecaca;
+  background: var(--theme-danger-soft);
+  color: var(--theme-danger-text);
 }
 
 .meta-text,
 .lead-copy,
 .detail-grid dt,
 .rejection-box p {
-  color: #94a3b8;
+  color: var(--theme-text-secondary);
 }
 
 .status-overview h2,
@@ -522,13 +518,13 @@ watch(() => route.query.verify_token, () => {
 }
 
 .banner.success {
-  background: rgba(16, 185, 129, 0.12);
-  color: #d1fae5;
+  background: var(--theme-success-soft);
+  color: var(--theme-success-text);
 }
 
 .banner.error {
-  background: rgba(239, 68, 68, 0.12);
-  color: #fecaca;
+  background: var(--theme-danger-soft);
+  color: var(--theme-danger-text);
 }
 
 .actions-row {
@@ -550,14 +546,14 @@ watch(() => route.query.verify_token, () => {
 }
 
 .btn-solid {
-  background: linear-gradient(135deg, #22d3ee, #3b82f6);
-  color: #06111f;
+  background: linear-gradient(135deg, var(--theme-brand-a), var(--theme-brand-b));
+  color: var(--theme-brand-on);
 }
 
 .btn-ghost {
-  background: rgba(15, 23, 42, 0.65);
-  color: #e2e8f0;
-  border-color: rgba(148, 163, 184, 0.18);
+  background: var(--theme-panel-strong);
+  color: var(--theme-text-primary);
+  border-color: var(--theme-border-soft);
 }
 
 .detail-grid {
@@ -568,13 +564,13 @@ watch(() => route.query.verify_token, () => {
 
 .detail-grid dd {
   margin: 0.3rem 0 0;
-  color: #f8fafc;
+  color: var(--theme-text-strong);
 }
 
 .rejection-box {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  border-top: 1px solid var(--theme-border-soft);
 }
 
 @keyframes spin {

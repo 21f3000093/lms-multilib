@@ -512,13 +512,13 @@ onBeforeUnmount(() => {
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 .pricing-page {
-  --bg: #0f172a;
-  --surface: rgba(148, 163, 184, 0.03);
-  --surface-border: rgba(255, 255, 255, 0.03);
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
-  --brand-a: #22d3ee;
-  --brand-b: #3b82f6;
+  --bg: var(--theme-page-bg);
+  --surface: var(--theme-surface);
+  --surface-border: var(--theme-surface-border);
+  --text-primary: var(--theme-text-primary);
+  --text-secondary: var(--theme-text-secondary);
+  --brand-a: var(--theme-brand-a);
+  --brand-b: var(--theme-brand-b);
 
   position: relative;
   min-height: 100vh;
@@ -534,11 +534,7 @@ onBeforeUnmount(() => {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background:
-    radial-gradient(45rem 24rem at 10% 15%, rgba(34, 211, 238, 0.14), transparent 70%),
-    radial-gradient(40rem 24rem at 86% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
-    radial-gradient(36rem 22rem at 65% 88%, rgba(14, 165, 233, 0.11), transparent 70%),
-    linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
+  background: var(--theme-mesh-background);
   filter: saturate(115%);
   animation: mesh-drift 18s ease-in-out infinite alternate;
 }
@@ -561,12 +557,12 @@ onBeforeUnmount(() => {
   display: inline-flex;
   padding: 0.4rem 0.8rem;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  border: 1px solid var(--theme-border);
   font-size: 0.8rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #cbd5e1;
-  background: rgba(148, 163, 184, 0.07);
+  color: var(--theme-text-soft);
+  background: var(--theme-surface-soft);
 }
 
 .hero h1 {
@@ -607,11 +603,11 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 0.4rem;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.26);
+  border: 1px solid var(--theme-border);
   padding: 0.42rem 0.7rem;
   font-size: 0.86rem;
-  color: #dbeafe;
-  background: rgba(148, 163, 184, 0.08);
+  color: var(--theme-text-info);
+  background: var(--theme-surface-soft);
 }
 
 .point-icon {
@@ -648,7 +644,7 @@ onBeforeUnmount(() => {
 .orb-icon {
   width: 3.4rem;
   height: 3.4rem;
-  color: #f8fafc;
+  color: var(--theme-text-strong);
   stroke-width: 1.8;
 }
 
@@ -687,7 +683,7 @@ onBeforeUnmount(() => {
   display: inline-block;
   margin-top: 1rem;
   font-weight: 600;
-  color: #dbeafe;
+  color: var(--theme-text-info);
 }
 
 .calculator-card input {
@@ -695,16 +691,16 @@ onBeforeUnmount(() => {
   margin-top: 0.45rem;
   padding: 0.82rem 0.85rem;
   border-radius: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  background: rgba(15, 23, 42, 0.75);
-  color: #f8fafc;
+  border: 1px solid var(--theme-input-border);
+  background: var(--theme-input-bg);
+  color: var(--theme-text-strong);
   font-size: 1rem;
   outline: none;
 }
 
 .calculator-card input:focus {
-  border-color: rgba(34, 211, 238, 0.7);
-  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.15);
+  border-color: var(--theme-brand-border);
+  box-shadow: 0 0 0 3px var(--theme-brand-ring);
 }
 
 .preset-buttons {
@@ -715,9 +711,9 @@ onBeforeUnmount(() => {
 }
 
 .preset-btn {
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  background: rgba(148, 163, 184, 0.1);
-  color: #e2e8f0;
+  border: 1px solid var(--theme-border-strong);
+  background: var(--theme-surface-soft);
+  color: var(--theme-text-primary);
   border-radius: 999px;
   padding: 0.35rem 0.7rem;
   font-weight: 600;
@@ -726,8 +722,8 @@ onBeforeUnmount(() => {
 
 .preset-btn.active,
 .preset-btn:hover {
-  border-color: rgba(34, 211, 238, 0.58);
-  background: rgba(34, 211, 238, 0.2);
+  border-color: var(--theme-brand-border);
+  background: var(--theme-brand-soft-strong);
 }
 
 .calculator-summary {
@@ -739,15 +735,15 @@ onBeforeUnmount(() => {
 
 .summary-item {
   border-radius: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.24);
-  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid var(--theme-border);
+  background: var(--theme-panel-strong);
   padding: 0.7rem;
 }
 
 .summary-item p {
   margin: 0;
   font-size: 0.82rem;
-  color: #94a3b8;
+  color: var(--theme-text-secondary);
 }
 
 .summary-item strong {
@@ -859,8 +855,8 @@ onBeforeUnmount(() => {
 
 .pricing-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(34, 211, 238, 0.32);
-  box-shadow: 0 20px 34px rgba(2, 6, 23, 0.42);
+  border-color: var(--theme-brand-border);
+  box-shadow: var(--theme-shadow-soft);
 }
 
 .pricing-card:hover::before {
@@ -868,7 +864,7 @@ onBeforeUnmount(() => {
 }
 
 .pricing-card.featured {
-  border-color: rgba(14, 165, 233, 0.58);
+  border-color: var(--theme-brand-border);
 }
 
 .pricing-card.best-value {
@@ -920,20 +916,20 @@ onBeforeUnmount(() => {
   border-radius: 10px;
   display: grid;
   place-items: center;
-  background: rgba(148, 163, 184, 0.12);
-  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: var(--theme-surface-soft-strong);
+  border: 1px solid var(--theme-border);
 }
 
 .plan-icon {
   width: 1.3rem;
   height: 1.3rem;
-  color: #cbd5e1;
+  color: var(--theme-text-soft);
 }
 
 .price-box {
   margin-top: 0.95rem;
   padding-top: 0.85rem;
-  border-top: 1px solid rgba(148, 163, 184, 0.22);
+  border-top: 1px solid var(--theme-border-soft);
 }
 
 .price-main {
@@ -945,7 +941,7 @@ onBeforeUnmount(() => {
 
 .currency {
   font-size: 1.2rem;
-  color: #cbd5e1;
+  color: var(--theme-text-soft);
 }
 
 .amount {
@@ -955,7 +951,7 @@ onBeforeUnmount(() => {
 
 .unit,
 .billing-note {
-  color: #94a3b8;
+  color: var(--theme-text-secondary);
 }
 
 .billing-note {
@@ -969,9 +965,9 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   gap: 0.7rem;
   border-radius: 8px;
-  background: rgba(16, 185, 129, 0.18);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  color: #a7f3d0;
+  background: var(--theme-success-soft);
+  border: 1px solid var(--theme-success-border);
+  color: var(--theme-success-text);
   padding: 0.45rem 0.6rem;
   font-size: 0.84rem;
   font-weight: 700;
@@ -989,14 +985,14 @@ onBeforeUnmount(() => {
   display: flex;
   gap: 0.5rem;
   align-items: flex-start;
-  color: #cbd5e1;
+  color: var(--theme-text-soft);
   font-size: 0.9rem;
 }
 
 .check-icon {
   width: 1rem;
   height: 1rem;
-  color: #34d399;
+  color: var(--theme-success-text);
   flex: 0 0 auto;
   margin-top: 0.15rem;
 }
@@ -1004,8 +1000,8 @@ onBeforeUnmount(() => {
 .total-box {
   margin-top: 1rem;
   border-radius: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.24);
-  background: rgba(15, 23, 42, 0.68);
+  border: 1px solid var(--theme-border);
+  background: var(--theme-panel-strong);
   padding: 0.75rem;
 }
 
@@ -1024,8 +1020,8 @@ onBeforeUnmount(() => {
   margin-top: 0.6rem;
   border-radius: 10px;
   padding: 0.58rem;
-  background: rgba(59, 130, 246, 0.16);
-  border: 1px solid rgba(59, 130, 246, 0.34);
+  background: var(--theme-info-soft);
+  border: 1px solid var(--theme-info-border);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -1039,25 +1035,25 @@ onBeforeUnmount(() => {
 .bonus-row p {
   margin: 0.2rem 0 0;
   font-size: 0.78rem;
-  color: #bfdbfe;
+  color: var(--theme-info-text);
 }
 
 .bonus-icon {
   width: 1rem;
   height: 1rem;
-  color: #bfdbfe;
+  color: var(--theme-info-text);
   flex: 0 0 auto;
 }
 
 .effective-note {
   margin: 0.65rem 0 0;
   font-size: 0.82rem;
-  color: #93c5fd;
+  color: var(--theme-info-text);
 }
 
 .effective-note span {
   display: block;
-  color: #94a3b8;
+  color: var(--theme-text-secondary);
   margin-top: 0.2rem;
 }
 
@@ -1089,20 +1085,20 @@ onBeforeUnmount(() => {
 
 .included-card p {
   margin: 0;
-  color: #dbeafe;
+  color: var(--theme-text-info);
   font-size: 0.92rem;
 }
 
 .included-icon {
   width: 1.1rem;
   height: 1.1rem;
-  color: #67e8f9;
+  color: var(--theme-brand-pill-text);
 }
 
 .faq-card h3 {
   margin: 0;
   font-size: 1rem;
-  color: #f8fafc;
+  color: var(--theme-text-strong);
 }
 
 .faq-card p {
@@ -1113,7 +1109,7 @@ onBeforeUnmount(() => {
 .cta-card {
   border-radius: 22px;
   padding: 1.6rem;
-  box-shadow: 0 20px 60px rgba(2, 6, 23, 0.45);
+  box-shadow: var(--theme-shadow-soft);
 }
 
 .cta-actions {
@@ -1158,19 +1154,19 @@ onBeforeUnmount(() => {
 }
 
 .btn-solid {
-  background: linear-gradient(90deg, #0ea5e9, #3b82f6);
-  color: #f8fafc;
-  box-shadow: 0 14px 28px rgba(59, 130, 246, 0.28);
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
+  color: var(--theme-brand-on);
+  box-shadow: 0 14px 28px rgba(59, 130, 246, 0.2);
 }
 
 .btn-ghost {
-  color: #e2e8f0;
-  border-color: rgba(148, 163, 184, 0.4);
-  background: rgba(148, 163, 184, 0.04);
+  color: var(--theme-text-primary);
+  border-color: var(--theme-border-strong);
+  background: var(--theme-surface-soft);
 }
 
 .btn-ghost:hover {
-  border-color: rgba(34, 211, 238, 0.42);
+  border-color: var(--theme-brand-border);
 }
 
 .reveal {
@@ -1193,11 +1189,11 @@ onBeforeUnmount(() => {
 :deep(.swiper-button-next),
 :deep(.swiper-button-prev) {
   color: var(--brand-a); /* Uses your cyan gradient color */
-  background: rgba(15, 23, 42, 0.75); /* Matches your card background */
+  background: var(--theme-input-bg); /* Matches your card background */
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  border: 1px solid rgba(148, 163, 184, 0.24);
+  border: 1px solid var(--theme-border);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   transition: all 0.3s ease;
@@ -1210,7 +1206,7 @@ onBeforeUnmount(() => {
 
 :deep(.swiper-button-next:hover),
 :deep(.swiper-button-prev:hover) {
-  background: rgba(15, 23, 42, 0.95);
+  background: var(--theme-panel-solid);
   border-color: var(--brand-a);
   transform: scale(1.05);
 }

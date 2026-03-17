@@ -273,18 +273,14 @@ onMounted(() => {
 .auth-page {
   min-height: 100vh;
   padding: 2rem 1rem 3rem;
-  color: #e2e8f0;
+  color: var(--theme-text-primary);
 }
 
 .mesh-layer {
   position: fixed;
   inset: 0;
   z-index: -1;
-  background:
-    radial-gradient(45rem 24rem at 10% 15%, rgba(34, 211, 238, 0.14), transparent 70%),
-    radial-gradient(40rem 24rem at 86% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
-    radial-gradient(36rem 22rem at 65% 88%, rgba(14, 165, 233, 0.11), transparent 70%),
-    linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
+  background: var(--theme-mesh-background);
 }
 
 .auth-shell {
@@ -294,8 +290,8 @@ onMounted(() => {
 }
 
 .glass-card {
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  background: rgba(148, 163, 184, 0.03);
+  border: 1px solid var(--theme-surface-border);
+  background: var(--theme-surface);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-radius: 22px;
@@ -303,7 +299,7 @@ onMounted(() => {
 
 .kicker {
   margin: 0;
-  color: #7dd3fc;
+  color: var(--theme-brand-pill-text);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: 0.78rem;
@@ -316,7 +312,7 @@ onMounted(() => {
 
 .auth-head p {
   margin: 0;
-  color: #94a3b8;
+  color: var(--theme-text-secondary);
 }
 
 .auth-form {
@@ -328,7 +324,7 @@ onMounted(() => {
 .input-label {
   display: block;
   font-weight: 600;
-  color: #cbd5e1;
+  color: var(--theme-text-soft);
 }
 
 .input-wrap {
@@ -337,8 +333,8 @@ onMounted(() => {
   gap: 0.7rem;
   min-height: 3.2rem;
   border-radius: 16px;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  background: rgba(15, 23, 42, 0.62);
+  border: 1px solid var(--theme-border-soft);
+  background: var(--theme-input-bg-soft);
   padding: 0 0.95rem;
 }
 
@@ -351,14 +347,14 @@ onMounted(() => {
   border: 0;
   outline: 0;
   background: transparent;
-  color: #e2e8f0;
+  color: var(--theme-text-primary);
   font-size: 0.96rem;
 }
 
 .toggle-btn {
   border: 0;
   background: transparent;
-  color: #94a3b8;
+  color: var(--theme-text-secondary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -370,8 +366,8 @@ onMounted(() => {
   border: 0;
   border-radius: 16px;
   cursor: pointer;
-  background: linear-gradient(135deg, #22d3ee, #3b82f6);
-  color: #06111f;
+  background: linear-gradient(135deg, var(--theme-brand-a), var(--theme-brand-b));
+  color: var(--theme-brand-on);
   font-weight: 800;
   display: inline-flex;
   align-items: center;
@@ -393,13 +389,13 @@ onMounted(() => {
 }
 
 .banner.success {
-  background: rgba(16, 185, 129, 0.12);
-  color: #d1fae5;
+  background: var(--theme-success-soft);
+  color: var(--theme-success-text);
 }
 
 .banner.error {
-  background: rgba(239, 68, 68, 0.12);
-  color: #fecaca;
+  background: var(--theme-danger-soft);
+  color: var(--theme-danger-text);
 }
 
 .footer-links {
@@ -408,11 +404,11 @@ onMounted(() => {
   flex-wrap: wrap;
   gap: 0.55rem;
   justify-content: center;
-  color: #94a3b8;
+  color: var(--theme-text-secondary);
 }
 
 .footer-links a {
-  color: #7dd3fc;
+  color: var(--theme-brand-pill-text);
   text-decoration: none;
 }
 
