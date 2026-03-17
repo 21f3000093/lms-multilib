@@ -235,7 +235,7 @@ export default {
     superAdminItems() {
       return [
         { key: 'superadmin-dashboard', to: '/superadmin', label: 'Dashboard', icon: 'Shield' },
-        { key: 'superadmin-signup-queue', to: '/superadmin/signup-requests', label: 'Signup Queue', icon: 'UserCircle2' },
+        { key: 'superadmin-signup-queue', to: '/superadmin/signup-requests', label: 'Signup Review', icon: 'UserCircle2' },
         { key: 'superadmin-subscriptions', to: '/superadmin/subscriptions', label: 'Subscriptions', icon: 'CircleDollarSign' },
         { key: 'superadmin-plan-catalog', to: '/superadmin/plan-catalog', label: 'Plan Catalog', icon: 'SlidersHorizontal' },
         { key: 'superadmin-notifications', to: '/superadmin/notifications', label: 'Notifications', icon: 'Bell' },

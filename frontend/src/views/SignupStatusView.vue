@@ -16,7 +16,7 @@
         </article>
         <article class="step-card" :class="stepClass(2)">
           <ShieldCheck class="step-icon" aria-hidden="true" />
-          <span>Approval Queue</span>
+          <span>Risk Check</span>
         </article>
         <article class="step-card" :class="stepClass(3)">
           <BadgeCheck class="step-icon" aria-hidden="true" />
@@ -123,6 +123,10 @@
             <h4>Rejection Reason</h4>
             <p>{{ statusData.rejection_reason }}</p>
           </div>
+          <div v-if="statusData.review_reason" class="rejection-box">
+            <h4>Review Reason</h4>
+            <p>{{ statusData.review_reason }}</p>
+          </div>
         </article>
       </div>
     </section>
@@ -141,6 +145,7 @@ import {
 } from 'lucide-vue-next'
 import API from '../api'
 import TurnstileWidget from '../components/TurnstileWidget.vue'
+import { homeRouteForRole, storeAdminSession } from '../utils/authSession'
 
 const route = useRoute()
 const router = useRouter()
@@ -160,7 +165,7 @@ const currentStatus = computed(() => statusData.value?.status || '')
 const humanStatus = computed(() => {
   const map = {
     pending_email_verification: 'Email Verification Pending',
-    pending_approval: 'Pending Approval',
+    pending_approval: 'Flagged for Review',
     approved: 'Approved',
     rejected: 'Rejected',
     expired: 'Expired',
@@ -173,7 +178,7 @@ const headline = computed(() => {
     case 'pending_email_verification':
       return 'Verify your email to continue'
     case 'pending_approval':
-      return 'Your signup is waiting for review'
+      return 'Your signup is waiting for a manual check'
     case 'approved':
       return 'Your workspace is ready'
     case 'rejected':
@@ -190,7 +195,7 @@ const description = computed(() => {
     case 'pending_email_verification':
       return 'Open the verification email we sent and confirm your email address. You can resend it from here if needed.'
     case 'pending_approval':
-      return 'Your email is verified. The request is now visible in the superadmin approval queue.'
+      return 'Your email is verified, but this signup hit a safety check and has been moved to the superadmin review queue.'
     case 'approved':
       return 'The library and admin account have been created. You can now log in and start using the app.'
     case 'rejected':
@@ -252,6 +257,10 @@ const loadStatus = async () => {
   } finally {
     loading.value = false
   }
+
+  if (currentStatus.value === 'approved' && localStorage.getItem('role')) {
+    router.replace(homeRouteForRole(localStorage.getItem('role')))
+  }
 }
 
 const applyAuthError = (err, fallbackMessage) => {
@@ -279,6 +288,11 @@ const tryVerify = async () => {
   try {
     const res = await API.post('/auth/signup/verify-email', { token: verifyToken })
     successMessage.value = res.data.message
+    if (res.data?.action === 'logged_in' && res.data?.admin) {
+      storeAdminSession(res.data.admin)
+      await router.replace(homeRouteForRole(res.data.admin.role))
+      return
+    }
     await router.replace({ path: route.path, query: { ...route.query, verify_token: undefined } })
     await loadStatus()
   } catch (err) {

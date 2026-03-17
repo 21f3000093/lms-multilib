@@ -9,8 +9,18 @@ import requests
 from fastapi import HTTPException, Request
 from sqlalchemy.orm import Session
 
+from app import crud
 from app import models
 from app.emailer import send_email
+
+try:
+    from google.auth import exceptions as google_auth_exceptions
+    from google.auth.transport import requests as google_transport_requests
+    from google.oauth2 import id_token as google_id_token
+except ImportError:  # pragma: no cover - runtime fallback when dependency is not installed yet
+    google_auth_exceptions = None
+    google_transport_requests = None
+    google_id_token = None
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +28,7 @@ SIGNUP_VERIFY = "signup_verify"
 SIGNUP_RESUBMIT = "signup_resubmit"
 RESET_LINK = "reset_link"
 RESET_OTP = "reset_otp"
+GOOGLE_ONBOARDING = "google_onboarding"
 
 PENDING_EMAIL_VERIFICATION = "pending_email_verification"
 PENDING_APPROVAL = "pending_approval"
@@ -53,8 +64,17 @@ def get_turnstile_secret_key() -> str | None:
     return value or None
 
 
+def get_google_client_id() -> str | None:
+    value = (os.getenv("GOOGLE_OAUTH_CLIENT_ID") or "").strip()
+    return value or None
+
+
 def is_turnstile_enabled() -> bool:
     return bool(get_turnstile_site_key() and get_turnstile_secret_key())
+
+
+def is_google_auth_enabled() -> bool:
+    return bool(get_google_client_id() and google_id_token and google_transport_requests)
 
 
 def get_verify_email_expiry_minutes() -> int:
@@ -84,6 +104,17 @@ def get_lockout_minutes() -> int:
 def get_captcha_threshold() -> int:
     threshold = _read_positive_int_env("AUTH_CAPTCHA_THRESHOLD", 3)
     return min(threshold, get_lockout_threshold())
+
+
+def get_google_onboarding_expiry_minutes() -> int:
+    return _read_positive_int_env("AUTH_GOOGLE_ONBOARDING_EXPIRES_MINUTES", 30)
+
+
+def get_signup_activation_mode() -> str:
+    mode = (os.getenv("SIGNUP_ACTIVATION_MODE") or "risk_based").strip().lower()
+    if mode not in {"manual", "risk_based", "auto"}:
+        return "risk_based"
+    return mode
 
 
 def utcnow() -> datetime:
@@ -448,6 +479,119 @@ def invalidate_tokens(
     db.flush()
 
 
+def get_token_payload(token: models.AuthActionToken | None) -> dict:
+    if not token or not token.payload_json:
+        return {}
+    try:
+        payload = json.loads(token.payload_json)
+        return payload if isinstance(payload, dict) else {}
+    except json.JSONDecodeError:
+        return {}
+
+
+def verify_google_credential(raw_credential: str) -> dict[str, str]:
+    client_id = get_google_client_id()
+    if not is_google_auth_enabled() or not client_id or not google_id_token or not google_transport_requests:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "google_auth_not_configured",
+                "message": "Google sign-in is not configured yet.",
+            },
+        )
+
+    try:
+        payload = google_id_token.verify_oauth2_token(
+            raw_credential,
+            google_transport_requests.Request(),
+            client_id,
+        )
+    except Exception:
+        logger.exception("Google credential verification failed")
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "invalid_google_token",
+                "message": "Google sign-in could not be verified. Please try again.",
+            },
+        )
+
+    email = normalize_email(str(payload.get("email") or ""))
+    provider_subject = str(payload.get("sub") or "").strip()
+    if not email or not provider_subject or not payload.get("email_verified"):
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "invalid_google_token",
+                "message": "Google account email could not be verified.",
+            },
+        )
+
+    return {
+        "email": email,
+        "provider_subject": provider_subject,
+        "name": str(payload.get("name") or "").strip(),
+        "given_name": str(payload.get("given_name") or "").strip(),
+    }
+
+
+def suggest_username_from_google(*, email: str, name: str | None = None) -> str:
+    base_source = (name or "").strip() or email.split("@", 1)[0]
+    cleaned = "".join(ch.lower() if ch.isalnum() else "_" for ch in base_source)
+    while "__" in cleaned:
+        cleaned = cleaned.replace("__", "_")
+    cleaned = cleaned.strip("_")
+    return cleaned or "library_admin"
+
+
+def evaluate_signup_review_reason(
+    db: Session,
+    *,
+    signup_request: models.SignupRequest,
+    scopes: list[tuple[str, str]] | None = None,
+) -> str | None:
+    if crud.get_admin_by_username(db, signup_request.admin_username):
+        return "The requested username now conflicts with an existing account."
+    if crud.get_admin_by_email(db, signup_request.admin_email):
+        return "The requested email now conflicts with an existing account."
+
+    conflicting_request = (
+        db.query(models.SignupRequest)
+        .filter(models.SignupRequest.id != signup_request.id)
+        .filter(models.SignupRequest.status.in_([PENDING_EMAIL_VERIFICATION, PENDING_APPROVAL]))
+        .filter(
+            (models.SignupRequest.normalized_email == signup_request.normalized_email)
+            | (models.SignupRequest.normalized_username == signup_request.normalized_username)
+        )
+        .first()
+    )
+    if conflicting_request:
+        return "Another open signup request already exists for this username or email."
+
+    if scopes:
+        locked, requires_captcha, _ = get_scope_state(db, scopes)
+        if locked:
+            return "Recent abuse protection locked this signup for manual review."
+        if requires_captcha:
+            return "Recent abuse signals require manual review before activation."
+
+    risky_event = (
+        db.query(models.AuthSecurityEvent)
+        .filter(models.AuthSecurityEvent.signup_request_id == signup_request.id)
+        .filter(models.AuthSecurityEvent.outcome.in_(["failure", "captcha_required", "temporarily_locked"]))
+        .order_by(models.AuthSecurityEvent.created_at.desc())
+        .first()
+    )
+    if risky_event:
+        if risky_event.outcome == "temporarily_locked":
+            return "This signup was temporarily locked by abuse protection."
+        if risky_event.outcome == "captcha_required":
+            return "This signup triggered CAPTCHA escalation and needs review."
+        return "Recent failed verification or signup attempts require manual review."
+
+    return None
+
+
 def expire_signup_request_if_needed(db: Session, signup_request: models.SignupRequest) -> models.SignupRequest:
     if (
         signup_request.status == PENDING_EMAIL_VERIFICATION
@@ -493,6 +637,9 @@ def create_signup_request(
     admin_username: str,
     admin_email: str,
     password_hash: str,
+    signup_method: str = "password",
+    provider: str | None = None,
+    provider_subject: str | None = None,
 ) -> models.SignupRequest:
     signup_request = models.SignupRequest(
         public_id=secrets.token_urlsafe(12),
@@ -503,6 +650,9 @@ def create_signup_request(
         admin_username=admin_username,
         admin_email=admin_email,
         password_hash=password_hash,
+        signup_method=signup_method,
+        provider=provider,
+        provider_subject=provider_subject,
         normalized_username=normalize_username(admin_username),
         normalized_email=normalize_email(admin_email),
         normalized_phone=normalize_phone(contact_phone),

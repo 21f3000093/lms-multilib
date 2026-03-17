@@ -9,6 +9,7 @@ click==8.2.1
 fastapi==0.115.12
 fastapi-jwt-auth==0.5.0
 greenlet==3.2.2
+google-auth>=2.29,<3
 gunicorn==23.0.0
 h11==0.16.0
 idna==3.10

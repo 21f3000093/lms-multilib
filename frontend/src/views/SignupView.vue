@@ -6,16 +6,10 @@
       <article class="intro-card">
         <p class="kicker">Smart Library App</p>
         <h1>
-          {{ isResubmitMode ? 'Update your request and' : 'Launch your library workspace with an' }}
-          <span class="gradient-text">{{ isResubmitMode ? 'resubmit for approval' : 'approval-ready signup' }}</span>
+          {{ heroLead }}
+          <span class="gradient-text">{{ heroAccent }}</span>
         </h1>
-        <p>
-          {{
-            isResubmitMode
-              ? 'Make the requested changes, verify your email again, and your signup will return to the review queue.'
-              : 'Create a signup request for your library. After email verification, it moves to the superadmin approval queue before activation.'
-          }}
-        </p>
+        <p>{{ heroDescription }}</p>
 
         <div class="intro-points">
           <div class="point-chip">
@@ -24,20 +18,45 @@
           </div>
           <div class="point-chip">
             <Sparkles class="point-icon" aria-hidden="true" />
-            Superadmin approval queue
+            Risk-based instant activation
           </div>
           <div class="point-chip">
             <CircleDollarSign class="point-icon" aria-hidden="true" />
-            Trial starts after approval
+            Trial starts on activation
+          </div>
+          <div class="point-chip">
+            <Mail class="point-icon" aria-hidden="true" />
+            Google signup available
           </div>
         </div>
       </article>
 
       <article class="form-card">
         <header class="form-head">
-          <h2>{{ isResubmitMode ? 'Resubmit signup request' : 'Create your library request' }}</h2>
-          <p>{{ isResubmitMode ? 'Review the rejected request and send the updated version.' : 'Submit your library details and owner account for verification and approval.' }}</p>
+          <h2>{{ formHeading }}</h2>
+          <p>{{ formSubheading }}</p>
         </header>
+
+        <div v-if="!isResubmitMode && !isGoogleOnboarding" class="google-entry">
+          <GoogleAuthButton
+            text="continue_with"
+            hint="Use Google to skip password creation and email verification."
+            @credential="handleGoogleCredential"
+            @error="handleGoogleError"
+          />
+          <div class="divider" aria-hidden="true">
+            <span></span>
+            <p>or continue with email</p>
+            <span></span>
+          </div>
+        </div>
+
+        <p v-if="isGoogleOnboarding" class="info-banner">
+          <ShieldCheck class="info-icon" aria-hidden="true" />
+          <span>
+            <strong>Google account verified.</strong> Add your library details to finish creating the workspace.
+          </span>
+        </p>
 
         <p v-if="resubmitReason" class="info-banner">
           <AlertTriangle class="info-icon" aria-hidden="true" />
@@ -105,14 +124,24 @@
 
               <div>
                 <label class="input-label" for="admin-email">Email</label>
-                <div class="input-wrap" :class="{ error: error && !form.admin_email }">
+                <div class="input-wrap" :class="{ error: error && !form.admin_email, readonly: isGoogleSignupLike }">
                   <Mail class="input-icon" aria-hidden="true" />
-                  <input id="admin-email" v-model="form.admin_email" type="email" autocomplete="email" placeholder="you@example.com" required @blur="normalizeEmail" />
+                  <input
+                    id="admin-email"
+                    v-model="form.admin_email"
+                    type="email"
+                    autocomplete="email"
+                    placeholder="you@example.com"
+                    :readonly="isGoogleSignupLike"
+                    :disabled="isGoogleSignupLike"
+                    required
+                    @blur="normalizeEmail"
+                  />
                 </div>
               </div>
             </div>
 
-            <div class="field-grid two-col">
+            <div v-if="showPasswordFields" class="field-grid two-col">
               <div>
                 <label class="input-label" for="password">Password</label>
                 <div class="input-wrap" :class="{ error: error && !form.password }">
@@ -212,11 +241,14 @@ import { useRouter, useRoute } from 'vue-router'
 import { useToast } from 'vue-toast-notification'
 import 'vue-toast-notification/dist/theme-sugar.css'
 import API from '../api'
+import GoogleAuthButton from '../components/GoogleAuthButton.vue'
 import TurnstileWidget from '../components/TurnstileWidget.vue'
+import { homeRouteForRole, storeAdminSession } from '../utils/authSession'
 
 const router = useRouter()
 const route = useRoute()
 const toast = useToast()
+const GOOGLE_ONBOARDING_KEY = 'google_signup_onboarding'
 
 const form = reactive({
   library_name: '',
@@ -234,17 +266,66 @@ const error = ref('')
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 const resubmitReason = ref('')
+const signupMethod = ref('password')
 const requiresCaptcha = ref(false)
 const captchaToken = ref('')
 const captchaResetKey = ref(0)
 const turnstileConfig = ref({ enabled: false, site_key: null })
+const googleOnboarding = ref(null)
 
 const isResubmitMode = computed(() => Boolean(route.query.resubmit_token && route.query.public_id))
+const isGoogleOnboarding = computed(() => Boolean(googleOnboarding.value?.onboarding_token))
+const isGoogleSignupLike = computed(() => isGoogleOnboarding.value || signupMethod.value === 'google')
+const showPasswordFields = computed(() => signupMethod.value === 'password' && !isGoogleOnboarding.value)
+
+const heroLead = computed(() => {
+  if (isGoogleOnboarding.value) return 'Finish your'
+  if (isResubmitMode.value) return 'Update your request and'
+  return 'Launch your library workspace with'
+})
+
+const heroAccent = computed(() => {
+  if (isGoogleOnboarding.value) return 'Google signup'
+  if (isResubmitMode.value) return 'resubmit for activation'
+  return 'low-friction signup'
+})
+
+const heroDescription = computed(() => {
+  if (isGoogleOnboarding.value) {
+    return 'Your Google email is already verified. Add the remaining library details and we will activate safe signups instantly.'
+  }
+  if (isResubmitMode.value) {
+    return 'Make the requested changes and send the signup back through verification so we can activate it cleanly.'
+  }
+  return 'Choose email signup or continue with Google. Safe signups activate immediately after verification, and only risky ones go to manual review.'
+})
+
+const formHeading = computed(() => {
+  if (isGoogleOnboarding.value) return 'Complete your Google signup'
+  if (isResubmitMode.value) return 'Resubmit signup request'
+  return 'Create your library workspace'
+})
+
+const formSubheading = computed(() => {
+  if (isGoogleOnboarding.value) return 'We already verified your Google account. Only the workspace details are left.'
+  if (isResubmitMode.value) return 'Review the rejected request and send the updated version.'
+  return 'Submit your library details and owner account to start the verification and activation flow.'
+})
 
 const showError = (message) => {
   toast.error(message, {
     style: {
       backgroundColor: '#dc2626',
+      color: '#fff',
+      borderRadius: '12px',
+    },
+  })
+}
+
+const showSuccess = (message) => {
+  toast.success(message, {
+    style: {
+      backgroundColor: '#0ea5e9',
       color: '#fff',
       borderRadius: '12px',
     },
@@ -264,6 +345,10 @@ const normalizeUsername = () => {
   form.admin_username = form.admin_username.trim().replace(/\s+/g, ' ')
 }
 const normalizeEmail = () => {
+  if (isGoogleSignupLike.value) {
+    form.admin_email = (form.admin_email || '').trim().toLowerCase()
+    return
+  }
   form.admin_email = form.admin_email.trim().toLowerCase()
 }
 const normalizePassword = () => {
@@ -278,8 +363,10 @@ const normalizeAll = () => {
   normalizeAddress()
   normalizeUsername()
   normalizeEmail()
-  normalizePassword()
-  normalizeConfirmPassword()
+  if (showPasswordFields.value) {
+    normalizePassword()
+    normalizeConfirmPassword()
+  }
 }
 
 const loadTurnstileConfig = async () => {
@@ -301,6 +388,7 @@ const loadResubmitContext = async () => {
       error.value = 'This resubmit link is no longer available.'
       return
     }
+    signupMethod.value = res.data.signup_method || 'password'
     form.library_name = res.data.library_name || ''
     form.max_seats = res.data.max_seats || 25
     form.contact_phone = res.data.contact_phone || ''
@@ -310,6 +398,42 @@ const loadResubmitContext = async () => {
     resubmitReason.value = res.data.rejection_reason || ''
   } catch (err) {
     error.value = err.response?.data?.detail || 'Unable to load the rejected signup request.'
+  }
+}
+
+const persistGoogleOnboarding = (payload) => {
+  sessionStorage.setItem(GOOGLE_ONBOARDING_KEY, JSON.stringify(payload))
+  googleOnboarding.value = payload
+  signupMethod.value = 'google'
+  form.admin_email = payload.prefill_email || ''
+  if (!form.admin_username) {
+    form.admin_username = payload.suggested_username || ''
+  }
+}
+
+const loadGoogleOnboarding = () => {
+  if (!route.query.google) {
+    return
+  }
+  const raw = sessionStorage.getItem(GOOGLE_ONBOARDING_KEY)
+  if (!raw) {
+    return
+  }
+  try {
+    const payload = JSON.parse(raw)
+    if (payload?.onboarding_token) {
+      persistGoogleOnboarding(payload)
+    }
+  } catch (err) {
+    sessionStorage.removeItem(GOOGLE_ONBOARDING_KEY)
+  }
+}
+
+const clearGoogleOnboarding = () => {
+  googleOnboarding.value = null
+  sessionStorage.removeItem(GOOGLE_ONBOARDING_KEY)
+  if (!isResubmitMode.value) {
+    signupMethod.value = 'password'
   }
 }
 
@@ -326,11 +450,59 @@ const applyAuthError = (err, fallbackMessage) => {
   error.value = typeof detail === 'string' ? detail : fallbackMessage
 }
 
+const completeAuthenticatedSignup = async (admin, message) => {
+  storeAdminSession(admin)
+  clearGoogleOnboarding()
+  showSuccess(message)
+  router.push(homeRouteForRole(admin.role))
+}
+
+const handleGoogleCredential = async (credential) => {
+  error.value = ''
+  loading.value = true
+  try {
+    const res = await API.post('/auth/google/exchange', {
+      credential,
+      intent: 'signup',
+      captcha_token: requiresCaptcha.value ? captchaToken.value : null,
+    })
+
+    if (res.data?.action === 'logged_in' && res.data?.admin) {
+      await completeAuthenticatedSignup(res.data.admin, 'Signed in with Google')
+      return
+    }
+
+    if (['signup_required', 'complete_signup'].includes(res.data?.action)) {
+      persistGoogleOnboarding(res.data)
+      showSuccess('Google verified. Complete the remaining workspace details.')
+      return
+    }
+
+    error.value = res.data?.message || 'Google signup could not be started.'
+    showError(error.value)
+  } catch (err) {
+    applyAuthError(err, 'Google signup could not be started.')
+    showError(error.value || 'Google signup could not be started.')
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleGoogleError = () => {
+  error.value = 'Google signup is temporarily unavailable. Please use email signup.'
+  showError(error.value)
+}
+
 const submitForm = async () => {
   error.value = ''
   normalizeAll()
 
-  if (!form.library_name || !form.contact_phone || !form.admin_username || !form.admin_email || !form.password || !form.confirm_password) {
+  if (!form.library_name || !form.contact_phone || !form.admin_username || !form.admin_email) {
+    error.value = 'Please complete all required fields'
+    showError('Please fill in all required fields')
+    return
+  }
+  if (showPasswordFields.value && (!form.password || !form.confirm_password)) {
     error.value = 'Please complete all required fields'
     showError('Please fill in all required fields')
     return
@@ -340,7 +512,7 @@ const submitForm = async () => {
     showError('Please enter a valid seat count')
     return
   }
-  if (form.password !== form.confirm_password) {
+  if (showPasswordFields.value && form.password !== form.confirm_password) {
     error.value = 'Passwords do not match'
     showError('Passwords do not match')
     return
@@ -348,28 +520,51 @@ const submitForm = async () => {
 
   loading.value = true
   try {
-    const payload = {
-      library_name: form.library_name,
-      max_seats: Number(form.max_seats),
-      contact_phone: form.contact_phone,
-      address: form.address || null,
-      admin_username: form.admin_username,
-      admin_email: form.admin_email,
-      password: form.password,
-      confirm_password: form.confirm_password,
-      captcha_token: requiresCaptcha.value ? captchaToken.value : null,
-    }
+    let res
+    if (isGoogleOnboarding.value) {
+      res = await API.post('/auth/google/complete-signup', {
+        onboarding_token: googleOnboarding.value.onboarding_token,
+        library_name: form.library_name,
+        max_seats: Number(form.max_seats),
+        contact_phone: form.contact_phone,
+        address: form.address || null,
+        admin_username: form.admin_username,
+        captcha_token: requiresCaptcha.value ? captchaToken.value : null,
+      })
+    } else {
+      const payload = {
+        library_name: form.library_name,
+        max_seats: Number(form.max_seats),
+        contact_phone: form.contact_phone,
+        address: form.address || null,
+        admin_username: form.admin_username,
+        admin_email: form.admin_email,
+        password: form.password,
+        confirm_password: form.confirm_password,
+        captcha_token: requiresCaptcha.value ? captchaToken.value : null,
+      }
 
-    const res = isResubmitMode.value
-      ? await API.post('/auth/signup/resubmit', { ...payload, token: route.query.resubmit_token })
-      : await API.post('/auth/signup', payload)
+      res = isResubmitMode.value
+        ? await API.post('/auth/signup/resubmit', { ...payload, token: route.query.resubmit_token })
+        : await API.post('/auth/signup', payload)
+    }
 
     requiresCaptcha.value = false
     captchaToken.value = ''
     captchaResetKey.value += 1
+    if (res.data?.action === 'logged_in' && res.data?.admin) {
+      await completeAuthenticatedSignup(res.data.admin, res.data.message || 'Workspace created successfully')
+      return
+    }
+    clearGoogleOnboarding()
     await router.push(`/signup/status/${res.data.public_id}`)
   } catch (err) {
-    applyAuthError(err, isResubmitMode.value ? 'Unable to resubmit signup request.' : 'Unable to submit signup request.')
+    applyAuthError(
+      err,
+      isGoogleOnboarding.value
+        ? 'Unable to complete Google signup.'
+        : (isResubmitMode.value ? 'Unable to resubmit signup request.' : 'Unable to submit signup request.'),
+    )
   } finally {
     loading.value = false
   }
@@ -384,6 +579,7 @@ const onCaptchaExpired = () => {
 }
 
 onMounted(async () => {
+  loadGoogleOnboarding()
   await Promise.all([loadTurnstileConfig(), loadResubmitContext()])
 })
 </script>
@@ -472,6 +668,32 @@ onMounted(async () => {
   color: var(--text-secondary);
 }
 
+.google-entry {
+  display: grid;
+  gap: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.divider {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.8rem;
+  color: #64748b;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.divider span {
+  height: 1px;
+  background: rgba(148, 163, 184, 0.2);
+}
+
+.divider p {
+  margin: 0;
+}
+
 .intro-points,
 .signup-form,
 .form-section {
@@ -545,6 +767,11 @@ onMounted(async () => {
 
 .input-wrap.error {
   border-color: rgba(248, 113, 113, 0.75);
+}
+
+.input-wrap.readonly {
+  opacity: 0.9;
+  border-style: dashed;
 }
 
 .input-wrap input {

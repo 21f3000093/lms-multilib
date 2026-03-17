@@ -72,6 +72,21 @@
             <router-link to="/forgot-password" class="helper-link">Forgot password?</router-link>
           </div>
 
+          <div class="social-block">
+            <GoogleAuthButton
+              text="continue_with"
+              hint="Use the same Google email that is linked to your Smart Library account."
+              @credential="handleGoogleCredential"
+              @error="handleGoogleError"
+            />
+          </div>
+
+          <div class="divider" aria-hidden="true">
+            <span></span>
+            <p>or continue with password</p>
+            <span></span>
+          </div>
+
           <TurnstileWidget
             v-if="requiresCaptcha && turnstileConfig.enabled"
             :site-key="turnstileConfig.site_key"
@@ -127,6 +142,8 @@ import { useToast } from 'vue-toast-notification'
 import 'vue-toast-notification/dist/theme-sugar.css'
 import API from '../api'
 import { setupPushForCurrentAdmin } from '../utils/pushNotifications'
+import { homeRouteForRole, storeAdminSession } from '../utils/authSession'
+import GoogleAuthButton from '../components/GoogleAuthButton.vue'
 import TurnstileWidget from '../components/TurnstileWidget.vue'
 
 const router = useRouter()
@@ -208,6 +225,60 @@ const onCaptchaExpired = () => {
   captchaToken.value = ''
 }
 
+const handleAuthSuccess = async (admin, message) => {
+  storeAdminSession(admin)
+  showSuccess(message)
+
+  if (admin.role === 'admin') {
+    await setupPushForCurrentAdmin()
+  }
+
+  router.push(homeRouteForRole(admin.role))
+}
+
+const persistGoogleOnboarding = (payload) => {
+  sessionStorage.setItem('google_signup_onboarding', JSON.stringify(payload))
+}
+
+const handleGoogleCredential = async (credential) => {
+  error.value = ''
+  loading.value = true
+  try {
+    const res = await API.post('/auth/google/exchange', {
+      credential,
+      intent: 'login',
+      captcha_token: requiresCaptcha.value ? captchaToken.value : null,
+    })
+
+    if (res.data?.action === 'logged_in' && res.data?.admin) {
+      requiresCaptcha.value = false
+      captchaToken.value = ''
+      captchaResetKey.value += 1
+      await handleAuthSuccess(res.data.admin, 'Signed in with Google')
+      return
+    }
+
+    if (['signup_required', 'complete_signup'].includes(res.data?.action)) {
+      persistGoogleOnboarding(res.data)
+      router.push('/signup?google=1')
+      return
+    }
+
+    error.value = res.data?.message || 'Google sign-in could not be completed.'
+    showError(error.value)
+  } catch (err) {
+    applyAuthError(err, 'Google sign-in could not be completed.')
+    showError(error.value || 'Google sign-in could not be completed.')
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleGoogleError = () => {
+  error.value = 'Google sign-in is temporarily unavailable. Please use password login.'
+  showError(error.value)
+}
+
 const login = async () => {
   error.value = ''
   onIdentifierBlur()
@@ -240,22 +311,7 @@ const login = async () => {
     requiresCaptcha.value = false
     captchaToken.value = ''
     captchaResetKey.value += 1
-    localStorage.setItem('role', res.data.role)
-    localStorage.setItem('username', res.data.username)
-    localStorage.setItem('library_id', res.data.library_id ?? '')
-    localStorage.setItem('library_name', res.data.library?.name || '')
-
-    showSuccess('Login successful')
-
-    if (res.data.role === 'admin') {
-      await setupPushForCurrentAdmin()
-    }
-
-    if (res.data.role === 'superadmin') {
-      router.push('/superadmin')
-    } else {
-      router.push('/dashboard')
-    }
+    await handleAuthSuccess(res.data, 'Login successful')
   } catch (err) {
     if (err.response) {
       applyAuthError(err, 'Invalid username, email, or password')
@@ -400,6 +456,30 @@ onMounted(() => {
 .helper-row {
   display: flex;
   justify-content: flex-end;
+}
+
+.social-block {
+  margin-top: 0.15rem;
+}
+
+.divider {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.8rem;
+  color: #64748b;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.divider span {
+  height: 1px;
+  background: rgba(148, 163, 184, 0.2);
+}
+
+.divider p {
+  margin: 0;
 }
 
 .helper-link {

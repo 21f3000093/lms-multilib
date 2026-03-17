@@ -75,6 +75,11 @@ class Admin(Base):
         back_populates="admin",
         cascade="all, delete-orphan",
     )
+    auth_identities = relationship(
+        "AdminAuthIdentity",
+        back_populates="admin",
+        cascade="all, delete-orphan",
+    )
 
 
 class SignupRequest(Base):
@@ -89,6 +94,9 @@ class SignupRequest(Base):
     admin_username = Column(String, nullable=False)
     admin_email = Column(String, nullable=False)
     password_hash = Column(String, nullable=False)
+    signup_method = Column(String, nullable=False, default="password", index=True)
+    provider = Column(String, nullable=True, index=True)
+    provider_subject = Column(String, nullable=True, index=True)
     normalized_username = Column(String, nullable=False, index=True)
     normalized_email = Column(String, nullable=False, index=True)
     normalized_phone = Column(String, nullable=False, index=True)
@@ -100,6 +108,7 @@ class SignupRequest(Base):
     rejected_at = Column(DateTime, nullable=True)
     expires_at = Column(DateTime, nullable=True, index=True)
     rejection_reason = Column(Text, nullable=True)
+    review_reason = Column(Text, nullable=True)
     created_library_id = Column(Integer, ForeignKey("libraries.id", ondelete="SET NULL"), nullable=True, index=True)
     created_admin_id = Column(Integer, ForeignKey("admins.id", ondelete="SET NULL"), nullable=True, index=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -120,6 +129,25 @@ class SignupRequest(Base):
 
     __table_args__ = (
         Index("idx_signup_requests_status_submitted", "status", "submitted_at"),
+    )
+
+
+class AdminAuthIdentity(Base):
+    __tablename__ = "admin_auth_identities"
+
+    id = Column(Integer, primary_key=True, index=True)
+    admin_id = Column(Integer, ForeignKey("admins.id", ondelete="CASCADE"), nullable=False, index=True)
+    provider = Column(String, nullable=False, index=True)
+    provider_subject = Column(String, nullable=False, index=True)
+    provider_email = Column(String, nullable=True, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    admin = relationship("Admin", back_populates="auth_identities")
+
+    __table_args__ = (
+        UniqueConstraint("provider", "provider_subject", name="uq_admin_auth_identities_provider_subject"),
+        Index("idx_admin_auth_identities_admin_provider", "admin_id", "provider"),
     )
 
 

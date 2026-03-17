@@ -231,6 +231,7 @@ def list_signup_requests(
             schemas.SignupQueueRowOut(
                 id=item.id,
                 public_id=item.public_id,
+                signup_method=item.signup_method or "password",
                 library_name=item.library_name,
                 max_seats=item.max_seats,
                 contact_phone=item.contact_phone,
@@ -244,6 +245,7 @@ def list_signup_requests(
                 approved_at=item.approved_at,
                 rejected_at=item.rejected_at,
                 rejection_reason=item.rejection_reason,
+                review_reason=item.review_reason,
                 expires_at=item.expires_at,
                 created_library_id=item.created_library_id,
                 created_admin_id=item.created_admin_id,
@@ -268,41 +270,13 @@ def approve_signup_request(
         raise HTTPException(status_code=400, detail="Only pending approval requests can be approved")
     if signup_request.created_admin_id or signup_request.created_library_id:
         raise HTTPException(status_code=400, detail="Signup request has already been provisioned")
-    if crud.get_admin_by_username(db, signup_request.admin_username) or crud.get_admin_by_email(db, signup_request.admin_email):
-        raise HTTPException(status_code=409, detail="Username or email already exists on an active admin")
 
     try:
-        library = crud.create_library_with_seats(
+        library, new_admin = crud.activate_signup_request(
             db,
-            name=signup_request.library_name,
-            max_seats=signup_request.max_seats,
-            contact_phone=signup_request.contact_phone,
-            contact_email=signup_request.admin_email,
-            address=signup_request.address,
-        )
-        new_admin = crud.create_admin_account(
-            db,
-            username=signup_request.admin_username,
-            password=signup_request.password_hash,
-            password_is_hashed=True,
-            role="admin",
-            library_id=library.id,
-            email=signup_request.admin_email,
-            status="active",
-            email_verified_at=signup_request.verified_at or utcnow(),
-        )
-        crud.create_trial_subscription(
-            db,
-            library_id=library.id,
-            library_created_date=library.created_at,
+            signup_request=signup_request,
             trial_days=get_subscription_trial_days(),
         )
-        signup_request.status = "approved"  # type: ignore
-        signup_request.approved_at = utcnow()  # type: ignore
-        signup_request.created_library_id = library.id  # type: ignore
-        signup_request.created_admin_id = new_admin.id  # type: ignore
-        signup_request.rejection_reason = None  # type: ignore
-        signup_request.expires_at = None  # type: ignore
         log_security_event(
             db,
             event_type="signup_approval",
@@ -313,7 +287,7 @@ def approve_signup_request(
             metadata={"approved_by_admin_id": admin.id, "library_id": library.id},
         )
         db.commit()
-    except IntegrityError:
+    except (IntegrityError, ValueError):
         db.rollback()
         raise HTTPException(status_code=409, detail="Provisioning failed because username or email already exists")
 

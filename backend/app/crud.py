@@ -10,6 +10,7 @@ from io import StringIO
 from fastapi.responses import StreamingResponse
 import time
 import calendar
+import secrets
 
 
 
@@ -1058,6 +1059,125 @@ def create_trial_subscription(
     db.add(subscription)
     db.flush()
     return subscription
+
+
+def generate_unusable_password_hash() -> str:
+    return pwd_context.hash(f"google-auth-only::{secrets.token_urlsafe(32)}")
+
+
+def get_admin_auth_identity(
+    db: Session,
+    *,
+    provider: str,
+    provider_subject: str,
+):
+    return (
+        db.query(models.AdminAuthIdentity)
+        .filter(
+            models.AdminAuthIdentity.provider == provider.strip().lower(),
+            models.AdminAuthIdentity.provider_subject == provider_subject.strip(),
+        )
+        .first()
+    )
+
+
+def link_admin_auth_identity(
+    db: Session,
+    *,
+    admin_id: int,
+    provider: str,
+    provider_subject: str,
+    provider_email: str | None = None,
+):
+    normalized_provider = provider.strip().lower()
+    cleaned_subject = provider_subject.strip()
+    cleaned_email = (provider_email or "").strip().lower() or None
+
+    existing_identity = get_admin_auth_identity(
+        db,
+        provider=normalized_provider,
+        provider_subject=cleaned_subject,
+    )
+    if existing_identity:
+        if existing_identity.admin_id != admin_id:
+            raise ValueError("Auth identity is already linked to another admin")
+        if cleaned_email and existing_identity.provider_email != cleaned_email:
+            existing_identity.provider_email = cleaned_email  # type: ignore
+        db.flush()
+        return existing_identity
+
+    identity = models.AdminAuthIdentity(
+        admin_id=admin_id,
+        provider=normalized_provider,
+        provider_subject=cleaned_subject,
+        provider_email=cleaned_email,
+    )
+    db.add(identity)
+    db.flush()
+    return identity
+
+
+def activate_signup_request(
+    db: Session,
+    *,
+    signup_request: models.SignupRequest,
+    trial_days: int,
+    approved_at: datetime | None = None,
+):
+    if signup_request.created_admin_id or signup_request.created_library_id:
+        raise ValueError("Signup request has already been provisioned")
+
+    if get_admin_by_username(db, signup_request.admin_username) or get_admin_by_email(db, signup_request.admin_email):
+        raise ValueError("Username or email already exists on an active admin")
+
+    library = create_library_with_seats(
+        db,
+        name=signup_request.library_name,
+        max_seats=signup_request.max_seats,
+        contact_phone=signup_request.contact_phone,
+        contact_email=signup_request.admin_email,
+        address=signup_request.address,
+    )
+    verified_at = signup_request.verified_at or datetime.utcnow()
+    new_admin = create_admin_account(
+        db,
+        username=signup_request.admin_username,
+        password=signup_request.password_hash,
+        password_is_hashed=True,
+        role="admin",
+        library_id=library.id,
+        email=signup_request.admin_email,
+        status="active",
+        email_verified_at=verified_at,
+    )
+    if signup_request.provider and signup_request.provider_subject:
+        link_admin_auth_identity(
+            db,
+            admin_id=new_admin.id,
+            provider=signup_request.provider,
+            provider_subject=signup_request.provider_subject,
+            provider_email=signup_request.admin_email,
+        )
+
+    create_trial_subscription(
+        db,
+        library_id=library.id,
+        library_created_date=library.created_at,
+        trial_days=trial_days,
+    )
+
+    signup_request.status = "approved"  # type: ignore
+    signup_request.approved_at = approved_at or datetime.utcnow()  # type: ignore
+    signup_request.created_library_id = library.id  # type: ignore
+    signup_request.created_admin_id = new_admin.id  # type: ignore
+    signup_request.rejection_reason = None  # type: ignore
+    signup_request.review_reason = None  # type: ignore
+    signup_request.expires_at = None  # type: ignore
+    if not signup_request.verified_at:
+        signup_request.verified_at = verified_at  # type: ignore
+
+    db.flush()
+    return library, new_admin
 
 
 def provision_library_owner_signup(

@@ -7,10 +7,10 @@
         <p class="kicker">Superadmin Onboarding</p>
         <h1>
           Signup
-          <span class="gradient-text">Queue</span>
+          <span class="gradient-text">Review</span>
         </h1>
         <p class="hero-subtitle">
-          Review verified signup requests, assess risk signals, and approve or reject onboarding before any library is provisioned.
+          Review only the signups that were flagged by abuse checks or data conflicts before any library is provisioned.
         </p>
       </div>
       <button class="btn btn-ghost" type="button" :disabled="loading" @click="loadRequests">
@@ -28,7 +28,7 @@
         <label class="field">
           <span>Status</span>
           <select v-model="filters.status">
-            <option value="pending_approval">Pending Approval</option>
+            <option value="pending_approval">Review Required</option>
             <option value="pending_email_verification">Pending Email Verification</option>
             <option value="approved">Approved</option>
             <option value="rejected">Rejected</option>
@@ -94,6 +94,7 @@
               <td>
                 <div class="cell-title">{{ row.admin_username }}</div>
                 <div class="cell-sub">{{ row.admin_email }}</div>
+                <div class="cell-sub">Method: {{ row.signup_method === 'google' ? 'Google' : 'Email + Password' }}</div>
                 <a class="inline-link" :href="statusHref(row)" target="_blank" rel="noopener">
                   Public status
                   <ExternalLink class="link-icon" aria-hidden="true" />
@@ -133,7 +134,7 @@
                     {{ row.recent_risk_events > 0 ? `${row.recent_risk_events} recent flag${row.recent_risk_events === 1 ? '' : 's'}` : 'No recent flags' }}
                   </span>
                   <div class="cell-sub">
-                    {{ riskCopy(row.recent_risk_events) }}
+                    {{ row.review_reason || riskCopy(row.recent_risk_events) }}
                   </div>
                 </div>
               </td>
@@ -235,7 +236,7 @@ const statusHref = (row) => `/signup/status/${row.public_id}`
 const humanStatus = (status) => {
   const map = {
     pending_email_verification: 'Email Verification Pending',
-    pending_approval: 'Pending Approval',
+    pending_approval: 'Review Required',
     approved: 'Approved',
     rejected: 'Rejected',
     expired: 'Expired',

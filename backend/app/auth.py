@@ -10,6 +10,7 @@ from app import crud, models, schemas
 from app.auth_security import (
     APPROVED,
     EXPIRED,
+    GOOGLE_ONBOARDING,
     PENDING_APPROVAL,
     PENDING_EMAIL_VERIFICATION,
     REJECTED,
@@ -21,13 +22,20 @@ from app.auth_security import (
     create_signup_request,
     enforce_auth_protection,
     expire_signup_request_if_needed,
+    evaluate_signup_review_reason,
     get_client_ip,
+    get_google_client_id,
+    get_google_onboarding_expiry_minutes,
     get_open_signup_request_by_email_or_username,
     get_reset_link_expiry_minutes,
     get_reset_otp_expiry_minutes,
     get_reset_otp_max_attempts,
+    get_signup_activation_mode,
     get_signup_request_by_public_id,
+    get_token_by_value,
+    get_token_payload,
     get_verify_email_expiry_minutes,
+    is_google_auth_enabled,
     get_turnstile_site_key,
     hash_raw_token,
     invalidate_tokens,
@@ -43,12 +51,15 @@ from app.auth_security import (
     send_reset_link_email,
     send_reset_otp_email,
     send_signup_verification_email,
+    suggest_username_from_google,
     utcnow,
+    verify_google_credential,
 )
 from app.dependencies import (
     build_admin_jwt_subject,
     get_current_admin,
     get_db,
+    get_subscription_trial_days,
 )
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -67,10 +78,50 @@ def _load_admin_with_library(db: Session, admin_id: int):
     )
 
 
+def _next_route_for_admin(admin: models.Admin | None) -> str:
+    if not admin:
+        return "/dashboard"
+    return "/superadmin" if admin.role == "superadmin" else "/dashboard"
+
+
+def _set_admin_login_cookie(Authorize: AuthJWT, admin_id: int) -> None:
+    access_token = Authorize.create_access_token(subject=build_admin_jwt_subject(admin_id))  # type: ignore
+    Authorize.set_access_cookies(access_token)
+
+
+def _auth_action_with_admin(
+    *,
+    db: Session,
+    admin_id: int,
+    message: str,
+    public_id: str | None = None,
+    status: str | None = None,
+    action: str = "logged_in",
+) -> schemas.AuthActionResponse:
+    loaded_admin = _load_admin_with_library(db, admin_id)
+    return schemas.AuthActionResponse(
+        ok=True,
+        message=message,
+        public_id=public_id,
+        status=status,
+        action=action,
+        next_route=_next_route_for_admin(loaded_admin),
+        admin=loaded_admin,
+    )
+
+
+def _google_scopes(request: Request, email: str) -> list[tuple[str, str]]:
+    return [
+        ("ip", get_client_ip(request)),
+        ("email", normalize_email(email)),
+    ]
+
+
 def _signup_status_payload(signup_request: models.SignupRequest) -> schemas.SignupRequestStatusOut:
     return schemas.SignupRequestStatusOut(
         public_id=signup_request.public_id,
         status=signup_request.status,
+        signup_method=signup_request.signup_method or "password",
         library_name=signup_request.library_name,
         contact_phone=signup_request.contact_phone,
         address=signup_request.address,
@@ -83,6 +134,7 @@ def _signup_status_payload(signup_request: models.SignupRequest) -> schemas.Sign
         approved_at=signup_request.approved_at,
         rejected_at=signup_request.rejected_at,
         rejection_reason=signup_request.rejection_reason,
+        review_reason=signup_request.review_reason,
         expires_at=signup_request.expires_at,
     )
 
@@ -116,6 +168,85 @@ def _reset_scopes(request: Request, email: str) -> list[tuple[str, str]]:
     ]
 
 
+def _activate_or_queue_signup(
+    *,
+    db: Session,
+    signup_request: models.SignupRequest,
+    request: Request,
+    event_type: str,
+    Authorize: AuthJWT | None = None,
+):
+    activation_mode = get_signup_activation_mode()
+    scopes = _signup_scopes(request, signup_request.admin_email, signup_request.admin_username)
+    review_reason: str | None = None
+
+    if activation_mode == "manual":
+        review_reason = "Manual review is enabled for new signups."
+    elif activation_mode == "risk_based":
+        review_reason = evaluate_signup_review_reason(
+            db,
+            signup_request=signup_request,
+            scopes=scopes,
+        )
+
+    if review_reason:
+        signup_request.status = PENDING_APPROVAL  # type: ignore
+        signup_request.review_reason = review_reason  # type: ignore
+        signup_request.expires_at = None  # type: ignore
+        log_security_event(
+            db,
+            event_type=event_type,
+            outcome="queued_for_review",
+            ip_address=get_client_ip(request),
+            identifier=signup_request.admin_username,
+            target_email=signup_request.admin_email,
+            signup_request_id=signup_request.id,
+            metadata={"review_reason": review_reason, "activation_mode": activation_mode},
+        )
+        db.commit()
+        return schemas.AuthActionResponse(
+            ok=True,
+            message="Email verified. Your signup has been flagged for manual review.",
+            public_id=signup_request.public_id,
+            status=signup_request.status,
+            action="pending_approval",
+            next_route=f"/signup/status/{signup_request.public_id}",
+        )
+
+    try:
+        _, new_admin = crud.activate_signup_request(
+            db,
+            signup_request=signup_request,
+            trial_days=get_subscription_trial_days(),
+            approved_at=utcnow(),
+        )
+    except ValueError as exc:
+        db.rollback()
+        raise HTTPException(status_code=409, detail=str(exc))
+
+    log_security_event(
+        db,
+        event_type=event_type,
+        outcome="auto_approved",
+        ip_address=get_client_ip(request),
+        identifier=signup_request.admin_username,
+        target_email=signup_request.admin_email,
+        signup_request_id=signup_request.id,
+        admin_id=new_admin.id,
+        metadata={"activation_mode": activation_mode, "library_id": new_admin.library_id},
+    )
+    db.commit()
+    if Authorize is not None:
+        _set_admin_login_cookie(Authorize, new_admin.id)
+    return _auth_action_with_admin(
+        db=db,
+        admin_id=new_admin.id,
+        message="Email verified and your workspace is ready.",
+        public_id=signup_request.public_id,
+        status=APPROVED,
+    )
+
+
 def _generic_reset_response(message: str) -> schemas.AuthActionResponse:
     return schemas.AuthActionResponse(ok=True, message=message)
 
@@ -125,6 +256,14 @@ def get_turnstile_config():
     return {
         "enabled": is_turnstile_enabled(),
         "site_key": get_turnstile_site_key(),
+    }
+
+
+@router.get("/google/config", response_model=schemas.GoogleConfigOut)
+def get_google_config():
+    return {
+        "enabled": is_google_auth_enabled(),
+        "client_id": get_google_client_id(),
     }
 
 
@@ -174,8 +313,7 @@ def login(
         raise HTTPException(status_code=403, detail="Your account is inactive")
 
     record_auth_success(db, scopes=scopes)
-    access_token = Authorize.create_access_token(subject=build_admin_jwt_subject(admin.id))  # type: ignore
-    Authorize.set_access_cookies(access_token)
+    _set_admin_login_cookie(Authorize, admin.id)
 
     loaded_admin = _load_admin_with_library(db, admin.id)
     if not loaded_admin:
@@ -289,13 +427,17 @@ def signup(
         message="Signup submitted. Please verify your email to continue.",
         public_id=signup_request.public_id,
         status=signup_request.status,
+        action="verify_email",
+        next_route=f"/signup/status/{signup_request.public_id}",
     )
 
 
 @router.post("/signup/verify-email", response_model=schemas.AuthActionResponse)
 def verify_signup_email(
     payload: schemas.SignupVerifyRequest,
+    request: Request,
     db: Session = Depends(get_db),
+    Authorize: AuthJWT = Depends(),
 ):
     token = consume_token_by_value(db, purpose=SIGNUP_VERIFY, raw_token=payload.token)
     if not token or token.signup_request_id is None:
@@ -316,18 +458,20 @@ def verify_signup_email(
             message="Email already verified.",
             public_id=signup_request.public_id,
             status=signup_request.status,
+            action="status",
+            next_route=f"/signup/status/{signup_request.public_id}",
         )
 
-    signup_request.status = PENDING_APPROVAL  # type: ignore
     signup_request.verified_at = utcnow()  # type: ignore
     signup_request.expires_at = None  # type: ignore
+    signup_request.review_reason = None  # type: ignore
     invalidate_tokens(db, purpose=SIGNUP_VERIFY, signup_request_id=signup_request.id)
-    db.commit()
-    return schemas.AuthActionResponse(
-        ok=True,
-        message="Email verified successfully. Your signup is now pending approval.",
-        public_id=signup_request.public_id,
-        status=signup_request.status,
+    return _activate_or_queue_signup(
+        db=db,
+        signup_request=signup_request,
+        request=request,
+        event_type="signup_verification",
+        Authorize=Authorize,
     )
 
 
@@ -386,6 +530,8 @@ def resend_signup_verification(
         message="A new verification email has been sent.",
         public_id=signup_request.public_id,
         status=signup_request.status,
+        action="verify_email",
+        next_route=f"/signup/status/{signup_request.public_id}",
     )
 
 
@@ -424,7 +570,8 @@ def resubmit_signup_request(
     address = normalize_username(payload.address or "") or None
     if not library_name or not admin_username or not admin_email or not contact_phone:
         raise HTTPException(status_code=400, detail="All required fields must be provided")
-    _validate_new_passwords(payload.password, payload.confirm_password)
+    if (signup_request.signup_method or "password") == "password":
+        _validate_new_passwords(payload.password or "", payload.confirm_password or "")
 
     scopes = _signup_scopes(request, admin_email, admin_username)
     enforce_auth_protection(
@@ -456,12 +603,14 @@ def resubmit_signup_request(
     signup_request.address = address  # type: ignore
     signup_request.admin_username = admin_username  # type: ignore
     signup_request.admin_email = admin_email  # type: ignore
-    signup_request.password_hash = crud.pwd_context.hash(payload.password)  # type: ignore
+    if (signup_request.signup_method or "password") == "password":
+        signup_request.password_hash = crud.pwd_context.hash(payload.password or "")  # type: ignore
     signup_request.normalized_username = admin_username  # type: ignore
     signup_request.normalized_email = admin_email  # type: ignore
     signup_request.normalized_phone = contact_phone  # type: ignore
     signup_request.status = PENDING_EMAIL_VERIFICATION  # type: ignore
     signup_request.rejection_reason = None  # type: ignore
+    signup_request.review_reason = None  # type: ignore
     signup_request.rejected_at = None  # type: ignore
     signup_request.verified_at = None  # type: ignore
     signup_request.verification_sent_at = utcnow()  # type: ignore
@@ -494,7 +643,241 @@ def resubmit_signup_request(
         message="Signup updated. Please verify your email again to continue.",
         public_id=signup_request.public_id,
         status=signup_request.status,
+        action="verify_email",
+        next_route=f"/signup/status/{signup_request.public_id}",
     )
+
+
+@router.post("/google/exchange", response_model=schemas.AuthActionResponse)
+def google_exchange(
+    payload: schemas.GoogleExchangeRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+    Authorize: AuthJWT = Depends(),
+):
+    google_profile = verify_google_credential(payload.credential)
+    email = google_profile["email"]
+    scopes = _google_scopes(request, email)
+    enforce_auth_protection(
+        db,
+        request=request,
+        scopes=scopes,
+        captcha_token=payload.captcha_token,
+        event_type="google_exchange",
+        target_email=email,
+    )
+
+    identity = crud.get_admin_auth_identity(
+        db,
+        provider="google",
+        provider_subject=google_profile["provider_subject"],
+    )
+    if identity:
+        linked_admin = _load_admin_with_library(db, identity.admin_id)
+        if not linked_admin or linked_admin.status != "active":  # type: ignore
+            raise HTTPException(status_code=403, detail="Your account is inactive")
+        if not linked_admin.email_verified_at:
+            linked_admin.email_verified_at = utcnow()  # type: ignore
+        _set_admin_login_cookie(Authorize, linked_admin.id)
+        log_security_event(
+            db,
+            event_type="google_exchange",
+            outcome="logged_in",
+            ip_address=get_client_ip(request),
+            target_email=email,
+            admin_id=linked_admin.id,
+            metadata={"provider": "google", "intent": payload.intent},
+        )
+        db.commit()
+        record_auth_success(db, scopes=scopes)
+        return _auth_action_with_admin(
+            db=db,
+            admin_id=linked_admin.id,
+            message="Signed in with Google successfully.",
+            status=APPROVED,
+        )
+
+    existing_admin = crud.get_admin_by_email(db, email)
+    if existing_admin:
+        if existing_admin.status != "active":  # type: ignore
+            raise HTTPException(status_code=403, detail="Your account is inactive")
+        try:
+            crud.link_admin_auth_identity(
+                db,
+                admin_id=existing_admin.id,
+                provider="google",
+                provider_subject=google_profile["provider_subject"],
+                provider_email=email,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc))
+        if not existing_admin.email_verified_at:
+            existing_admin.email_verified_at = utcnow()  # type: ignore
+        _set_admin_login_cookie(Authorize, existing_admin.id)
+        log_security_event(
+            db,
+            event_type="google_exchange",
+            outcome="auto_linked",
+            ip_address=get_client_ip(request),
+            target_email=email,
+            admin_id=existing_admin.id,
+            metadata={"provider": "google", "intent": payload.intent},
+        )
+        db.commit()
+        record_auth_success(db, scopes=scopes)
+        return _auth_action_with_admin(
+            db=db,
+            admin_id=existing_admin.id,
+            message="Signed in with Google successfully.",
+            status=APPROVED,
+        )
+
+    suggested_username = suggest_username_from_google(
+        email=email,
+        name=google_profile.get("given_name") or google_profile.get("name"),
+    )
+    invalidate_tokens(db, purpose=GOOGLE_ONBOARDING, target_email=email)
+    onboarding_token, _ = issue_auth_token(
+        db,
+        purpose=GOOGLE_ONBOARDING,
+        target_email=email,
+        expires_minutes=get_google_onboarding_expiry_minutes(),
+        payload={
+            "provider": "google",
+            "provider_subject": google_profile["provider_subject"],
+            "email": email,
+            "name": google_profile.get("name") or "",
+            "suggested_username": suggested_username,
+        },
+    )
+    log_security_event(
+        db,
+        event_type="google_exchange",
+        outcome="signup_required" if payload.intent == "login" else "onboarding_started",
+        ip_address=get_client_ip(request),
+        target_email=email,
+        metadata={"provider": "google", "intent": payload.intent},
+    )
+    db.commit()
+    record_auth_success(db, scopes=scopes)
+    action = "signup_required" if payload.intent == "login" else "complete_signup"
+    return schemas.AuthActionResponse(
+        ok=True,
+        message="Complete a few library details to finish setting up your workspace.",
+        status=PENDING_EMAIL_VERIFICATION,
+        action=action,
+        next_route="/signup?google=1",
+        onboarding_token=onboarding_token,
+        prefill_email=email,
+        suggested_username=suggested_username,
+        provider="google",
+    )
+
+
+@router.post("/google/complete-signup", response_model=schemas.AuthActionResponse)
+def complete_google_signup(
+    payload: schemas.GoogleCompleteSignupRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+    Authorize: AuthJWT = Depends(),
+):
+    library_name = normalize_username(payload.library_name)
+    admin_username = normalize_username(payload.admin_username)
+    contact_phone = normalize_phone(payload.contact_phone)
+    address = normalize_username(payload.address or "") or None
+
+    if not library_name:
+        raise HTTPException(status_code=400, detail="Library name is required")
+    if not admin_username:
+        raise HTTPException(status_code=400, detail="Username is required")
+    if not contact_phone:
+        raise HTTPException(status_code=400, detail="Contact phone is required")
+
+    token = get_token_by_value(db, purpose=GOOGLE_ONBOARDING, raw_token=payload.onboarding_token)
+    if not token:
+        raise HTTPException(
+            status_code=400,
+            detail={"code": "invalid_or_expired_token", "message": "Google signup session is invalid or expired."},
+        )
+
+    token_payload = get_token_payload(token)
+    admin_email = normalize_email(str(token_payload.get("email") or token.target_email or ""))
+    provider_subject = str(token_payload.get("provider_subject") or "").strip()
+    if not admin_email or not provider_subject:
+        raise HTTPException(
+            status_code=400,
+            detail={"code": "invalid_or_expired_token", "message": "Google signup session is invalid or expired."},
+        )
+
+    scopes = _signup_scopes(request, admin_email, admin_username)
+    enforce_auth_protection(
+        db,
+        request=request,
+        scopes=scopes,
+        captcha_token=payload.captcha_token,
+        event_type="google_complete_signup",
+        identifier=admin_username,
+        target_email=admin_email,
+    )
+
+    if crud.get_admin_by_username(db, admin_username) or crud.get_admin_by_email(db, admin_email):
+        record_auth_failure(
+            db,
+            scopes=scopes,
+            event_type="google_complete_signup",
+            request=request,
+            identifier=admin_username,
+            target_email=admin_email,
+            metadata={"reason": "duplicate_admin"},
+        )
+        raise HTTPException(status_code=409, detail="An account with that username or email already exists")
+
+    existing_request = get_open_signup_request_by_email_or_username(
+        db,
+        normalized_email=admin_email,
+        normalized_username=admin_username,
+    )
+    if existing_request:
+        record_auth_failure(
+            db,
+            scopes=scopes,
+            event_type="google_complete_signup",
+            request=request,
+            identifier=admin_username,
+            target_email=admin_email,
+            signup_request_id=existing_request.id,
+            metadata={"reason": "open_signup_request"},
+        )
+        raise HTTPException(status_code=409, detail="A signup request is already pending for that username or email")
+
+    signup_request = create_signup_request(
+        db,
+        library_name=library_name,
+        max_seats=payload.max_seats,
+        contact_phone=contact_phone,
+        address=address,
+        admin_username=admin_username,
+        admin_email=admin_email,
+        password_hash=crud.generate_unusable_password_hash(),
+        signup_method="google",
+        provider="google",
+        provider_subject=provider_subject,
+    )
+    signup_request.verified_at = utcnow()  # type: ignore
+    signup_request.verification_sent_at = signup_request.verified_at  # type: ignore
+    signup_request.expires_at = None  # type: ignore
+    token.consumed_at = utcnow()  # type: ignore
+    invalidate_tokens(db, purpose=GOOGLE_ONBOARDING, target_email=admin_email)
+
+    response = _activate_or_queue_signup(
+        db=db,
+        signup_request=signup_request,
+        request=request,
+        event_type="google_complete_signup",
+        Authorize=Authorize,
+    )
+    record_auth_success(db, scopes=scopes)
+    return response
 
 
 @router.post("/password-reset/request-link", response_model=schemas.AuthActionResponse)
