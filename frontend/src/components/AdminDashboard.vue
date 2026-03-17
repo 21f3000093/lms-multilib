@@ -1534,6 +1534,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.58rem;
+  text-align: left;
 }
 
 .insight-icon {
@@ -1619,7 +1620,7 @@ export default {
   }
 
   .movement-detail-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 
   .current,

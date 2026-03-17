@@ -137,30 +137,30 @@
                   <span>Billing cycle</span>
                   <strong>{{ plan.billing_months }} month{{ plan.billing_months > 1 ? 's' : '' }}</strong>
                 </p>
-                <p>
+                <!-- <p>
                   <span>Discount</span>
                   <strong>{{ discountPercent(plan) }}%</strong>
                 </p>
                 <p>
                   <span>Seats billed</span>
                   <strong>{{ seatsForPlan(plan) }}</strong>
-                </p>
-                <p>
+                </p> -->
+                <!-- <p>
                   <span>Bonus applied</span>
                   <strong>{{ bonusMonthsApplied(plan) }}</strong>
-                </p>
-                <p>
+                </p> -->
+                <!-- <p>
                   <span>Coverage</span>
                   <strong>{{ coverageMonths(plan) }} months</strong>
-                </p>
+                </p> -->
                 <p>
                   <span>Effective monthly</span>
                   <strong>₹{{ formatPaise(effectiveMonthlyTotalPaise(plan)) }}</strong>
                 </p>
-                <p>
+                <!-- <p>
                   <span>Effective per seat</span>
                   <strong>₹{{ formatPaise(effectiveMonthlyPerSeatPaise(plan)) }}</strong>
-                </p>
+                </p> -->
                 <p>
                   <span>Estimated period</span>
                   <strong>{{ periodWindowText(plan) }}</strong>
@@ -1041,6 +1041,7 @@ onMounted(async () => {
   gap: 0.45rem;
   color: #cbd5e1;
   line-height: 1.5;
+  text-align: left;
 }
 
 .message-banner {

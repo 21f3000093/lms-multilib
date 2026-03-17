@@ -79,7 +79,7 @@
 
         <div class="cta-actions">
           <a class="btn btn-solid magnetic" 
-            href="https://wa.me/919024600138?text=Hi%20Shubham!%20I'd%20like%20to%20start%20a%20conversation%20about%20the%20Smart%20Library%20project." 
+            href="https://wa.me/919024600138?text=Hi%20Shubham!%20I'd%20like%20to%20start%20a%20conversation%20about%20the%20Smart%20Library%20app." 
             target="_blank" 
             rel="noopener noreferrer"
             @mousemove="onMagneticMove" 
