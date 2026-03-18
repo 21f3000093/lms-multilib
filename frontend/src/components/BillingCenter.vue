@@ -702,6 +702,11 @@ function discountPercent(plan) {
   return discount > 0 ? discount : 0
 }
 
+function bonusMonthsApplied(plan) {
+  const bonusMonths = Number(getPlanQuote(plan)?.bonus_months_applied || 0)
+  return bonusMonths > 0 ? bonusMonths : 0
+}
+
 function coverageMonths(plan) {
   const coverage = Number(getPlanQuote(plan)?.coverage_months || plan?.billing_months || 0)
   return coverage > 0 ? coverage : 0
@@ -718,6 +723,11 @@ function payableNowPaise(plan) {
 function effectiveMonthlyTotalPaise(plan) {
   const coverage = Math.max(1, coverageMonths(plan))
   return payableNowPaise(plan) / coverage
+}
+
+function effectiveMonthlyPerSeatPaise(plan) {
+  const seats = Math.max(1, seatsForPlan(plan))
+  return effectiveMonthlyTotalPaise(plan) / seats
 }
 
 function periodWindowText(plan) {
