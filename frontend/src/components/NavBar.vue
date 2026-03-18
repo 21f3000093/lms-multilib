@@ -46,7 +46,7 @@
           <button type="button" class="theme-toggle public-link desktop-only" @click="handleThemeToggle(false)">
             <Sun v-if="themeState.current === 'dark'" class="theme-toggle-icon" aria-hidden="true" />
             <Moon v-else class="theme-toggle-icon" aria-hidden="true" />
-            <span>{{ nextThemeLabel }}</span>
+            <!-- <span>{{ nextThemeLabel }}</span> -->
           </button>
           <router-link to="/login" class="public-link public-link-primary desktop-only">Login</router-link>
         </div>
