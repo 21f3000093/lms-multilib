@@ -427,6 +427,15 @@ function boundedPlanIndex(index) {
   return Math.min(Math.max(0, normalized), plans.length - 1)
 }
 
+function getPricingSwiper() {
+  const swiper = pricingSwiper.value
+  if (!swiper || swiper.destroyed || !swiper.el?.isConnected) {
+    pricingSwiper.value = null
+    return null
+  }
+  return swiper
+}
+
 function syncActivePlanSlide(swiper) {
   const nextIndex = boundedPlanIndex(swiper?.activeIndex ?? initialPlanSlideIndex)
   if (nextIndex >= 0) {
@@ -435,7 +444,7 @@ function syncActivePlanSlide(swiper) {
 }
 
 function onPricingSwiperInit(swiper) {
-  pricingSwiper.value = swiper
+  pricingSwiper.value = swiper?.destroyed ? null : swiper
   syncActivePlanSlide(swiper)
 }
 
@@ -450,12 +459,13 @@ function isPlanFocused(index) {
 function focusPlan(index) {
   const targetIndex = boundedPlanIndex(index)
   if (targetIndex < 0) return
-  if (!pricingSwiper.value) {
+  const swiper = getPricingSwiper()
+  if (!swiper) {
     activePlanSlideIndex.value = targetIndex
     return
   }
-  if (pricingSwiper.value.activeIndex === targetIndex) return
-  pricingSwiper.value.slideTo(targetIndex)
+  if (swiper.activeIndex === targetIndex) return
+  swiper.slideTo(targetIndex)
 }
 
 const onMagneticMove = (event) => {
@@ -503,6 +513,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  pricingSwiper.value = null
   observer?.disconnect()
   observer = null
 })

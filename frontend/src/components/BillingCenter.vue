@@ -257,7 +257,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { AlertTriangle, CheckCircle2, LoaderCircle } from 'lucide-vue-next'
 // --- SWIPER IMPORTS ---
 import { Swiper, SwiperSlide } from 'swiper/vue'
@@ -426,6 +426,15 @@ function boundedPlanIndex(index) {
   return Math.min(Math.max(0, normalized), plans.value.length - 1)
 }
 
+function getBillingSwiper() {
+  const swiper = billingSwiper.value
+  if (!swiper || swiper.destroyed || !swiper.el?.isConnected) {
+    billingSwiper.value = null
+    return null
+  }
+  return swiper
+}
+
 function syncActivePlanSlide(swiper) {
   const nextIndex = boundedPlanIndex(swiper?.activeIndex ?? 0)
   if (nextIndex >= 0) {
@@ -434,7 +443,7 @@ function syncActivePlanSlide(swiper) {
 }
 
 function onBillingSwiperInit(swiper) {
-  billingSwiper.value = swiper
+  billingSwiper.value = swiper?.destroyed ? null : swiper
   syncActivePlanSlide(swiper)
 }
 
@@ -449,12 +458,13 @@ function isPlanFocused(index) {
 function focusPlan(index) {
   const targetIndex = boundedPlanIndex(index)
   if (targetIndex < 0) return
-  if (!billingSwiper.value) {
+  const swiper = getBillingSwiper()
+  if (!swiper) {
     activePlanSlideIndex.value = targetIndex
     return
   }
-  if (billingSwiper.value.activeIndex === targetIndex) return
-  billingSwiper.value.slideTo(targetIndex)
+  if (swiper.activeIndex === targetIndex) return
+  swiper.slideTo(targetIndex)
 }
 
 function resetPlanFocus() {
@@ -464,8 +474,9 @@ function resetPlanFocus() {
     return
   }
   activePlanSlideIndex.value = targetIndex
-  if (billingSwiper.value) {
-    billingSwiper.value.slideTo(targetIndex, 0)
+  const swiper = getBillingSwiper()
+  if (swiper && swiper.activeIndex !== targetIndex) {
+    swiper.slideTo(targetIndex, 0)
   }
 }
 
@@ -658,6 +669,7 @@ async function loadSubscription() {
 }
 
 async function refreshAll() {
+  billingSwiper.value = null
   isPageLoading.value = true
   pageError.value = ''
   try {
@@ -837,6 +849,10 @@ async function startCheckout(plan, index) {
 
 onMounted(async () => {
   await refreshAll()
+})
+
+onBeforeUnmount(() => {
+  billingSwiper.value = null
 })
 </script>
 
