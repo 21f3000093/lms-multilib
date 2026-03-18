@@ -964,7 +964,9 @@ export default {
 }
 
 .shift-icon {
-  background: rgba(59, 130, 246, 0.2);
+  /* background: var(--theme-brand-background); */
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
+  /* background: rgba(59, 131, 246, 0.24); */
 }
 
 .students-icon {
@@ -976,11 +978,12 @@ export default {
 }
 
 .collection-icon {
-  background: rgba(14, 165, 233, 0.2);
+  /* background: rgba(14, 165, 233, 0.2); */
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
 }
 
 .movement-icon {
-  background: rgba(56, 189, 248, 0.2);
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
 }
 
 .svg {
@@ -1537,7 +1540,7 @@ export default {
   width: 42px;
   height: 42px;
   border-radius: 10px;
-  background: var(--theme-panel-soft);
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
   display: grid;
   place-items: center;
 }
