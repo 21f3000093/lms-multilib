@@ -47,7 +47,7 @@ export default {
   position: fixed;
   inset: 0;
   z-index: 1600;
-  background: rgba(2, 6, 23, 0.72);
+  background: var(--theme-overlay);
   backdrop-filter: blur(5px);
   display: flex;
   justify-content: center;
@@ -58,10 +58,10 @@ export default {
 .modal-content {
   width: min(520px, 100%);
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(15, 23, 42, 0.92);
-  color: #e2e8f0;
-  box-shadow: 0 24px 48px rgba(2, 6, 23, 0.45);
+  border: 1px solid var(--theme-surface-border);
+  background: var(--theme-panel-solid);
+  color: var(--theme-text-primary);
+  box-shadow: var(--theme-shadow-soft);
 }
 
 .modal-header {
@@ -69,7 +69,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+  border-bottom: 1px solid var(--theme-border-soft);
 }
 
 .modal-header h3 {
@@ -82,9 +82,9 @@ export default {
   width: 34px;
   height: 34px;
   border-radius: 10px;
-  border: 1px solid rgba(148, 163, 184, 0.32);
-  background: rgba(148, 163, 184, 0.12);
-  color: #e2e8f0;
+  border: 1px solid var(--theme-border-strong);
+  background: var(--theme-surface-soft-heavy);
+  color: var(--theme-text-primary);
   font-size: 1rem;
   cursor: pointer;
 }
@@ -95,7 +95,7 @@ export default {
 
 .modal-body p {
   margin: 0;
-  color: #cbd5e1;
+  color: var(--theme-text-soft);
   line-height: 1.6;
 }
 
@@ -112,21 +112,22 @@ export default {
   border: 1px solid transparent;
   font-weight: 700;
   cursor: pointer;
-  color: #fff;
+  color: var(--theme-brand-on);
 }
 
 .btn-whatsapp {
-  background: linear-gradient(90deg, #22c55e, #16a34a);
+  background: linear-gradient(90deg, var(--theme-success-solid), var(--theme-success-solid-alt));
+  color: #fff;
 }
 
 .btn-sms {
-  background: linear-gradient(90deg, #0ea5e9, #3b82f6);
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
 }
 
 .btn-secondary {
-  background: rgba(148, 163, 184, 0.16);
-  border-color: rgba(148, 163, 184, 0.35);
-  color: #e2e8f0;
+  background: var(--theme-surface-soft-heavy);
+  border-color: var(--theme-border-strong);
+  color: var(--theme-text-primary);
 }
 
 @media (max-width: 600px) {

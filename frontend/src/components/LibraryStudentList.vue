@@ -297,10 +297,10 @@ export default {
 
 <style scoped>
 .library-students-page {
-  --surface: rgba(148, 163, 184, 0.03);
-  --surface-border: rgba(255, 255, 255, 0.03);
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
+  --surface: var(--theme-surface);
+  --surface-border: var(--theme-surface-border);
+  --text-primary: var(--theme-text-primary);
+  --text-secondary: var(--theme-text-secondary);
 
   position: relative;
   min-height: 100vh;
@@ -314,11 +314,7 @@ export default {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background:
-    radial-gradient(45rem 24rem at 10% 15%, rgba(34, 211, 238, 0.14), transparent 70%),
-    radial-gradient(40rem 24rem at 86% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
-    radial-gradient(36rem 22rem at 65% 88%, rgba(14, 165, 233, 0.11), transparent 70%),
-    linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
+  background: var(--theme-mesh-background);
   filter: saturate(115%);
   animation: mesh-drift 18s ease-in-out infinite alternate;
 }
@@ -341,7 +337,7 @@ export default {
   letter-spacing: 0.16em;
   font-size: 0.74rem;
   font-weight: 600;
-  color: #38bdf8;
+  color: var(--theme-brand-pill-text);
 }
 
 .hero h1 {
@@ -351,7 +347,7 @@ export default {
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #67e8f9 0%, #38bdf8 48%, #818cf8 100%);
+  background: linear-gradient(135deg, var(--theme-brand-a), var(--theme-brand-b));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -364,7 +360,7 @@ export default {
 }
 
 .library-id {
-  color: #bfdbfe;
+  color: var(--theme-text-info);
 }
 
 .hero-actions {
@@ -385,7 +381,7 @@ export default {
   background: var(--surface);
   border-radius: 1rem;
   backdrop-filter: blur(12px);
-  box-shadow: 0 18px 44px rgba(2, 8, 23, 0.34);
+  box-shadow: var(--theme-shadow-soft);
 }
 
 .stat-card {
@@ -423,14 +419,14 @@ export default {
   transform: translateY(-50%);
   width: 1rem;
   height: 1rem;
-  color: #94a3b8;
+  color: var(--theme-text-muted);
 }
 
 .search-input {
   width: 100%;
   border-radius: 0.78rem;
-  border: 1px solid rgba(148, 163, 184, 0.32);
-  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid var(--theme-input-border);
+  background: var(--theme-input-bg);
   color: var(--text-primary);
   padding: 0.7rem 0.9rem 0.7rem 2.4rem;
   outline: none;
@@ -438,12 +434,12 @@ export default {
 }
 
 .search-input::placeholder {
-  color: #64748b;
+  color: var(--theme-input-placeholder);
 }
 
 .search-input:focus {
-  border-color: rgba(56, 189, 248, 0.78);
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+  border-color: var(--theme-brand-border);
+  box-shadow: 0 0 0 3px var(--theme-brand-ring);
 }
 
 .filters-row {
@@ -458,16 +454,16 @@ export default {
   display: grid;
   gap: 0.35rem;
   text-align: left;
-  color: #cbd5e1;
+  color: var(--theme-text-soft);
   font-size: 0.82rem;
 }
 
 .filter-select {
   min-width: 180px;
   border-radius: 0.7rem;
-  border: 1px solid rgba(148, 163, 184, 0.32);
-  background: rgba(15, 23, 42, 0.7);
-  color: #e2e8f0;
+  border: 1px solid var(--theme-input-border);
+  background: var(--theme-input-bg);
+  color: var(--theme-text-primary);
   padding: 0.6rem 0.8rem;
 }
 
@@ -476,9 +472,9 @@ export default {
   align-items: center;
   gap: 0.45rem;
   border-radius: 999px;
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  background: rgba(56, 189, 248, 0.12);
-  color: #bae6fd;
+  border: 1px solid var(--theme-info-border);
+  background: var(--theme-info-soft);
+  color: var(--theme-info-text);
   padding: 0.42rem 0.72rem;
   font-size: 0.82rem;
   white-space: nowrap;
@@ -508,11 +504,11 @@ export default {
 .student-table td {
   padding: 0.9rem 1rem;
   text-align: left;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+  border-bottom: 1px solid var(--theme-border-soft);
 }
 
 .student-table th {
-  color: #cbd5e1;
+  color: var(--theme-text-soft);
   font-size: 0.8rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -520,7 +516,7 @@ export default {
 }
 
 .student-row:hover {
-  background: rgba(30, 41, 59, 0.35);
+  background: var(--theme-surface-soft);
 }
 
 .student-link {
@@ -540,9 +536,9 @@ export default {
   justify-content: center;
   font-weight: 700;
   font-size: 0.9rem;
-  color: #ecfeff;
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.9), rgba(59, 130, 246, 0.9));
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  color: var(--theme-brand-on);
+  background: linear-gradient(135deg, var(--theme-brand-a), var(--theme-brand-b));
+  box-shadow: inset 0 0 0 1px var(--theme-border-soft);
 }
 
 .name {
@@ -553,7 +549,7 @@ export default {
 .id-text {
   margin: 0.1rem 0 0;
   font-size: 0.78rem;
-  color: #94a3b8;
+  color: var(--theme-text-secondary);
 }
 
 .contact-pill,
@@ -568,13 +564,13 @@ export default {
 }
 
 .contact-pill {
-  color: #bfdbfe;
-  background: rgba(59, 130, 246, 0.16);
+  color: var(--theme-info-text);
+  background: var(--theme-info-soft);
 }
 
 .seat-pill {
-  color: #a7f3d0;
-  background: rgba(16, 185, 129, 0.16);
+  color: var(--theme-success-text);
+  background: var(--theme-success-soft);
 }
 
 .inline-icon {
@@ -599,15 +595,15 @@ export default {
 }
 
 .shift-pill.active {
-  color: #22d3ee;
-  border-color: rgba(34, 211, 238, 0.4);
-  background: rgba(34, 211, 238, 0.12);
+  color: var(--theme-brand-pill-text);
+  border-color: var(--theme-brand-border);
+  background: var(--theme-brand-soft);
 }
 
 .shift-pill.inactive {
-  color: #64748b;
-  border-color: rgba(100, 116, 139, 0.4);
-  background: rgba(15, 23, 42, 0.58);
+  color: var(--theme-text-muted);
+  border-color: var(--theme-border);
+  background: var(--theme-panel);
 }
 
 .shift-icon {
@@ -628,15 +624,15 @@ export default {
 }
 
 .status-active {
-  color: #a7f3d0;
-  background: rgba(16, 185, 129, 0.18);
-  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: var(--theme-success-text);
+  background: var(--theme-success-soft);
+  border: 1px solid var(--theme-success-border);
 }
 
 .status-left {
-  color: #fecaca;
-  background: rgba(239, 68, 68, 0.16);
-  border: 1px solid rgba(239, 68, 68, 0.38);
+  color: var(--theme-danger-text);
+  background: var(--theme-danger-soft);
+  border: 1px solid var(--theme-danger-border);
 }
 
 .mobile-view {
@@ -669,7 +665,7 @@ export default {
   font-size: 0.75rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #94a3b8;
+  color: var(--theme-text-secondary);
 }
 
 .empty-state,
@@ -686,13 +682,13 @@ export default {
 
 .empty-state p {
   margin: 0.6rem 0 0;
-  color: #94a3b8;
+  color: var(--theme-text-secondary);
 }
 
 .empty-icon {
   width: 2rem;
   height: 2rem;
-  color: #7dd3fc;
+  color: var(--theme-brand-pill-text);
 }
 
 .loader {
@@ -700,8 +696,8 @@ export default {
   height: 2rem;
   margin: 0 auto;
   border-radius: 999px;
-  border: 2px solid rgba(56, 189, 248, 0.24);
-  border-top-color: #38bdf8;
+  border: 2px solid var(--theme-border);
+  border-top-color: var(--theme-brand-a);
   animation: spin 0.8s linear infinite;
 }
 
@@ -725,15 +721,15 @@ export default {
 }
 
 .btn-solid {
-  color: #f8fafc;
-  background: linear-gradient(135deg, #0ea5e9, #2563eb);
-  box-shadow: 0 10px 24px rgba(14, 165, 233, 0.35);
+  color: var(--theme-brand-on);
+  background: linear-gradient(135deg, var(--theme-brand-a), var(--theme-brand-b));
+  box-shadow: var(--theme-shadow-elevated);
 }
 
 .btn-ghost {
-  color: #e2e8f0;
-  border-color: rgba(148, 163, 184, 0.38);
-  background: rgba(15, 23, 42, 0.54);
+  color: var(--theme-text-primary);
+  border-color: var(--theme-border-strong);
+  background: var(--theme-panel);
 }
 
 .btn:hover {
@@ -746,7 +742,7 @@ export default {
 }
 
 .muted {
-  color: #94a3b8;
+  color: var(--theme-text-secondary);
 }
 
 @keyframes mesh-drift {

@@ -145,9 +145,11 @@ const showSuccess = (message) => {
     position: 'top',
     timeout: 3000,
     style: {
-      backgroundColor: '#0ea5e9',
-      color: '#fff',
+      backgroundColor: 'var(--theme-panel-solid)',
+      color: 'var(--theme-text-strong)',
+      border: '1px solid var(--theme-brand-border)',
       borderRadius: '10px',
+      boxShadow: 'var(--theme-shadow-soft)',
     },
   })
 }
@@ -155,9 +157,11 @@ const showSuccess = (message) => {
 const showError = (message) => {
   toast.error(message, {
     style: {
-      backgroundColor: '#ef4444',
-      color: '#fff',
+      backgroundColor: 'var(--theme-panel-solid)',
+      color: 'var(--theme-text-strong)',
+      border: '1px solid var(--theme-danger-border)',
       borderRadius: '10px',
+      boxShadow: 'var(--theme-shadow-soft)',
     },
   })
 }
@@ -254,10 +258,10 @@ const resetForm = () => {
 
 <style scoped>
 .change-password-page {
-  --surface: rgba(148, 163, 184, 0.03);
-  --surface-border: rgba(255, 255, 255, 0.03);
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
+  --surface: var(--theme-surface);
+  --surface-border: var(--theme-surface-border);
+  --text-primary: var(--theme-text-primary);
+  --text-secondary: var(--theme-text-secondary);
 
   position: relative;
   min-height: 100vh;
@@ -273,11 +277,7 @@ const resetForm = () => {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background:
-    radial-gradient(45rem 24rem at 10% 15%, rgba(34, 211, 238, 0.14), transparent 70%),
-    radial-gradient(40rem 24rem at 86% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
-    radial-gradient(36rem 22rem at 65% 88%, rgba(14, 165, 233, 0.11), transparent 70%),
-    linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
+  background: var(--theme-mesh-background);
   filter: saturate(115%);
   animation: mesh-drift 18s ease-in-out infinite alternate;
 }
@@ -300,12 +300,12 @@ const resetForm = () => {
   display: inline-flex;
   padding: 0.4rem 0.8rem;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  border: 1px solid var(--theme-border);
   font-size: 0.8rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #cbd5e1;
-  background: rgba(148, 163, 184, 0.07);
+  color: var(--theme-text-soft);
+  background: var(--theme-surface-soft);
 }
 
 .form-header h1 {
@@ -316,7 +316,7 @@ const resetForm = () => {
 }
 
 .gradient-text {
-  background: linear-gradient(90deg, #22d3ee, #3b82f6);
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -340,7 +340,7 @@ const resetForm = () => {
 }
 
 .field-label {
-  color: #cbd5e1;
+  color: var(--theme-text-soft);
   font-size: 0.8rem;
   font-weight: 600;
 }
@@ -349,18 +349,18 @@ const resetForm = () => {
   position: relative;
   display: flex;
   align-items: center;
-  border: 1px solid rgba(148, 163, 184, 0.3);
+  border: 1px solid var(--theme-input-border);
   border-radius: 12px;
-  background: rgba(15, 23, 42, 0.72);
+  background: var(--theme-input-bg);
 }
 
 .input-wrap:focus-within {
-  border-color: rgba(34, 211, 238, 0.62);
-  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.16);
+  border-color: var(--theme-brand-border);
+  box-shadow: 0 0 0 3px var(--theme-brand-ring);
 }
 
 .input-wrap.error {
-  border-color: rgba(239, 68, 68, 0.6);
+  border-color: var(--theme-danger-border);
 }
 
 .field-input {
@@ -368,7 +368,7 @@ const resetForm = () => {
   border: 0;
   outline: 0;
   background: transparent;
-  color: #f8fafc;
+  color: var(--theme-text-strong);
   font-size: 0.95rem;
   padding: 0.72rem 3.2rem 0.72rem 0.75rem;
   min-height: 44px;
@@ -378,9 +378,9 @@ const resetForm = () => {
 .password-toggle {
   position: absolute;
   right: 0.46rem;
-  background: rgba(148, 163, 184, 0.12);
-  border: 1px solid rgba(148, 163, 184, 0.28);
-  color: #cbd5e1;
+  background: var(--theme-surface-soft-heavy);
+  border: 1px solid var(--theme-border);
+  color: var(--theme-text-soft);
   border-radius: 8px;
   font-size: 0.75rem;
   font-weight: 700;
@@ -390,7 +390,7 @@ const resetForm = () => {
 
 .error-message {
   margin: 0;
-  color: #fca5a5;
+  color: var(--theme-danger-text);
   font-size: 0.78rem;
 }
 
@@ -420,15 +420,15 @@ const resetForm = () => {
 }
 
 .btn-solid {
-  background: linear-gradient(90deg, #0ea5e9, #3b82f6);
-  color: #fff;
-  box-shadow: 0 14px 28px rgba(59, 130, 246, 0.28);
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
+  color: var(--theme-brand-on);
+  box-shadow: var(--theme-shadow-elevated);
 }
 
 .btn-ghost {
-  background: rgba(148, 163, 184, 0.08);
-  border-color: rgba(148, 163, 184, 0.32);
-  color: #e2e8f0;
+  background: var(--theme-surface-soft-strong);
+  border-color: var(--theme-border-strong);
+  color: var(--theme-text-primary);
 }
 
 .alert {
@@ -439,15 +439,15 @@ const resetForm = () => {
 }
 
 .success-alert {
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  background: rgba(16, 185, 129, 0.14);
-  color: #a7f3d0;
+  border: 1px solid var(--theme-success-border);
+  background: var(--theme-success-soft);
+  color: var(--theme-success-text);
 }
 
 .error-alert {
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  background: rgba(239, 68, 68, 0.14);
-  color: #fecaca;
+  border: 1px solid var(--theme-danger-border);
+  background: var(--theme-danger-soft);
+  color: var(--theme-danger-text);
 }
 
 .alert-title,
