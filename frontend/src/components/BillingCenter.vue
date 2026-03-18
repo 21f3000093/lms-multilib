@@ -895,6 +895,7 @@ onBeforeUnmount(() => {
   width: min(1140px, calc(100% - 2rem));
   margin: 0 auto;
   padding-top: 1rem;
+  overflow-x: hidden;
 }
 
 .hero {
