@@ -127,9 +127,11 @@ export default {
         position: 'top',
         timeout: 2000,
         style: {
-          backgroundColor: '#0ea5e9',
-          color: '#fff',
+          backgroundColor: 'var(--theme-panel-solid)',
+          color: 'var(--theme-text-strong)',
+          border: '1px solid var(--theme-brand-border)',
           borderRadius: '8px',
+          boxShadow: 'var(--theme-shadow-soft)',
         },
       })
     }
@@ -137,9 +139,11 @@ export default {
     const showError = (message) => {
       toast.error(message, {
         style: {
-          backgroundColor: '#dc2626',
-          color: '#fff',
+          backgroundColor: 'var(--theme-panel-solid)',
+          color: 'var(--theme-text-strong)',
+          border: '1px solid var(--theme-danger-border)',
           borderRadius: '8px',
+          boxShadow: 'var(--theme-shadow-soft)',
         },
       })
     }
@@ -225,10 +229,10 @@ export default {
 
 <style scoped>
 .seat-map-page {
-  --surface: rgba(148, 163, 184, 0.03);
-  --surface-border: rgba(255, 255, 255, 0.03);
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
+  --surface: var(--theme-surface);
+  --surface-border: var(--theme-surface-border);
+  --text-primary: var(--theme-text-primary);
+  --text-secondary: var(--theme-text-secondary);
 
   position: relative;
   min-height: 100vh;
@@ -242,11 +246,7 @@ export default {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background:
-    radial-gradient(45rem 24rem at 10% 15%, rgba(34, 211, 238, 0.14), transparent 70%),
-    radial-gradient(40rem 24rem at 86% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
-    radial-gradient(36rem 22rem at 65% 88%, rgba(14, 165, 233, 0.11), transparent 70%),
-    linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
+  background: var(--theme-mesh-background);
   filter: saturate(115%);
   animation: mesh-drift 18s ease-in-out infinite alternate;
 }
@@ -268,16 +268,16 @@ export default {
   display: inline-flex;
   padding: 0.4rem 0.8rem;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  border: 1px solid var(--theme-border);
   font-size: 0.8rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #cbd5e1;
-  background: rgba(148, 163, 184, 0.07);
+  color: var(--theme-text-soft);
+  background: var(--theme-surface-soft);
 }
 
 .gradient-text {
-  background: linear-gradient(90deg, #22d3ee, #3b82f6);
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -318,7 +318,7 @@ export default {
 
 .group-label {
   margin: 0;
-  color: #cbd5e1;
+  color: var(--theme-text-soft);
   font-size: 0.8rem;
   font-weight: 600;
 }
@@ -331,10 +331,10 @@ export default {
 }
 
 .shift-pill{
-  border: 1px solid rgba(148, 163, 184, 0.3);
+  border: 1px solid var(--theme-input-border);
   border-radius: 12px;
-  background: rgba(15, 23, 42, 0.72);
-  color: #e2e8f0;
+  background: var(--theme-input-bg);
+  color: var(--theme-text-primary);
   min-height: 40px;
   padding: 0.35rem 0.65rem;
   display: inline-flex;
@@ -347,10 +347,10 @@ export default {
 }
 
 .empty-only {
-  border: 1px solid rgba(148, 163, 184, 0.3);
+  border: 1px solid var(--theme-input-border);
   border-radius: 12px;
-  background: rgba(15, 23, 42, 0.72);
-  color: #e2e8f0;
+  background: var(--theme-input-bg);
+  color: var(--theme-text-primary);
   min-height: 40px;
   padding: 0.35rem 0.65rem;
   display: inline-flex;
@@ -363,9 +363,9 @@ export default {
 
 .shift-pill.active,
 .empty-only.active {
-  border-color: rgba(34, 211, 238, 0.65);
-  box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.3);
-  background-color: #00ffff38;
+  border-color: var(--theme-brand-border);
+  box-shadow: inset 0 0 0 1px var(--theme-brand-border);
+  background-color: var(--theme-brand-soft);
 }
 
 .shift-pill input,
@@ -391,9 +391,9 @@ export default {
 }
 
 .btn-solid {
-  background: linear-gradient(90deg, #0ea5e9, #3b82f6);
-  box-shadow: 0 14px 28px rgba(59, 130, 246, 0.28);
-  color: #fff;
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
+  box-shadow: var(--theme-shadow-elevated);
+  color: var(--theme-brand-on);
 }
 
 .legend-row {
@@ -406,9 +406,9 @@ export default {
 
 .legend-pill {
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.28);
-  background: rgba(15, 23, 42, 0.58);
-  color: #dbeafe;
+  border: 1px solid var(--theme-border);
+  background: var(--theme-panel);
+  color: var(--theme-text-info);
   padding: 0.3rem 0.58rem;
   font-size: 0.76rem;
   font-weight: 700;
@@ -424,11 +424,11 @@ export default {
 }
 
 .dot-empty {
-  background: #fa6060;
+  background: var(--theme-danger-solid);
 }
 
 .dot-filled {
-  background: #22c55e;
+  background: var(--theme-success-solid);
 }
 
 .loading-card,
@@ -443,8 +443,8 @@ export default {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 3px solid rgba(148, 163, 184, 0.4);
-  border-top-color: #22d3ee;
+  border: 3px solid var(--theme-border-strong);
+  border-top-color: var(--theme-brand-a);
   animation: spin 1s linear infinite;
 }
 
@@ -464,7 +464,7 @@ export default {
 
 .seat-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(34, 211, 238, 0.5);
+  border-color: var(--theme-brand-border);
 }
 
 .seat-title {
@@ -495,13 +495,13 @@ export default {
 }
 
 .shift-status.is-filled {
-  background: rgba(16, 185, 129, 0.2);
-  color: #a7f3d0;
+  background: var(--theme-success-soft);
+  color: var(--theme-success-text);
 }
 
 .shift-status.is-empty {
-  background: rgba(246, 59, 59, 0.2);
-  color: #febfbf;
+  background: var(--theme-danger-soft);
+  color: var(--theme-danger-text);
 }
 
 @keyframes mesh-drift {

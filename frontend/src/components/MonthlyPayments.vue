@@ -256,9 +256,11 @@ export default {
         icon: true,
         rtl: false,
         style: {
-          backgroundColor: '#0ea5e9',
-          color: '#fff',
+          backgroundColor: 'var(--theme-panel-solid)',
+          color: 'var(--theme-text-strong)',
+          border: '1px solid var(--theme-brand-border)',
           borderRadius: '12px',
+          boxShadow: 'var(--theme-shadow-soft)',
         },
         ...options,
       })
@@ -267,9 +269,11 @@ export default {
     const showError = (message) => {
       toast.error(message, {
         style: {
-          backgroundColor: '#dc2626',
-          color: '#fff',
+          backgroundColor: 'var(--theme-panel-solid)',
+          color: 'var(--theme-text-strong)',
+          border: '1px solid var(--theme-danger-border)',
           borderRadius: '12px',
+          boxShadow: 'var(--theme-shadow-soft)',
         },
       })
     }
@@ -482,10 +486,10 @@ export default {
 
 <style scoped>
 .monthly-payments-page {
-  --surface: rgba(148, 163, 184, 0.03);
-  --surface-border: rgba(255, 255, 255, 0.03);
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
+  --surface: var(--theme-surface);
+  --surface-border: var(--theme-surface-border);
+  --text-primary: var(--theme-text-primary);
+  --text-secondary: var(--theme-text-secondary);
 
   position: relative;
   min-height: 100vh;
@@ -499,11 +503,7 @@ export default {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background:
-    radial-gradient(45rem 24rem at 10% 15%, rgba(34, 211, 238, 0.14), transparent 70%),
-    radial-gradient(40rem 24rem at 86% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
-    radial-gradient(36rem 22rem at 65% 88%, rgba(14, 165, 233, 0.11), transparent 70%),
-    linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
+  background: var(--theme-mesh-background);
   filter: saturate(115%);
   animation: mesh-drift 18s ease-in-out infinite alternate;
 }
@@ -525,16 +525,16 @@ export default {
   display: inline-flex;
   padding: 0.4rem 0.8rem;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  border: 1px solid var(--theme-border);
   font-size: 0.8rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #cbd5e1;
-  background: rgba(148, 163, 184, 0.07);
+  color: var(--theme-text-soft);
+  background: var(--theme-surface-soft);
 }
 
 .gradient-text {
-  background: linear-gradient(90deg, #22d3ee, #3b82f6);
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -582,36 +582,36 @@ export default {
 }
 
 .field-label {
-  color: #cbd5e1;
+  color: var(--theme-text-soft);
   font-size: 0.8rem;
   font-weight: 600;
 }
 
 .field-input {
-  border: 1px solid rgba(148, 163, 184, 0.3);
+  border: 1px solid var(--theme-input-border);
   border-radius: 12px;
-  background: rgba(15, 23, 42, 0.72);
-  color: #f8fafc;
+  background: var(--theme-input-bg);
+  color: var(--theme-text-strong);
   /* min-height: 42px; */
   padding: 0.5rem 0.7rem;
   outline: none;
 }
 
 .field-input:focus {
-  border-color: rgba(34, 211, 238, 0.62);
-  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.16);
+  border-color: var(--theme-brand-border);
+  box-shadow: 0 0 0 3px var(--theme-brand-ring);
 }
 
 .field-input option {
-  color: #0f172a;
+  color: var(--theme-text-strong);
 }
 
 .month-input {
-  color-scheme: dark;
+  color-scheme: inherit;
 }
 
 .month-input::-webkit-calendar-picker-indicator {
-  filter: invert(1) brightness(1.35) saturate(0.25);
+  filter: var(--theme-picker-filter);
   opacity: 0.95;
 }
 
@@ -626,7 +626,7 @@ export default {
   font-weight: 700;
   cursor: pointer;
   text-decoration: none;
-  color: #fff;
+  color: var(--theme-brand-on);
 }
 
 .btn:disabled {
@@ -635,12 +635,13 @@ export default {
 }
 
 .btn-solid {
-  background: linear-gradient(90deg, #0ea5e9, #3b82f6);
-  box-shadow: 0 14px 28px rgba(59, 130, 246, 0.28);
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
+  box-shadow: var(--theme-shadow-elevated);
 }
 
 .btn-emerald {
-  background: linear-gradient(90deg, #22c55e, #16a34a);
+  background: linear-gradient(90deg, var(--theme-success-solid), var(--theme-success-solid-alt));
+  color: #fff;
 }
 
 .summary-grid {
@@ -681,22 +682,22 @@ export default {
   text-align: left;
   font-size: 0.82rem;
   font-weight: 700;
-  color: #cbd5e1;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.26);
+  color: var(--theme-text-soft);
+  border-bottom: 1px solid var(--theme-border);
   padding: 0.64rem 0.55rem;
 }
 
 .payments-table td {
   padding: 0.64rem 0.55rem;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
-  color: #e2e8f0;
+  border-bottom: 1px solid var(--theme-border-soft);
+  color: var(--theme-text-primary);
   font-size: 0.9rem;
   vertical-align: middle;
   text-align: left;
 }
 
 .payments-table tbody tr:hover {
-  background: rgba(148, 163, 184, 0.07);
+  background: var(--theme-surface-soft);
 }
 
 .student-link {
@@ -714,8 +715,8 @@ export default {
   display: inline-grid;
   place-items: center;
   font-weight: 800;
-  background: linear-gradient(90deg, #0ea5e9, #3b82f6);
-  color: #fff;
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
+  color: var(--theme-brand-on);
   flex-shrink: 0;
 }
 
@@ -735,8 +736,8 @@ export default {
   border-radius: 999px;
   font-size: 0.76rem;
   font-weight: 700;
-  background: rgba(16, 185, 129, 0.2);
-  color: #a7f3d0;
+  background: var(--theme-success-soft);
+  color: var(--theme-success-text);
 }
 
 .muted {
@@ -746,7 +747,7 @@ export default {
 
 .amount {
   font-weight: 700;
-  color: #fecaca;
+  color: var(--theme-danger-text);
   font-family: Monaco, Menlo, monospace;
 }
 
@@ -761,13 +762,13 @@ export default {
 }
 
 .status-paid {
-  background: rgba(16, 185, 129, 0.2);
-  color: #a7f3d0;
+  background: var(--theme-success-soft);
+  color: var(--theme-success-text);
 }
 
 .status-unpaid {
-  background: rgba(239, 68, 68, 0.2);
-  color: #fecaca;
+  background: var(--theme-danger-soft);
+  color: var(--theme-danger-text);
 }
 
 .actions {
@@ -786,7 +787,7 @@ export default {
   justify-content: center;
   font-size: 0.75rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--theme-brand-on);
   cursor: pointer;
   width: 30%;
 }
@@ -807,27 +808,27 @@ export default {
 }
 
 .action-success {
-  background: rgba(16, 185, 129, 0.2);
-  color: #a7f3d0;
-  border-color: rgba(16, 185, 129, 0.36);
+  background: var(--theme-success-soft);
+  color: var(--theme-success-text);
+  border-color: var(--theme-success-border);
 }
 
 .action-warning {
-  background: rgba(245, 158, 11, 0.2);
-  color: #fde68a;
-  border-color: rgba(245, 158, 11, 0.36);
+  background: var(--theme-warning-soft);
+  color: var(--theme-warning-text);
+  border-color: var(--theme-warning-border);
 }
 
 .action-danger {
-  background: rgba(239, 68, 68, 0.16);
-  color: #fecaca;
-  border-color: rgba(239, 68, 68, 0.36);
+  background: var(--theme-danger-soft);
+  color: var(--theme-danger-text);
+  border-color: var(--theme-danger-border);
 }
 
 .action-receipt {
-  background: rgba(59, 130, 246, 0.2);
-  color: #bfdbfe;
-  border-color: rgba(59, 130, 246, 0.36);
+  background: var(--theme-info-soft);
+  color: var(--theme-info-text);
+  border-color: var(--theme-info-border);
 }
 
 .loading-card,
@@ -842,8 +843,8 @@ export default {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 3px solid rgba(148, 163, 184, 0.4);
-  border-top-color: #22d3ee;
+  border: 3px solid var(--theme-border-strong);
+  border-top-color: var(--theme-brand-a);
   animation: spin 1s linear infinite;
 }
 
@@ -873,7 +874,7 @@ export default {
 
 .detail-row {
   border-radius: 10px;
-  background: rgba(148, 163, 184, 0.12);
+  background: var(--theme-surface-soft-heavy);
   padding: 0.45rem 0.55rem;
   display: flex;
   justify-content: space-between;

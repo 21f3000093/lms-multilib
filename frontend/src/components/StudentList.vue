@@ -295,9 +295,11 @@ export default {
         icon: true,
         rtl: false,
         style: {
-          backgroundColor: '#0ea5e9',
-          color: '#fff',
+          backgroundColor: 'var(--theme-panel-solid)',
+          color: 'var(--theme-text-strong)',
+          border: '1px solid var(--theme-brand-border)',
           borderRadius: '12px',
+          boxShadow: 'var(--theme-shadow-soft)',
         },
         ...options,
       })
@@ -306,9 +308,11 @@ export default {
     const showError = (message) => {
       toast.error(message, {
         style: {
-          backgroundColor: '#dc2626',
-          color: '#fff',
+          backgroundColor: 'var(--theme-panel-solid)',
+          color: 'var(--theme-text-strong)',
+          border: '1px solid var(--theme-danger-border)',
           borderRadius: '12px',
+          boxShadow: 'var(--theme-shadow-soft)',
         },
       })
     }
@@ -395,10 +399,10 @@ export default {
 
 <style scoped>
 .student-list-page {
-  --surface: rgba(148, 163, 184, 0.03);
-  --surface-border: rgba(255, 255, 255, 0.03);
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
+  --surface: var(--theme-surface);
+  --surface-border: var(--theme-surface-border);
+  --text-primary: var(--theme-text-primary);
+  --text-secondary: var(--theme-text-secondary);
 
   position: relative;
   min-height: 100vh;
@@ -412,11 +416,7 @@ export default {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background:
-    radial-gradient(45rem 24rem at 10% 15%, rgba(34, 211, 238, 0.14), transparent 70%),
-    radial-gradient(40rem 24rem at 86% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
-    radial-gradient(36rem 22rem at 65% 88%, rgba(14, 165, 233, 0.11), transparent 70%),
-    linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
+  background: var(--theme-mesh-background);
   filter: saturate(115%);
   animation: mesh-drift 18s ease-in-out infinite alternate;
 }
@@ -438,12 +438,12 @@ export default {
   display: inline-flex;
   padding: 0.4rem 0.8rem;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  border: 1px solid var(--theme-border);
   font-size: 0.8rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #cbd5e1;
-  background: rgba(148, 163, 184, 0.07);
+  color: var(--theme-text-soft);
+  background: var(--theme-surface-soft);
 }
 
 .hero h1 {
@@ -454,7 +454,7 @@ export default {
 }
 
 .gradient-text {
-  background: linear-gradient(90deg, #22d3ee, #3b82f6);
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -508,21 +508,21 @@ export default {
   position: relative;
   display: flex;
   align-items: center;
-  border: 1px solid rgba(148, 163, 184, 0.3);
+  border: 1px solid var(--theme-input-border);
   border-radius: 12px;
-  background: rgba(15, 23, 42, 0.72);
+  background: var(--theme-input-bg);
 }
 
 .search-wrap:focus-within {
-  border-color: rgba(34, 211, 238, 0.62);
-  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.16);
+  border-color: var(--theme-brand-border);
+  box-shadow: 0 0 0 3px var(--theme-brand-ring);
 }
 
 .search-icon {
   width: 1rem;
   height: 1rem;
   margin-left: 0.75rem;
-  color: #94a3b8;
+  color: var(--theme-text-muted);
   flex-shrink: 0;
 }
 
@@ -531,13 +531,13 @@ export default {
   border: 0;
   outline: 0;
   background: transparent;
-  color: #f8fafc;
+  color: var(--theme-text-strong);
   font-size: 0.95rem;
   padding: 0.72rem;
 }
 
 .search-input::placeholder {
-  color: #94a3b8;
+  color: var(--theme-input-placeholder);
 }
 
 .clear-search {
@@ -549,8 +549,8 @@ export default {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(148, 163, 184, 0.18);
-  color: #e2e8f0;
+  background: var(--theme-surface-soft-heavy);
+  color: var(--theme-text-primary);
   cursor: pointer;
 }
 
@@ -573,39 +573,39 @@ export default {
 }
 
 .filter-item span {
-  color: #cbd5e1;
+  color: var(--theme-text-soft);
   font-size: 0.8rem;
   font-weight: 600;
 }
 
 .filter-select {
-  border: 1px solid rgba(148, 163, 184, 0.3);
+  border: 1px solid var(--theme-input-border);
   border-radius: 12px;
-  background: rgba(15, 23, 42, 0.72);
-  color: #f8fafc;
+  background: var(--theme-input-bg);
+  color: var(--theme-text-strong);
   min-height: 42px;
   padding: 0.45rem 0.6rem;
   outline: none;
 }
 
 .filter-select:focus {
-  border-color: rgba(34, 211, 238, 0.62);
+  border-color: var(--theme-brand-border);
 }
 
 .filter-select option {
-  color: #0f172a;
+  color: var(--theme-text-strong);
 }
 
 .results-chip {
   min-height: 42px;
-  border: 1px solid rgba(148, 163, 184, 0.24);
+  border: 1px solid var(--theme-border);
   border-radius: 12px;
-  background: rgba(148, 163, 184, 0.1);
+  background: var(--theme-surface-soft-strong);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.42rem;
-  color: #e2e8f0;
+  color: var(--theme-text-primary);
   font-weight: 600;
   font-size: 0.86rem;
 }
@@ -613,7 +613,7 @@ export default {
 .chip-icon {
   width: 0.92rem;
   height: 0.92rem;
-  color: #67e8f9;
+  color: var(--theme-brand-pill-text);
 }
 
 .table-shell {
@@ -636,22 +636,22 @@ export default {
   text-align: left;
   font-size: 0.82rem;
   font-weight: 700;
-  color: #cbd5e1;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.26);
+  color: var(--theme-text-soft);
+  border-bottom: 1px solid var(--theme-border);
   padding: 0.64rem 0.55rem;
 }
 
 .student-table td {
   padding: 0.64rem 0.55rem;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
-  color: #e2e8f0;
+  border-bottom: 1px solid var(--theme-border-soft);
+  color: var(--theme-text-primary);
   font-size: 0.9rem;
   vertical-align: middle;
   text-align: left;
 }
 
 .student-row:hover {
-  background: rgba(148, 163, 184, 0.07);
+  background: var(--theme-surface-soft);
 }
 
 .student-link {
@@ -669,8 +669,8 @@ export default {
   display: inline-grid;
   place-items: center;
   font-weight: 800;
-  background: linear-gradient(90deg, #0ea5e9, #3b82f6);
-  color: #fff;
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
+  color: var(--theme-brand-on);
   flex-shrink: 0;
 }
 
@@ -704,8 +704,8 @@ export default {
   border-radius: 999px;
   font-size: 0.78rem;
   font-weight: 700;
-  background: rgba(16, 185, 129, 0.2);
-  color: #a7f3d0;
+  background: var(--theme-success-soft);
+  color: var(--theme-success-text);
 }
 
 .shift-pills {
@@ -725,13 +725,13 @@ export default {
 }
 
 .shift-pill.active {
-  background: rgba(16, 185, 129, 0.22);
-  color: #a7f3d0;
+  background: var(--theme-success-soft);
+  color: var(--theme-success-text);
 }
 
 .shift-pill.inactive {
-  background: rgba(148, 163, 184, 0.15);
-  color: #94a3b8;
+  background: var(--theme-surface-soft-heavy);
+  color: var(--theme-text-secondary);
 }
 
 .shift-icon {
@@ -741,7 +741,7 @@ export default {
 
 .fee-amount {
   font-weight: 700;
-  color: #fecaca;
+  color: var(--theme-danger-text);
   font-family: Monaco, Menlo, monospace;
 }
 
@@ -756,13 +756,13 @@ export default {
 }
 
 .status-active {
-  background: rgba(16, 185, 129, 0.2);
-  color: #a7f3d0;
+  background: var(--theme-success-soft);
+  color: var(--theme-success-text);
 }
 
 .status-left {
-  background: rgba(245, 158, 11, 0.18);
-  color: #fde68a;
+  background: var(--theme-warning-soft);
+  color: var(--theme-warning-text);
 }
 
 .actions {
@@ -790,15 +790,15 @@ export default {
 }
 
 .edit-btn {
-  background: rgba(14, 165, 233, 0.2);
-  border-color: rgba(14, 165, 233, 0.34);
-  color: #bae6fd;
+  background: var(--theme-info-soft);
+  border-color: var(--theme-info-border);
+  color: var(--theme-info-text);
 }
 
 .delete-btn {
-  background: rgba(239, 68, 68, 0.16);
-  border-color: rgba(239, 68, 68, 0.34);
-  color: #fecaca;
+  background: var(--theme-danger-soft);
+  border-color: var(--theme-danger-border);
+  color: var(--theme-danger-text);
 }
 
 .mobile-view {
@@ -847,7 +847,7 @@ export default {
 .empty-icon {
   width: 1.9rem;
   height: 1.9rem;
-  color: #67e8f9;
+  color: var(--theme-brand-pill-text);
 }
 
 .empty-state h3 {
@@ -863,7 +863,7 @@ export default {
   position: fixed;
   inset: 0;
   z-index: 1400;
-  background: rgba(2, 6, 23, 0.72);
+  background: var(--theme-overlay);
   backdrop-filter: blur(5px);
   display: flex;
   align-items: center;
@@ -887,8 +887,8 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem;
-  background: rgba(15, 23, 42, 0.86);
-  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  background: var(--theme-panel-solid);
+  border-bottom: 1px solid var(--theme-border-soft);
 }
 
 .modal-head h3 {
@@ -900,9 +900,9 @@ export default {
   width: 34px;
   height: 34px;
   border-radius: 10px;
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  background: rgba(148, 163, 184, 0.1);
-  color: #e2e8f0;
+  border: 1px solid var(--theme-input-border);
+  background: var(--theme-surface-soft-heavy);
+  color: var(--theme-text-primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
