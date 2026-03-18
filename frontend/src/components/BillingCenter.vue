@@ -884,7 +884,6 @@ onBeforeUnmount(() => {
 .section-shell {
   width: min(1140px, calc(100% - 2rem));
   margin: 0 auto;
-  overflow-x: hidden;
   padding-top: 1rem;
 }
 
