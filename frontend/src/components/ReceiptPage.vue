@@ -149,18 +149,22 @@ export default {
         position: 'top',
         timeout: 3000,
         style: {
-          backgroundColor: '#10b981',
-          color: '#fff',
+          backgroundColor: 'var(--theme-panel-solid)',
+          color: 'var(--theme-text-strong)',
+          border: '1px solid var(--theme-success-border)',
           borderRadius: '12px',
+          boxShadow: 'var(--theme-shadow-soft)',
         },
       }),
       showError: (message) => toast.error(message, {
         position: 'top',
         timeout: 3000,
         style: {
-          backgroundColor: '#dc2626',
-          color: '#fff',
+          backgroundColor: 'var(--theme-panel-solid)',
+          color: 'var(--theme-text-strong)',
+          border: '1px solid var(--theme-danger-border)',
           borderRadius: '12px',
+          boxShadow: 'var(--theme-shadow-soft)',
         },
       }),
     }
@@ -503,15 +507,17 @@ export default {
 }
 
 .download-btn {
-  background: rgba(16, 185, 129, 0.2);
-  border-color: rgba(16, 185, 129, 0.35);
-  color: #a7f3d0;
+  background: linear-gradient(135deg, var(--theme-info-solid), var(--theme-brand-b));
+  border-color: transparent;
+  color: #f8fafc;
+  box-shadow: var(--theme-shadow-elevated);
 }
 
 .whatsapp-btn {
-  background: rgba(34, 197, 94, 0.2);
-  border-color: rgba(34, 197, 94, 0.35);
-  color: #86efac;
+  background: linear-gradient(135deg, var(--theme-success-solid), var(--theme-success-solid-alt));
+  border-color: transparent;
+  color: #f8fafc;
+  box-shadow: var(--theme-shadow-elevated);
 }
 
 .back-btn {

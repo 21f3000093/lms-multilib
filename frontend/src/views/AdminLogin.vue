@@ -164,9 +164,11 @@ const showSuccess = (message) => {
     position: 'top',
     timeout: 2000,
     style: {
-      backgroundColor: '#0ea5e9',
-      color: '#fff',
+      backgroundColor: 'var(--theme-panel-solid)',
+      color: 'var(--theme-text-strong)',
+      border: '1px solid var(--theme-brand-border)',
       borderRadius: '12px',
+      boxShadow: 'var(--theme-shadow-soft)',
     },
   })
 }
@@ -174,9 +176,11 @@ const showSuccess = (message) => {
 const showError = (message) => {
   toast.error(message, {
     style: {
-      backgroundColor: '#dc2626',
-      color: '#fff',
+      backgroundColor: 'var(--theme-panel-solid)',
+      color: 'var(--theme-text-strong)',
+      border: '1px solid var(--theme-danger-border)',
       borderRadius: '12px',
+      boxShadow: 'var(--theme-shadow-soft)',
     },
   })
 }
