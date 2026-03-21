@@ -204,4 +204,13 @@ onMounted(() => {
 .spinner, .input-icon, .banner-icon { width: 1rem; height: 1rem; }
 .spinner { animation: spin 0.9s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 767px) {
+  .auth-page { 
+    padding: 5rem .5rem 2rem; 
+  }
+  .auth-shell { 
+    width: auto;
+  }
+}
 </style>
