@@ -22,10 +22,12 @@ const showErrorToast = (message, timeout = 5000) => {
     icon: true,
     rtl: false,
     style: {
-      backgroundColor: '#dc3545',
-      color: '#fff',
+      backgroundColor: 'var(--theme-panel-solid)',
+      color: 'var(--theme-text-strong)',
+      border: '1px solid var(--theme-danger-border)',
       borderRadius: '8px',
-      margin: '10px'
+      margin: '10px',
+      boxShadow: 'var(--theme-shadow-soft)',
     }
   });
 };
@@ -44,17 +46,19 @@ const showWarningToast = (message, timeout = 3000) => {
     icon: true,
     rtl: false,
     style: {
-      backgroundColor: '#ffc107',
-      color: '#212529',
+      backgroundColor: 'var(--theme-panel-solid)',
+      color: 'var(--theme-text-strong)',
+      border: '1px solid var(--theme-warning-border)',
       borderRadius: '8px',
-      margin: '10px'
+      margin: '10px',
+      boxShadow: 'var(--theme-shadow-soft)',
     }
   });
 };
 
 const API = axios.create({
-  baseURL: 'https://lms-multilib-production-1470.up.railway.app',
-  // baseURL: "https://api.smartlibraryapp.in",
+  // baseURL: 'https://lms-multilib-production-1470.up.railway.app',
+  baseURL: "https://api.smartlibraryapp.in",
   // baseURL: 'http://localhost:8000',
   withCredentials: true,  // 🔒 Send secure HttpOnly cookie with every request
 });

@@ -140,6 +140,14 @@ body {
   scrollbar-color: var(--theme-surface-muted) transparent;
 }
 
+.v-toast__item .v-toast__icon {
+  background-size: contain !important;
+}
+
+:root[data-theme='light'] .v-toast__item .v-toast__icon {
+  filter: brightness(0) saturate(100%) opacity(0.78);
+}
+
 ::selection {
   background: rgba(34, 211, 238, 0.24);
   color: var(--theme-text-strong);
