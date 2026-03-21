@@ -14,19 +14,19 @@
         <div class="intro-points">
           <div class="point-chip">
             <ShieldCheck class="point-icon" aria-hidden="true" />
-            Email verification first
+            Setup in 60 seconds
           </div>
           <div class="point-chip">
             <Sparkles class="point-icon" aria-hidden="true" />
-            Risk-based instant activation
+            WhatsApp alerts ready
           </div>
           <div class="point-chip">
             <CircleDollarSign class="point-icon" aria-hidden="true" />
-            Trial starts on activation
+            14-day free full access
           </div>
           <div class="point-chip">
-            <Mail class="point-icon" aria-hidden="true" />
-            Google signup available
+            <CreditCard class="point-icon" aria-hidden="true" />
+            No payment required
           </div>
         </div>
       </article>
@@ -230,6 +230,7 @@ import {
   LoaderCircle,
   Lock,
   Mail,
+  CreditCard,
   MapPin,
   Phone,
   ShieldCheck,
@@ -279,37 +280,37 @@ const isGoogleSignupLike = computed(() => isGoogleOnboarding.value || signupMeth
 const showPasswordFields = computed(() => signupMethod.value === 'password' && !isGoogleOnboarding.value)
 
 const heroLead = computed(() => {
-  if (isGoogleOnboarding.value) return 'Finish your'
-  if (isResubmitMode.value) return 'Update your request and'
-  return 'Launch your library workspace with'
+  if (isGoogleOnboarding.value) return 'Almost there! Finish your'
+  if (isResubmitMode.value) return 'Quickly update and'
+  return 'The smartest way to'
 })
 
 const heroAccent = computed(() => {
-  if (isGoogleOnboarding.value) return 'Google signup'
-  if (isResubmitMode.value) return 'resubmit for activation'
-  return 'low-friction signup'
+  if (isGoogleOnboarding.value) return 'workspace setup'
+  if (isResubmitMode.value) return 'restart your access'
+  return 'manage your library'
 })
 
 const heroDescription = computed(() => {
   if (isGoogleOnboarding.value) {
-    return 'Your Google email is already verified. Add the remaining library details and we will activate safe signups instantly.'
+    return 'Your Google account is verified. Just a few library details left to get you into your new dashboard.'
   }
   if (isResubmitMode.value) {
-    return 'Make the requested changes and send the signup back through verification so we can activate it cleanly.'
+    return 'We noticed a small detail needs fixing. Correct it below so we can get your library back online immediately.'
   }
-  return 'Choose email signup or continue with Google. Safe signups activate immediately after verification, and only risky ones go to manual review.'
+  return 'Join hundreds of study centers using Smart Library to automate seat tracking, fee records, and WhatsApp alerts.'
 })
 
 const formHeading = computed(() => {
-  if (isGoogleOnboarding.value) return 'Complete your Google signup'
+  if (isGoogleOnboarding.value) return 'Finalize Workspace'
   if (isResubmitMode.value) return 'Resubmit signup request'
-  return 'Create your library workspace'
+  return 'Get Started for Free'
 })
 
 const formSubheading = computed(() => {
-  if (isGoogleOnboarding.value) return 'We already verified your Google account. Only the workspace details are left.'
-  if (isResubmitMode.value) return 'Review the rejected request and send the updated version.'
-  return 'Submit your library details and owner account to start the verification and activation flow.'
+  if (isGoogleOnboarding.value) return 'Just add your library info to start your 14-day trial.'
+  if (isResubmitMode.value) return 'Please adjust the highlighted fields to proceed.'
+  return 'No commitment required. Start your 14-day free trial today.'
 })
 
 const showError = (message) => {
