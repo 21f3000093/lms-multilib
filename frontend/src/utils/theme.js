@@ -1,7 +1,7 @@
 import { computed, reactive, readonly } from 'vue'
 
 export const THEME_STORAGE_KEY = 'smart-library-theme'
-const DEFAULT_THEME = 'dark'
+const DEFAULT_THEME = 'light' // change this to 'light' if you want light theme by default or 'dark' if you want dark theme by default
 
 const state = reactive({
   current: DEFAULT_THEME,
