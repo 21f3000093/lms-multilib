@@ -6,27 +6,26 @@
       <article class="intro-card">
         <p class="kicker">Smart Library App</p>
         <h1>
-          Unified operations for
-          <span class="gradient-text">modern libraries</span>
+          Welcome back to your
+          <span class="gradient-text">smart workspace</span>
         </h1>
         <p>
-          Manage students, seat allocation, payments, reminders, and analytics from a single secure workspace.
+          Continue managing your library's students, seat availability, and automated communications with ease.
         </p>
-
-        <!-- <div class="intro-points">
-          <div class="point">
+        <div class="intro-points">
+          <div class="point-chip">
+            <LayoutDashboard class="point-icon" aria-hidden="true" />
+            Unified Admin Dashboard
+          </div>
+          <div class="point-chip">
+            <Zap class="point-icon" aria-hidden="true" />
+            Automated Workflows
+          </div>
+          <div class="point-chip">
             <ShieldCheck class="point-icon" aria-hidden="true" />
-            Role-based access
+            Secure Multi-role Access
           </div>
-          <div class="point">
-            <Sparkles class="point-icon" aria-hidden="true" />
-            WhatsApp automation
-          </div>
-          <div class="point">
-            <BarChart3 class="point-icon" aria-hidden="true" />
-            Real-time visibility
-          </div>
-        </div> -->
+        </div>
       </article>
 
       <article class="form-card">
@@ -128,14 +127,15 @@ import { onMounted, ref } from 'vue'
 import {
   AlertCircle,
   ArrowRight,
-  // BarChart3,
   Eye,
   EyeOff,
   LoaderCircle,
   Lock,
-  // ShieldCheck,
-  // Sparkles, 
   User,
+  // ADD THESE:
+  LayoutDashboard, 
+  Zap,
+  ShieldCheck
 } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toast-notification'
