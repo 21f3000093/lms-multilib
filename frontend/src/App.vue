@@ -16,6 +16,7 @@
 
 <script>
 import NavBar from './components/NavBar.vue';
+import { initTheme } from './utils/theme'
 
 export default {
   components: { NavBar },
@@ -31,6 +32,7 @@ export default {
     }
   },
   mounted() {
+    initTheme()
     this.checkLoginStatus()
   },
   methods: {
@@ -51,11 +53,11 @@ export default {
 body, html, #app {
   margin: 0;
   padding: 0;
-  background: #0f172a;
+  background: var(--theme-page-bg);
 }
 
 .app-background {
-  --global-bg: #0f172a;
+  --global-bg: var(--theme-page-bg);
   --sidebar-width: 260px;
   --topbar-height: 68px;
 
@@ -72,11 +74,7 @@ body, html, #app {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background:
-    radial-gradient(48rem 26rem at 8% 14%, rgba(34, 211, 238, 0.14), transparent 70%),
-    radial-gradient(44rem 26rem at 90% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
-    radial-gradient(40rem 24rem at 66% 88%, rgba(14, 165, 233, 0.10), transparent 70%),
-    linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
+  background: var(--theme-mesh-background);
   filter: saturate(112%);
   animation: app-mesh-drift 18s ease-in-out infinite alternate;
 }
@@ -103,7 +101,7 @@ body, html, #app {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #e2e8f0;
+  color: var(--theme-text-primary);
 }
 
 @keyframes app-mesh-drift {

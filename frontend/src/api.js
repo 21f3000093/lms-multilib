@@ -22,10 +22,12 @@ const showErrorToast = (message, timeout = 5000) => {
     icon: true,
     rtl: false,
     style: {
-      backgroundColor: '#dc3545',
-      color: '#fff',
+      backgroundColor: 'var(--theme-panel-solid)',
+      color: 'var(--theme-text-strong)',
+      border: '1px solid var(--theme-danger-border)',
       borderRadius: '8px',
-      margin: '10px'
+      margin: '10px',
+      boxShadow: 'var(--theme-shadow-soft)',
     }
   });
 };
@@ -44,10 +46,12 @@ const showWarningToast = (message, timeout = 3000) => {
     icon: true,
     rtl: false,
     style: {
-      backgroundColor: '#ffc107',
-      color: '#212529',
+      backgroundColor: 'var(--theme-panel-solid)',
+      color: 'var(--theme-text-strong)',
+      border: '1px solid var(--theme-warning-border)',
       borderRadius: '8px',
-      margin: '10px'
+      margin: '10px',
+      boxShadow: 'var(--theme-shadow-soft)',
     }
   });
 };
@@ -92,7 +96,7 @@ API.interceptors.response.use(
       } 
       else if (status === 401) {
         if (detail === 'invalid_credentials') {
-          showErrorToast('Invalid username or password.');
+          showErrorToast('Invalid username, email, or password.');
         } else if (detail === 'token_expired_or_invalid') {
           showWarningToast('Your session has expired. Please log in again.');
         } else {

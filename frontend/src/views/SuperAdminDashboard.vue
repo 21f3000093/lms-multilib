@@ -60,6 +60,7 @@
 
         <form class="grid-form" @submit.prevent="createAdmin">
           <input v-model="newAdmin.username" placeholder="Username" required />
+          <input v-model="newAdmin.email" type="email" placeholder="Email (optional)" />
           <input v-model="newAdmin.password" type="password" placeholder="Password" required />
 
           <select v-model="newAdmin.library_id" required>
@@ -129,6 +130,7 @@
               <tr>
                 <th>ID</th>
                 <th>Username</th>
+                <th>Email</th>
                 <th>Role</th>
                 <th>Library ID</th>
                 <th>Status</th>
@@ -139,6 +141,7 @@
               <tr v-for="admin in admins" :key="admin.id">
                 <td>{{ admin.id }}</td>
                 <td>{{ admin.username }}</td>
+                <td>{{ admin.email || '—' }}</td>
                 <td>{{ admin.role }}</td>
                 <td>{{ admin.library_id || '—' }}</td>
                 <td>
@@ -177,6 +180,7 @@ export default {
       admins: [],
       newAdmin: {
         username: '',
+        email: '',
         password: '',
         library_id: ''
       },
@@ -199,12 +203,13 @@ export default {
       try {
         const payload = {
           username: this.newAdmin.username,
+          email: this.newAdmin.email || null,
           password: this.newAdmin.password,
           library_id: parseInt(this.newAdmin.library_id)
         }
         await API.post('/superadmin/admins', payload)
         this.loadAdmins()
-        this.newAdmin = { username: '', password: '', library_id: '' }
+        this.newAdmin = { username: '', email: '', password: '', library_id: '' }
         alert('Admin created successfully!')
       } catch (err) {
         alert('Failed to create admin')
@@ -287,10 +292,10 @@ export default {
 
 <style scoped>
 .superadmin-page {
-  --surface: rgba(148, 163, 184, 0.03);
-  --surface-border: rgba(255, 255, 255, 0.03);
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
+  --surface: var(--theme-surface);
+  --surface-border: var(--theme-surface-border);
+  --text-primary: var(--theme-text-primary);
+  --text-secondary: var(--theme-text-secondary);
 
   position: relative;
   min-height: 100vh;
@@ -304,11 +309,7 @@ export default {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background:
-    radial-gradient(45rem 24rem at 10% 15%, rgba(34, 211, 238, 0.14), transparent 70%),
-    radial-gradient(40rem 24rem at 86% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
-    radial-gradient(36rem 22rem at 65% 88%, rgba(14, 165, 233, 0.11), transparent 70%),
-    linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
+  background: var(--theme-mesh-background);
   filter: saturate(115%);
   animation: mesh-drift 18s ease-in-out infinite alternate;
 }
@@ -330,12 +331,12 @@ export default {
   display: inline-flex;
   padding: 0.4rem 0.8rem;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  border: 1px solid var(--theme-border);
   font-size: 0.8rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #cbd5e1;
-  background: rgba(148, 163, 184, 0.07);
+  color: var(--theme-text-soft);
+  background: var(--theme-surface-soft);
 }
 
 .hero h1 {
@@ -346,7 +347,7 @@ export default {
 }
 
 .gradient-text {
-  background: linear-gradient(90deg, #22d3ee, #3b82f6);
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -432,10 +433,10 @@ export default {
 .grid-form input,
 .grid-form select {
   width: 95%;
-  border: 1px solid rgba(148, 163, 184, 0.3);
+  border: 1px solid var(--theme-input-border);
   border-radius: 12px;
-  background: rgba(15, 23, 42, 0.72);
-  color: #f8fafc;
+  background: var(--theme-input-bg);
+  color: var(--theme-text-strong);
   font-size: 0.95rem;
   padding: 0.7rem 0.75rem;
   outline: none;
@@ -443,12 +444,12 @@ export default {
 
 .grid-form input:focus,
 .grid-form select:focus {
-  border-color: rgba(34, 211, 238, 0.62);
-  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.16);
+  border-color: var(--theme-brand-border);
+  box-shadow: 0 0 0 3px var(--theme-brand-ring);
 }
 
 .grid-form select option {
-  color: #0f172a;
+  color: var(--theme-text-strong);
 }
 
 .table-grid {
@@ -480,24 +481,24 @@ thead th {
   text-align: left;
   font-size: 0.82rem;
   font-weight: 700;
-  color: #cbd5e1;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.26);
+  color: var(--theme-text-soft);
+  border-bottom: 1px solid var(--theme-border);
   padding: 0.65rem 0.55rem;
 }
 
 tbody td {
   padding: 0.65rem 0.55rem;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
-  color: #e2e8f0;
+  border-bottom: 1px solid var(--theme-border-soft);
+  color: var(--theme-text-primary);
   font-size: 0.9rem;
 }
 
 tbody tr:hover {
-  background: rgba(148, 163, 184, 0.07);
+  background: var(--theme-surface-soft);
 }
 
 .inline-link {
-  color: #67e8f9;
+  color: var(--theme-brand-pill-text);
   text-decoration: none;
   font-weight: 600;
 }
@@ -517,18 +518,18 @@ tbody tr:hover {
 }
 
 .status-active {
-  background: rgba(16, 185, 129, 0.2);
-  color: #a7f3d0;
+  background: var(--theme-success-soft);
+  color: var(--theme-success-text);
 }
 
 .status-inactive {
-  background: rgba(245, 158, 11, 0.2);
-  color: #fde68a;
+  background: var(--theme-warning-soft);
+  color: var(--theme-warning-text);
 }
 
 .status-blocked {
-  background: rgba(239, 68, 68, 0.2);
-  color: #fecaca;
+  background: var(--theme-danger-soft);
+  color: var(--theme-danger-text);
 }
 
 .admin-actions {
@@ -539,16 +540,16 @@ tbody tr:hover {
 }
 
 .admin-actions select {
-  border: 1px solid rgba(148, 163, 184, 0.3);
+  border: 1px solid var(--theme-input-border);
   border-radius: 8px;
-  background: rgba(15, 23, 42, 0.72);
-  color: #e2e8f0;
+  background: var(--theme-input-bg);
+  color: var(--theme-text-primary);
   padding: 0.35rem 0.45rem;
   font-size: 0.8rem;
 }
 
 .admin-actions select option {
-  color: #0f172a;
+  color: var(--theme-text-strong);
 }
 
 .btn {
@@ -571,21 +572,21 @@ tbody tr:hover {
 }
 
 .btn-solid {
-  background: linear-gradient(90deg, #0ea5e9, #3b82f6);
-  color: #fff;
-  box-shadow: 0 14px 28px rgba(59, 130, 246, 0.28);
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
+  color: var(--theme-brand-on);
+  box-shadow: var(--theme-shadow-elevated);
 }
 
 .btn-ghost {
-  background: rgba(148, 163, 184, 0.08);
-  border-color: rgba(148, 163, 184, 0.32);
-  color: #e2e8f0;
+  background: var(--theme-surface-soft-strong);
+  border-color: var(--theme-border-strong);
+  color: var(--theme-text-primary);
 }
 
 .btn-danger {
-  background: rgba(239, 68, 68, 0.16);
-  border-color: rgba(239, 68, 68, 0.36);
-  color: #fecaca;
+  background: var(--theme-danger-soft);
+  border-color: var(--theme-danger-border);
+  color: var(--theme-danger-text);
 }
 
 .full-width {

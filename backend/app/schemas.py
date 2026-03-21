@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Literal, Optional, List
 from datetime import date, datetime
 
 class StudentCreate(BaseModel):
@@ -89,8 +89,10 @@ class StudentBulkPaymentResult(BaseModel):
 
 
 class AdminLogin(BaseModel):
-    username: str
+    identifier: Optional[str] = None
+    username: Optional[str] = None
     password: str
+    captcha_token: Optional[str] = None
 
 # class AdminOut(BaseModel):
 #     id: int
@@ -122,6 +124,33 @@ class AdminCreate(BaseModel):
     username: str
     password: str
     library_id: Optional[int] = None
+    email: Optional[str] = None
+
+    class Config:
+        orm_mode = True
+
+
+class SelfServeSignupRequest(BaseModel):
+    library_name: str
+    max_seats: int = Field(..., ge=1, le=200)
+    contact_phone: str
+    address: Optional[str] = None
+    admin_username: str
+    admin_email: str
+    password: str
+    confirm_password: str
+    captcha_token: Optional[str] = None
+
+
+class SelfServeSignupOut(BaseModel):
+    id: int
+    username: str
+    email: Optional[str] = None
+    role: str
+    library_id: Optional[int]
+    status: str
+    created_at: Optional[date]
+    library: Optional[LibraryOut]
 
     class Config:
         orm_mode = True
@@ -130,6 +159,8 @@ class AdminCreate(BaseModel):
 class AdminOut(BaseModel):
     id: int
     username: str
+    email: Optional[str] = None
+    email_verified_at: Optional[datetime] = None
     role: str
     library_id: Optional[int]
     status: str
@@ -147,6 +178,141 @@ class AdminChangePassword(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class AuthActionResponse(BaseModel):
+    ok: bool = True
+    message: str
+    code: Optional[str] = None
+    public_id: Optional[str] = None
+    status: Optional[str] = None
+    action: Optional[str] = None
+    next_route: Optional[str] = None
+    admin: Optional[AdminOut] = None
+    onboarding_token: Optional[str] = None
+    prefill_email: Optional[str] = None
+    suggested_username: Optional[str] = None
+    provider: Optional[str] = None
+    requires_captcha: bool = False
+    retry_after_seconds: Optional[int] = None
+
+
+class SignupRequestStatusOut(BaseModel):
+    public_id: str
+    status: str
+    signup_method: str = "password"
+    library_name: str
+    contact_phone: str
+    address: Optional[str] = None
+    admin_username: str
+    admin_email: str
+    max_seats: int
+    submitted_at: datetime
+    verification_sent_at: Optional[datetime] = None
+    verified_at: Optional[datetime] = None
+    approved_at: Optional[datetime] = None
+    rejected_at: Optional[datetime] = None
+    rejection_reason: Optional[str] = None
+    review_reason: Optional[str] = None
+    expires_at: Optional[datetime] = None
+
+
+class SignupVerifyRequest(BaseModel):
+    token: str = Field(..., min_length=16)
+
+
+class SignupResendVerificationRequest(BaseModel):
+    public_id: str = Field(..., min_length=8, max_length=120)
+    captcha_token: Optional[str] = None
+
+
+class SignupResubmitRequest(BaseModel):
+    token: str = Field(..., min_length=16)
+    library_name: str
+    max_seats: int = Field(..., ge=1, le=200)
+    contact_phone: str
+    address: Optional[str] = None
+    admin_username: str
+    admin_email: str
+    password: Optional[str] = None
+    confirm_password: Optional[str] = None
+    captcha_token: Optional[str] = None
+
+
+class SignupQueueRowOut(BaseModel):
+    id: int
+    public_id: str
+    signup_method: str = "password"
+    library_name: str
+    max_seats: int
+    contact_phone: str
+    address: Optional[str] = None
+    admin_username: str
+    admin_email: str
+    status: str
+    submitted_at: datetime
+    verification_sent_at: Optional[datetime] = None
+    verified_at: Optional[datetime] = None
+    approved_at: Optional[datetime] = None
+    rejected_at: Optional[datetime] = None
+    rejection_reason: Optional[str] = None
+    review_reason: Optional[str] = None
+    expires_at: Optional[datetime] = None
+    created_library_id: Optional[int] = None
+    created_admin_id: Optional[int] = None
+    recent_risk_events: int = 0
+
+    class Config:
+        orm_mode = True
+
+
+class SignupQueueRejectRequest(BaseModel):
+    reason: str = Field(..., min_length=3, max_length=500)
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+    captcha_token: Optional[str] = None
+
+
+class PasswordResetConfirmLinkRequest(BaseModel):
+    token: str = Field(..., min_length=16)
+    new_password: str = Field(..., min_length=6)
+    confirm_password: str = Field(..., min_length=6)
+
+
+class PasswordResetConfirmOtpRequest(BaseModel):
+    email: str
+    otp: str = Field(..., min_length=4, max_length=8)
+    new_password: str = Field(..., min_length=6)
+    confirm_password: str = Field(..., min_length=6)
+    captcha_token: Optional[str] = None
+
+
+class TurnstileConfigOut(BaseModel):
+    enabled: bool
+    site_key: Optional[str] = None
+
+
+class GoogleConfigOut(BaseModel):
+    enabled: bool
+    client_id: Optional[str] = None
+
+
+class GoogleExchangeRequest(BaseModel):
+    credential: str = Field(..., min_length=16)
+    intent: Literal["login", "signup"] = "login"
+    captcha_token: Optional[str] = None
+
+
+class GoogleCompleteSignupRequest(BaseModel):
+    onboarding_token: str = Field(..., min_length=16)
+    library_name: str
+    max_seats: int = Field(..., ge=1, le=200)
+    contact_phone: str
+    address: Optional[str] = None
+    admin_username: str
+    captcha_token: Optional[str] = None
         
         
         

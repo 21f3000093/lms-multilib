@@ -79,7 +79,7 @@
 
         <div class="cta-actions">
           <a class="btn btn-solid magnetic" 
-            href="https://wa.me/919024600138?text=Hi%20Shubham!%20I'd%20like%20to%20start%20a%20conversation%20about%20the%20Smart%20Library%20project." 
+            href="https://wa.me/919024600138?text=Hi%20Shubham!%20I'd%20like%20to%20start%20a%20conversation%20about%20the%20Smart%20Library%20app." 
             target="_blank" 
             rel="noopener noreferrer"
             @mousemove="onMagneticMove" 
@@ -210,13 +210,13 @@ onBeforeUnmount(() => {
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 .about-page {
-  --bg: #0f172a;
-  --surface: rgba(148, 163, 184, 0.03);
-  --surface-border: rgba(255, 255, 255, 0.03);
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
-  --brand-a: #22d3ee;
-  --brand-b: #3b82f6;
+  --bg: var(--theme-page-bg);
+  --surface: var(--theme-surface);
+  --surface-border: var(--theme-surface-border);
+  --text-primary: var(--theme-text-primary);
+  --text-secondary: var(--theme-text-secondary);
+  --brand-a: var(--theme-brand-a);
+  --brand-b: var(--theme-brand-b);
 
   position: relative;
   min-height: 100vh;
@@ -232,11 +232,7 @@ onBeforeUnmount(() => {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background:
-    radial-gradient(45rem 24rem at 10% 15%, rgba(34, 211, 238, 0.14), transparent 70%),
-    radial-gradient(40rem 24rem at 86% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
-    radial-gradient(36rem 22rem at 65% 88%, rgba(14, 165, 233, 0.11), transparent 70%),
-    linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
+  background: var(--theme-mesh-background);
   filter: saturate(115%);
   animation: mesh-drift 18s ease-in-out infinite alternate;
 }
@@ -260,12 +256,12 @@ onBeforeUnmount(() => {
   display: inline-flex;
   padding: 0.4rem 0.8rem;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  border: 1px solid var(--theme-border);
   font-size: 0.8rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #cbd5e1;
-  background: rgba(148, 163, 184, 0.07);
+  color: var(--theme-text-soft);
+  background: var(--theme-surface-soft);
 }
 
 .hero h1 {
@@ -336,7 +332,7 @@ onBeforeUnmount(() => {
 .orb-icon {
   width: 3.4rem;
   height: 3.4rem;
-  color: #e2e8f0;
+  color: var(--theme-text-strong);
   stroke-width: 1.8;
 }
 
@@ -417,8 +413,8 @@ onBeforeUnmount(() => {
 
 .bento-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(34, 211, 238, 0.28);
-  box-shadow: 0 20px 34px rgba(2, 6, 23, 0.42);
+  border-color: var(--theme-brand-border);
+  box-shadow: var(--theme-shadow-soft);
 }
 
 .bento-card:hover::before {
@@ -442,14 +438,14 @@ onBeforeUnmount(() => {
   border-radius: 10px;
   display: grid;
   place-items: center;
-  background: rgba(148, 163, 184, 0.14);
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: var(--theme-surface-soft-strong);
+  border: 1px solid var(--theme-border-soft);
 }
 
 .feature-icon {
   width: 1.3rem;
   height: 1.3rem;
-  color: #cbd5e1;
+  color: var(--theme-text-soft);
   stroke-width: 2.1;
 }
 
@@ -470,7 +466,7 @@ onBeforeUnmount(() => {
 .cta-card {
   border-radius: 22px;
   padding: 1.8rem;
-  box-shadow: 0 20px 60px rgba(2, 6, 23, 0.45);
+  box-shadow: var(--theme-shadow-soft);
 }
 
 .btn {
@@ -508,19 +504,19 @@ onBeforeUnmount(() => {
 }
 
 .btn-solid {
-  background: linear-gradient(90deg, #0ea5e9, #3b82f6);
-  color: #f8fafc;
-  box-shadow: 0 14px 28px rgba(59, 130, 246, 0.28);
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
+  color: var(--theme-brand-on);
+  box-shadow: 0 14px 28px rgba(59, 130, 246, 0.2);
 }
 
 .btn-ghost {
-  color: #e2e8f0;
-  border-color: rgba(148, 163, 184, 0.4);
-  background: rgba(148, 163, 184, 0.04);
+  color: var(--theme-text-primary);
+  border-color: var(--theme-border-strong);
+  background: var(--theme-surface-soft);
 }
 
 .btn-ghost:hover {
-  border-color: rgba(34, 211, 238, 0.42);
+  border-color: var(--theme-brand-border);
 }
 
 .reveal {

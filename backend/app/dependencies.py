@@ -12,6 +12,7 @@ from app import crud, models
 from app.database import SessionLocal
 
 logger = logging.getLogger(__name__)
+ADMIN_ID_SUBJECT_PREFIX = "admin_id:"
 
 
 def get_db():
@@ -48,11 +49,31 @@ def get_subscription_enforcement_mode() -> str:
     return mode
 
 
+def build_admin_jwt_subject(admin_id: int) -> str:
+    return f"{ADMIN_ID_SUBJECT_PREFIX}{admin_id}"
+
+
+def get_admin_from_jwt_subject(db: Session, subject: str | None):
+    raw_subject = (subject or "").strip()
+    if not raw_subject:
+        return None
+
+    if raw_subject.startswith(ADMIN_ID_SUBJECT_PREFIX):
+        raw_admin_id = raw_subject.removeprefix(ADMIN_ID_SUBJECT_PREFIX)
+        try:
+            return crud.get_admin(db, int(raw_admin_id))
+        except ValueError:
+            return None
+
+    # Backward compatibility for legacy tokens that stored username as the subject.
+    return crud.get_admin_by_username(db, raw_subject)
+
+
 def get_current_admin(Authorize: AuthJWT = Depends(), db: Session = Depends(get_db)):
     try:
         Authorize.jwt_required()
-        username = Authorize.get_jwt_subject()
-        admin = crud.get_admin_by_username(db, username)  # type: ignore
+        subject = Authorize.get_jwt_subject()
+        admin = get_admin_from_jwt_subject(db, subject)
         if not admin or admin.status != "active":  # type: ignore
             raise HTTPException(status_code=403, detail="Unauthorized")
         return admin

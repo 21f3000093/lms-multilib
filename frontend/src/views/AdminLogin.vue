@@ -36,17 +36,32 @@
         </header>
 
         <form class="login-form" @submit.prevent="login">
-          <label class="input-label" for="username">Username</label>
-          <div class="input-wrap" :class="{ error: error && !username }">
+          <div class="social-block">
+            <GoogleAuthButton
+              text="continue_with"
+              hint="Use the same Google email that is linked to your Smart Library account."
+              @credential="handleGoogleCredential"
+              @error="handleGoogleError"
+            />
+          </div>
+
+          <div class="divider" aria-hidden="true">
+            <span></span>
+            <p>or continue with password</p>
+            <span></span>
+          </div>
+
+          <label class="input-label" for="identifier">Username or Email</label>
+          <div class="input-wrap" :class="{ error: error && !identifier }">
             <User class="input-icon" aria-hidden="true" />
             <input
-              id="username"
-              v-model="username"
+              id="identifier"
+              v-model="identifier"
               type="text"
-              placeholder="Enter username"
+              placeholder="Enter username or email"
               required
               autocomplete="username"
-              @blur="onUsernameBlur"
+              @blur="onIdentifierBlur"
             />
           </div>
 
@@ -68,6 +83,18 @@
             </button>
           </div>
 
+          <div class="helper-row">
+            <router-link to="/forgot-password" class="helper-link">Forgot password?</router-link>
+          </div>
+
+          <TurnstileWidget
+            v-if="requiresCaptcha && turnstileConfig.enabled"
+            :site-key="turnstileConfig.site_key"
+            :reset-key="captchaResetKey"
+            @verified="onCaptchaVerified"
+            @expired="onCaptchaExpired"
+          />
+
           <button type="submit" class="login-btn" :disabled="loading">
             <LoaderCircle v-if="loading" class="spinner" aria-hidden="true" />
             <span>{{ loading ? 'Signing in...' : 'Sign in' }}</span>
@@ -81,6 +108,8 @@
         </form>
 
         <div class="form-footer-links">
+          <router-link to="/signup">Start Free Trial</router-link>
+          <span>•</span>
           <router-link to="/pricing-plans">Pricing</router-link>
           <span>•</span>
           <router-link to="/about">About</router-link>
@@ -95,7 +124,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import {
   AlertCircle,
   ArrowRight,
@@ -113,24 +142,33 @@ import { useToast } from 'vue-toast-notification'
 import 'vue-toast-notification/dist/theme-sugar.css'
 import API from '../api'
 import { setupPushForCurrentAdmin } from '../utils/pushNotifications'
+import { homeRouteForRole, storeAdminSession } from '../utils/authSession'
+import GoogleAuthButton from '../components/GoogleAuthButton.vue'
+import TurnstileWidget from '../components/TurnstileWidget.vue'
 
 const router = useRouter()
 const toast = useToast()
 
-const username = ref('')
+const identifier = ref('')
 const password = ref('')
 const error = ref('')
 const showPassword = ref(false)
 const loading = ref(false)
+const requiresCaptcha = ref(false)
+const captchaToken = ref('')
+const captchaResetKey = ref(0)
+const turnstileConfig = ref({ enabled: false, site_key: null })
 
 const showSuccess = (message) => {
   toast.success(message, {
     position: 'top',
     timeout: 2000,
     style: {
-      backgroundColor: '#0ea5e9',
-      color: '#fff',
+      backgroundColor: 'var(--theme-panel-solid)',
+      color: 'var(--theme-text-strong)',
+      border: '1px solid var(--theme-brand-border)',
       borderRadius: '12px',
+      boxShadow: 'var(--theme-shadow-soft)',
     },
   })
 }
@@ -138,9 +176,11 @@ const showSuccess = (message) => {
 const showError = (message) => {
   toast.error(message, {
     style: {
-      backgroundColor: '#dc2626',
-      color: '#fff',
+      backgroundColor: 'var(--theme-panel-solid)',
+      color: 'var(--theme-text-strong)',
+      border: '1px solid var(--theme-danger-border)',
       borderRadius: '12px',
+      boxShadow: 'var(--theme-shadow-soft)',
     },
   })
 }
@@ -149,21 +189,107 @@ const togglePassword = () => {
   showPassword.value = !showPassword.value
 }
 
-const onUsernameBlur = () => {
-  username.value = username.value.trim().replace(/\s+/g, ' ')
+const onIdentifierBlur = () => {
+  identifier.value = identifier.value.trim().replace(/\s+/g, ' ')
 }
 
 const onPasswordBlur = () => {
   password.value = password.value.trim()
 }
 
+const loadTurnstileConfig = async () => {
+  try {
+    const res = await API.get('/auth/turnstile/config')
+    turnstileConfig.value = res.data
+  } catch (err) {
+    turnstileConfig.value = { enabled: false, site_key: null }
+  }
+}
+
+const applyAuthError = (err, fallbackMessage) => {
+  const detail = err.response?.data?.detail
+  if (detail && typeof detail === 'object') {
+    error.value = detail.message || fallbackMessage
+    if (detail.code === 'captcha_required' || detail.code === 'temporarily_locked') {
+      requiresCaptcha.value = true
+      captchaResetKey.value += 1
+    }
+    showError(error.value)
+    return
+  }
+
+  error.value = typeof detail === 'string' ? detail : fallbackMessage
+}
+
+const onCaptchaVerified = (token) => {
+  captchaToken.value = token
+}
+
+const onCaptchaExpired = () => {
+  captchaToken.value = ''
+}
+
+const handleAuthSuccess = async (admin, message) => {
+  storeAdminSession(admin)
+  showSuccess(message)
+
+  if (admin.role === 'admin') {
+    await setupPushForCurrentAdmin()
+  }
+
+  router.push(homeRouteForRole(admin.role))
+}
+
+const persistGoogleOnboarding = (payload) => {
+  sessionStorage.setItem('google_signup_onboarding', JSON.stringify(payload))
+}
+
+const handleGoogleCredential = async (credential) => {
+  error.value = ''
+  loading.value = true
+  try {
+    const res = await API.post('/auth/google/exchange', {
+      credential,
+      intent: 'login',
+      captcha_token: requiresCaptcha.value ? captchaToken.value : null,
+    })
+
+    if (res.data?.action === 'logged_in' && res.data?.admin) {
+      requiresCaptcha.value = false
+      captchaToken.value = ''
+      captchaResetKey.value += 1
+      await handleAuthSuccess(res.data.admin, 'Signed in with Google')
+      return
+    }
+
+    if (['signup_required', 'complete_signup'].includes(res.data?.action)) {
+      persistGoogleOnboarding(res.data)
+      router.push('/signup?google=1')
+      return
+    }
+
+    error.value = res.data?.message || 'Google sign-in could not be completed.'
+    showError(error.value)
+  } catch (err) {
+    applyAuthError(err, 'Google sign-in could not be completed.')
+    showError(error.value || 'Google sign-in could not be completed.')
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleGoogleError = () => {
+  error.value = 'Google sign-in is temporarily unavailable. Please use password login.'
+  showError(error.value)
+}
+
 const login = async () => {
   error.value = ''
-  onUsernameBlur()
+  onIdentifierBlur()
   onPasswordBlur()
 
-  if (!username.value || !password.value) {
-    error.value = 'Please enter both username and password'
+  if (!identifier.value || !password.value) {
+    error.value = 'Please enter your username or email and password'
     showError('Please fill in all fields')
     return
   }
@@ -181,49 +307,43 @@ const login = async () => {
   loading.value = true
   try {
     const res = await API.post('/auth/login', {
-      username: username.value,
+      identifier: identifier.value,
       password: password.value,
+      captcha_token: requiresCaptcha.value ? captchaToken.value : null,
     })
 
-    localStorage.setItem('role', res.data.role)
-    localStorage.setItem('username', res.data.username)
-    localStorage.setItem('library_id', res.data.library_id ?? '')
-    localStorage.setItem('library_name', res.data.library?.name || '')
-
-    showSuccess('Login successful')
-
-    if (res.data.role === 'admin') {
-      await setupPushForCurrentAdmin()
-    }
-
-    if (res.data.role === 'superadmin') {
-      router.push('/superadmin')
-    } else {
-      router.push('/dashboard')
-    }
+    requiresCaptcha.value = false
+    captchaToken.value = ''
+    captchaResetKey.value += 1
+    await handleAuthSuccess(res.data, 'Login successful')
   } catch (err) {
     if (err.response) {
-      error.value = err.response.data.detail || 'Invalid username or password'
+      applyAuthError(err, 'Invalid username, email, or password')
     } else {
       error.value = 'Network error. Please check your connection.'
+      showError(error.value)
     }
   } finally {
     loading.value = false
   }
 }
+
+onMounted(() => {
+  loadTurnstileConfig()
+})
 </script>
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 .login-page {
-  --bg: #0f172a;
-  --surface: rgba(148, 163, 184, 0.03);
-  --surface-border: rgba(255, 255, 255, 0.03);
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
-  --brand-a: #22d3ee;
-  --brand-b: #3b82f6;
+  --bg: var(--theme-page-bg);
+  --surface: var(--theme-surface);
+  --surface-border: var(--theme-surface-border);
+  --text-primary: var(--theme-text-primary);
+  --text-secondary: var(--theme-text-secondary);
+  --brand-a: var(--theme-brand-a);
+  --brand-b: var(--theme-brand-b);
 
   min-height: 100vh;
   position: relative;
@@ -239,11 +359,7 @@ const login = async () => {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background:
-    radial-gradient(45rem 24rem at 10% 15%, rgba(34, 211, 238, 0.14), transparent 70%),
-    radial-gradient(40rem 24rem at 86% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
-    radial-gradient(36rem 22rem at 65% 88%, rgba(14, 165, 233, 0.11), transparent 70%),
-    linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
+  background: var(--theme-mesh-background);
   filter: saturate(115%);
   animation: mesh-drift 18s ease-in-out infinite alternate;
 }
@@ -271,12 +387,12 @@ const login = async () => {
   display: inline-flex;
   padding: 0.4rem 0.8rem;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  border: 1px solid var(--theme-border);
   font-size: 0.8rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #cbd5e1;
-  background: rgba(148, 163, 184, 0.07);
+  color: var(--theme-text-soft);
+  background: var(--theme-surface-soft);
 }
 
 .intro-card h1 {
@@ -310,7 +426,7 @@ const login = async () => {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  color: #dbeafe;
+  color: var(--theme-text-info);
   font-weight: 600;
   font-size: 0.9rem;
 }
@@ -318,7 +434,7 @@ const login = async () => {
 .point-icon {
   width: 1rem;
   height: 1rem;
-  color: #67e8f9;
+  color: var(--theme-brand-pill-text);
 }
 
 .form-head h2 {
@@ -337,8 +453,48 @@ const login = async () => {
   gap: 0.7rem;
 }
 
+.helper-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.social-block {
+  margin-top: 0.15rem;
+}
+
+.divider {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.8rem;
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.divider span {
+  height: 1px;
+  background: var(--theme-border-soft);
+}
+
+.divider p {
+  margin: 0;
+}
+
+.helper-link {
+  color: var(--theme-brand-pill-text);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.helper-link:hover {
+  color: var(--theme-text-info);
+}
+
 .input-label {
-  color: #cbd5e1;
+  color: var(--theme-text-soft);
   font-weight: 600;
   font-size: 0.88rem;
 }
@@ -349,23 +505,23 @@ const login = async () => {
   gap: 0.5rem;
   border-radius: 12px;
   padding: 0 0.65rem;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid var(--theme-input-border);
+  background: var(--theme-input-bg);
 }
 
 .input-wrap.error {
-  border-color: rgba(248, 113, 113, 0.78);
+  border-color: var(--theme-danger-border);
 }
 
 .input-wrap:focus-within {
-  border-color: rgba(34, 211, 238, 0.7);
-  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.15);
+  border-color: var(--theme-brand-border);
+  box-shadow: 0 0 0 3px var(--theme-brand-ring);
 }
 
 .input-icon {
   width: 0.98rem;
   height: 0.98rem;
-  color: #94a3b8;
+  color: var(--theme-text-secondary);
   flex: 0 0 auto;
 }
 
@@ -374,39 +530,39 @@ const login = async () => {
   border: none;
   outline: none;
   background: transparent;
-  color: #f8fafc;
+  color: var(--theme-text-strong);
   font-size: 0.98rem;
   min-height: 46px;
 }
 
 .input-wrap input::placeholder {
-  color: #64748b;
+  color: var(--theme-input-placeholder);
 }
 
 .input-wrap input:-webkit-autofill,
 .input-wrap input:-webkit-autofill:hover,
 .input-wrap input:-webkit-autofill:focus,
 .input-wrap input:-webkit-autofill:active {
-  -webkit-text-fill-color: #f8fafc;
-  caret-color: #f8fafc;
-  -webkit-box-shadow: 0 0 0 1000px rgba(15, 23, 42, 0.75) inset;
-  box-shadow: 0 0 0 1000px rgba(15, 23, 42, 0.75) inset;
+  -webkit-text-fill-color: var(--theme-text-strong);
+  caret-color: var(--theme-text-strong);
+  -webkit-box-shadow: 0 0 0 1000px var(--theme-input-bg) inset;
+  box-shadow: 0 0 0 1000px var(--theme-input-bg) inset;
   transition: background-color 9999s ease-out 0s;
 }
 
 .input-wrap input:-moz-autofill {
-  color: #f8fafc;
-  caret-color: #f8fafc;
-  box-shadow: 0 0 0 1000px rgba(15, 23, 42, 0.75) inset;
+  color: var(--theme-text-strong);
+  caret-color: var(--theme-text-strong);
+  box-shadow: 0 0 0 1000px var(--theme-input-bg) inset;
 }
 
 .toggle-btn {
   width: 2rem;
   height: 2rem;
   border-radius: 8px;
-  border: 1px solid rgba(148, 163, 184, 0.28);
-  background: rgba(148, 163, 184, 0.08);
-  color: #e2e8f0;
+  border: 1px solid var(--theme-border-strong);
+  background: var(--theme-surface-soft);
+  color: var(--theme-text-primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -424,7 +580,7 @@ const login = async () => {
   border: none;
   border-radius: 12px;
   background: linear-gradient(90deg, #0ea5e9, #3b82f6);
-  color: #fff;
+  color: var(--theme-brand-on);
   font-weight: 700;
   display: inline-flex;
   align-items: center;
@@ -436,7 +592,7 @@ const login = async () => {
 
 .login-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 14px 28px rgba(59, 130, 246, 0.28);
+  box-shadow: 0 14px 28px rgba(59, 130, 246, 0.22);
 }
 
 .login-btn:disabled {
@@ -460,13 +616,13 @@ const login = async () => {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  color: #fecaca;
+  color: var(--theme-danger-text);
   font-size: 0.88rem;
   font-weight: 600;
   padding: 0.55rem 0.65rem;
   border-radius: 10px;
-  border: 1px solid rgba(248, 113, 113, 0.45);
-  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid var(--theme-danger-border);
+  background: var(--theme-danger-soft);
 }
 
 .error-icon {
@@ -480,25 +636,25 @@ const login = async () => {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  color: #64748b;
+  color: var(--theme-text-muted);
 }
 
 .form-footer-links a {
-  color: #cbd5e1;
+  color: var(--theme-text-soft);
   text-decoration: none;
   font-size: 0.88rem;
   font-weight: 600;
 }
 
 .form-footer-links a:hover {
-  color: #67e8f9;
+  color: var(--theme-brand-pill-text);
 }
 
 .page-footer {
   width: min(1080px, 100%);
   margin: 1.2rem auto 0;
   text-align: center;
-  color: #64748b;
+  color: var(--theme-text-muted);
   font-size: 0.84rem;
 }
 

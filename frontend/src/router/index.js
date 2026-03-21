@@ -9,6 +9,10 @@ import StudentList from '@/components/StudentList.vue'
 import MonthlyPayments from '@/components/MonthlyPayments.vue'
 import StudentDetail from '@/components/StudentDetail.vue'
 import AdminLogin from '@/views/AdminLogin.vue'
+import SignupView from '@/views/SignupView.vue'
+import SignupStatusView from '@/views/SignupStatusView.vue'
+import ForgotPasswordView from '@/views/ForgotPasswordView.vue'
+import ResetPasswordView from '@/views/ResetPasswordView.vue'
 import SeatMap from '@/components/SeatMap.vue'
 import SuperAdminDashboard from '@/views/SuperAdminDashboard.vue'
 import LibraryStudentList from '@/components/LibraryStudentList.vue'
@@ -23,6 +27,7 @@ import SuperadminNotifications from '@/components/SuperadminNotifications.vue'
 import BillingCenter from '@/components/BillingCenter.vue'
 import SuperadminSubscriptions from '@/components/SuperadminSubscriptions.vue'
 import SuperadminPlanCatalog from '@/components/SuperadminPlanCatalog.vue'
+import SuperadminSignupQueue from '@/components/SuperadminSignupQueue.vue'
 
 
 
@@ -30,6 +35,10 @@ import SuperadminPlanCatalog from '@/components/SuperadminPlanCatalog.vue'
 
 const routes = [
   { path: '/login', name: 'AdminLogin', component: AdminLogin, meta: { guestOnly: true } },
+  { path: '/signup', name: 'SignupView', component: SignupView, meta: { guestOnly: true } },
+  { path: '/signup/status/:publicId', name: 'SignupStatusView', component: SignupStatusView },
+  { path: '/forgot-password', name: 'ForgotPasswordView', component: ForgotPasswordView },
+  { path: '/reset-password', name: 'ResetPasswordView', component: ResetPasswordView },
   { path: '/', redirect: '/dashboard',meta: { requiresAuth: true } },
 
   { path: '/about', name: 'AboutView', component: AboutView },
@@ -78,6 +87,12 @@ const routes = [
     path: '/superadmin/plan-catalog',
     name: 'SuperadminPlanCatalog',
     component: SuperadminPlanCatalog,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/superadmin/signup-requests',
+    name: 'SuperadminSignupQueue',
+    component: SuperadminSignupQueue,
     meta: { requiresAuth: true }
   },
   {

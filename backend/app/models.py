@@ -40,6 +40,8 @@ class Admin(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=True)
+    email_verified_at = Column(DateTime, nullable=True, index=True)
     password = Column(String, nullable=False)
     role = Column(String, default="admin",index=True)  # admin / superadmin
     library_id = Column(Integer, ForeignKey("libraries.id", ondelete="CASCADE"),index=True, nullable=True)
@@ -63,6 +65,152 @@ class Admin(Base):
         back_populates="admin",
         cascade="all, delete-orphan",
     )
+    auth_action_tokens = relationship(
+        "AuthActionToken",
+        back_populates="admin",
+        cascade="all, delete-orphan",
+    )
+    auth_security_events = relationship(
+        "AuthSecurityEvent",
+        back_populates="admin",
+        cascade="all, delete-orphan",
+    )
+    auth_identities = relationship(
+        "AdminAuthIdentity",
+        back_populates="admin",
+        cascade="all, delete-orphan",
+    )
+
+
+class SignupRequest(Base):
+    __tablename__ = "signup_requests"
+
+    id = Column(Integer, primary_key=True, index=True)
+    public_id = Column(String, unique=True, nullable=False, index=True)
+    library_name = Column(String, nullable=False)
+    max_seats = Column(Integer, nullable=False)
+    contact_phone = Column(String, nullable=False)
+    address = Column(String, nullable=True)
+    admin_username = Column(String, nullable=False)
+    admin_email = Column(String, nullable=False)
+    password_hash = Column(String, nullable=False)
+    signup_method = Column(String, nullable=False, default="password", index=True)
+    provider = Column(String, nullable=True, index=True)
+    provider_subject = Column(String, nullable=True, index=True)
+    normalized_username = Column(String, nullable=False, index=True)
+    normalized_email = Column(String, nullable=False, index=True)
+    normalized_phone = Column(String, nullable=False, index=True)
+    status = Column(String, nullable=False, default="pending_email_verification", index=True)
+    submitted_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    verification_sent_at = Column(DateTime, nullable=True)
+    verified_at = Column(DateTime, nullable=True)
+    approved_at = Column(DateTime, nullable=True)
+    rejected_at = Column(DateTime, nullable=True)
+    expires_at = Column(DateTime, nullable=True, index=True)
+    rejection_reason = Column(Text, nullable=True)
+    review_reason = Column(Text, nullable=True)
+    created_library_id = Column(Integer, ForeignKey("libraries.id", ondelete="SET NULL"), nullable=True, index=True)
+    created_admin_id = Column(Integer, ForeignKey("admins.id", ondelete="SET NULL"), nullable=True, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    created_library = relationship("Library", foreign_keys=[created_library_id])
+    created_admin = relationship("Admin", foreign_keys=[created_admin_id])
+    auth_action_tokens = relationship(
+        "AuthActionToken",
+        back_populates="signup_request",
+        cascade="all, delete-orphan",
+    )
+    auth_security_events = relationship(
+        "AuthSecurityEvent",
+        back_populates="signup_request",
+        cascade="all, delete-orphan",
+    )
+
+    __table_args__ = (
+        Index("idx_signup_requests_status_submitted", "status", "submitted_at"),
+    )
+
+
+class AdminAuthIdentity(Base):
+    __tablename__ = "admin_auth_identities"
+
+    id = Column(Integer, primary_key=True, index=True)
+    admin_id = Column(Integer, ForeignKey("admins.id", ondelete="CASCADE"), nullable=False, index=True)
+    provider = Column(String, nullable=False, index=True)
+    provider_subject = Column(String, nullable=False, index=True)
+    provider_email = Column(String, nullable=True, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    admin = relationship("Admin", back_populates="auth_identities")
+
+    __table_args__ = (
+        UniqueConstraint("provider", "provider_subject", name="uq_admin_auth_identities_provider_subject"),
+        Index("idx_admin_auth_identities_admin_provider", "admin_id", "provider"),
+    )
+
+
+class AuthActionToken(Base):
+    __tablename__ = "auth_action_tokens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    purpose = Column(String, nullable=False, index=True)
+    token_hash = Column(String, nullable=False, unique=True, index=True)
+    target_email = Column(String, nullable=False, index=True)
+    signup_request_id = Column(Integer, ForeignKey("signup_requests.id", ondelete="CASCADE"), nullable=True, index=True)
+    admin_id = Column(Integer, ForeignKey("admins.id", ondelete="CASCADE"), nullable=True, index=True)
+    expires_at = Column(DateTime, nullable=False, index=True)
+    consumed_at = Column(DateTime, nullable=True, index=True)
+    attempt_count = Column(Integer, nullable=False, default=0)
+    max_attempts = Column(Integer, nullable=False, default=1)
+    payload_json = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    signup_request = relationship("SignupRequest", back_populates="auth_action_tokens")
+    admin = relationship("Admin", back_populates="auth_action_tokens")
+
+    __table_args__ = (
+        Index("idx_auth_action_tokens_purpose_email", "purpose", "target_email"),
+    )
+
+
+class AuthAttemptTracker(Base):
+    __tablename__ = "auth_attempt_trackers"
+
+    id = Column(Integer, primary_key=True, index=True)
+    scope_type = Column(String, nullable=False)
+    scope_key = Column(String, nullable=False)
+    failure_count = Column(Integer, nullable=False, default=0)
+    locked_until = Column(DateTime, nullable=True, index=True)
+    captcha_required_until = Column(DateTime, nullable=True, index=True)
+    last_failure_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("scope_type", "scope_key", name="uq_auth_attempt_trackers_scope"),
+        Index("idx_auth_attempt_trackers_scope", "scope_type", "scope_key"),
+    )
+
+
+class AuthSecurityEvent(Base):
+    __tablename__ = "auth_security_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    event_type = Column(String, nullable=False, index=True)
+    outcome = Column(String, nullable=False, index=True)
+    ip_address = Column(String, nullable=True, index=True)
+    identifier = Column(String, nullable=True, index=True)
+    target_email = Column(String, nullable=True, index=True)
+    signup_request_id = Column(Integer, ForeignKey("signup_requests.id", ondelete="SET NULL"), nullable=True, index=True)
+    admin_id = Column(Integer, ForeignKey("admins.id", ondelete="SET NULL"), nullable=True, index=True)
+    metadata_json = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+
+    signup_request = relationship("SignupRequest", back_populates="auth_security_events")
+    admin = relationship("Admin", back_populates="auth_security_events")
 
     
 # class Student(Base):

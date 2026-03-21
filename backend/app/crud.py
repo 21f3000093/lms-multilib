@@ -3,13 +3,14 @@ from sqlalchemy.orm import Session , joinedload
 from app import models, schemas
 # from fastapi import HTTPException
 from sqlalchemy import func 
-from datetime import date , datetime, timedelta
+from datetime import date , datetime, timedelta, time as dt_time
 from app.models import Student ,MonthlyPayment 
 import csv
 from io import StringIO
 from fastapi.responses import StreamingResponse
 import time
 import calendar
+import secrets
 
 
 
@@ -911,10 +912,30 @@ def verify_password(plain, hashed):
     return pwd_context.verify(plain, hashed)
 
 def get_admin_by_username(db: Session, username: str):
-    return db.query(Admin).filter(Admin.username == username).first()
+    cleaned_username = (username or "").strip()
+    if not cleaned_username:
+        return None
+    return db.query(Admin).filter(Admin.username == cleaned_username).first()
 
-def authenticate_admin(db: Session, username: str, password: str):
-    admin = get_admin_by_username(db, username)
+def get_admin_by_email(db: Session, email: str | None):
+    cleaned_email = (email or "").strip().lower()
+    if not cleaned_email:
+        return None
+    return db.query(Admin).filter(func.lower(Admin.email) == cleaned_email).first()
+
+def get_admin_by_identifier(db: Session, identifier: str):
+    cleaned_identifier = (identifier or "").strip()
+    if not cleaned_identifier:
+        return None
+
+    admin = get_admin_by_email(db, cleaned_identifier)
+    if admin:
+        return admin
+
+    return get_admin_by_username(db, cleaned_identifier)
+
+def authenticate_admin(db: Session, identifier: str, password: str):
+    admin = get_admin_by_identifier(db, identifier)
     if not admin or not verify_password(password, admin.password):
         return None
     return admin
@@ -923,12 +944,279 @@ def get_admin(db: Session, admin_id: int):
     return db.query(Admin).filter(Admin.id == admin_id).first()
 
 # To create an admin 
-def create_admin(db: Session, username: str, password: str, role: str = "admin", library_id: int = None): # type: ignore
-    new_admin = models.Admin(username=username, password=password, role=role, library_id=library_id)
+def create_admin(
+    db: Session,
+    username: str,
+    password: str,
+    role: str = "admin",
+    library_id: int = None, # type: ignore
+    email: str | None = None,
+    status: str = "active",
+    email_verified_at: datetime | None = None,
+):
+    new_admin = models.Admin(
+        username=username,
+        email=(email or "").strip().lower() or None,
+        email_verified_at=email_verified_at,
+        password=password,
+        role=role,
+        library_id=library_id,
+        status=status,
+    )
     db.add(new_admin)
     db.commit()
     db.refresh(new_admin)
     return new_admin
+
+
+def create_library_with_seats(
+    db: Session,
+    *,
+    name: str,
+    max_seats: int,
+    contact_phone: str | None = None,
+    contact_email: str | None = None,
+    address: str | None = None,
+):
+    if max_seats < 1 or max_seats > 200:
+        raise ValueError("max_seats must be between 1 and 200")
+
+    new_library = models.Library(
+        name=name.strip(),
+        address=address.strip() if isinstance(address, str) and address.strip() else None,
+        contact_email=(contact_email or "").strip().lower() or None,
+        contact_phone=(contact_phone or "").strip() or None,
+        max_seats=max_seats,
+    )
+    db.add(new_library)
+    db.flush()
+
+    for seat_number in range(1, max_seats + 1):
+        db.add(models.Seat(seat_number=seat_number, library_id=new_library.id))
+
+    db.flush()
+    return new_library
+
+
+def create_admin_account(
+    db: Session,
+    *,
+    username: str,
+    password: str,
+    role: str = "admin",
+    library_id: int | None = None,
+    email: str | None = None,
+    status: str = "active",
+    password_is_hashed: bool = False,
+    email_verified_at: datetime | None = None,
+):
+    stored_password = password if password_is_hashed else pwd_context.hash(password)
+    new_admin = models.Admin(
+        username=username.strip(),
+        email=(email or "").strip().lower() or None,
+        email_verified_at=email_verified_at,
+        password=stored_password,
+        role=role,
+        library_id=library_id,
+        status=status,
+    )
+    db.add(new_admin)
+    db.flush()
+    return new_admin
+
+
+def create_trial_subscription(
+    db: Session,
+    *,
+    library_id: int,
+    library_created_date: date | None = None,
+    trial_days: int = 14,
+):
+    existing = db.query(models.Subscription).filter(models.Subscription.library_id == library_id).first()
+    if existing:
+        return existing
+
+    created_date = library_created_date or datetime.utcnow().date()
+    if trial_days > 0:
+        trial_until_date = created_date + timedelta(days=trial_days)
+        trial_valid_until = datetime.combine(trial_until_date, dt_time(23, 59, 59))
+        status = "trialing"
+        is_trial = True
+    else:
+        trial_valid_until = None
+        status = "inactive"
+        is_trial = False
+
+    subscription = models.Subscription(
+        library_id=library_id,
+        status=status,
+        auto_renew=False,
+        cancel_at_period_end=False,
+        is_trial=is_trial,
+        trial_valid_until=trial_valid_until,
+        bonus_eligible=True,
+    )
+    db.add(subscription)
+    db.flush()
+    return subscription
+
+
+def generate_unusable_password_hash() -> str:
+    return pwd_context.hash(f"google-auth-only::{secrets.token_urlsafe(32)}")
+
+
+def get_admin_auth_identity(
+    db: Session,
+    *,
+    provider: str,
+    provider_subject: str,
+):
+    return (
+        db.query(models.AdminAuthIdentity)
+        .filter(
+            models.AdminAuthIdentity.provider == provider.strip().lower(),
+            models.AdminAuthIdentity.provider_subject == provider_subject.strip(),
+        )
+        .first()
+    )
+
+
+def link_admin_auth_identity(
+    db: Session,
+    *,
+    admin_id: int,
+    provider: str,
+    provider_subject: str,
+    provider_email: str | None = None,
+):
+    normalized_provider = provider.strip().lower()
+    cleaned_subject = provider_subject.strip()
+    cleaned_email = (provider_email or "").strip().lower() or None
+
+    existing_identity = get_admin_auth_identity(
+        db,
+        provider=normalized_provider,
+        provider_subject=cleaned_subject,
+    )
+    if existing_identity:
+        if existing_identity.admin_id != admin_id:
+            raise ValueError("Auth identity is already linked to another admin")
+        if cleaned_email and existing_identity.provider_email != cleaned_email:
+            existing_identity.provider_email = cleaned_email  # type: ignore
+        db.flush()
+        return existing_identity
+
+    identity = models.AdminAuthIdentity(
+        admin_id=admin_id,
+        provider=normalized_provider,
+        provider_subject=cleaned_subject,
+        provider_email=cleaned_email,
+    )
+    db.add(identity)
+    db.flush()
+    return identity
+
+
+def activate_signup_request(
+    db: Session,
+    *,
+    signup_request: models.SignupRequest,
+    trial_days: int,
+    approved_at: datetime | None = None,
+):
+    if signup_request.created_admin_id or signup_request.created_library_id:
+        raise ValueError("Signup request has already been provisioned")
+
+    if get_admin_by_username(db, signup_request.admin_username) or get_admin_by_email(db, signup_request.admin_email):
+        raise ValueError("Username or email already exists on an active admin")
+
+    library = create_library_with_seats(
+        db,
+        name=signup_request.library_name,
+        max_seats=signup_request.max_seats,
+        contact_phone=signup_request.contact_phone,
+        contact_email=signup_request.admin_email,
+        address=signup_request.address,
+    )
+    verified_at = signup_request.verified_at or datetime.utcnow()
+    new_admin = create_admin_account(
+        db,
+        username=signup_request.admin_username,
+        password=signup_request.password_hash,
+        password_is_hashed=True,
+        role="admin",
+        library_id=library.id,
+        email=signup_request.admin_email,
+        status="active",
+        email_verified_at=verified_at,
+    )
+    if signup_request.provider and signup_request.provider_subject:
+        link_admin_auth_identity(
+            db,
+            admin_id=new_admin.id,
+            provider=signup_request.provider,
+            provider_subject=signup_request.provider_subject,
+            provider_email=signup_request.admin_email,
+        )
+
+    create_trial_subscription(
+        db,
+        library_id=library.id,
+        library_created_date=library.created_at,
+        trial_days=trial_days,
+    )
+
+    signup_request.status = "approved"  # type: ignore
+    signup_request.approved_at = approved_at or datetime.utcnow()  # type: ignore
+    signup_request.created_library_id = library.id  # type: ignore
+    signup_request.created_admin_id = new_admin.id  # type: ignore
+    signup_request.rejection_reason = None  # type: ignore
+    signup_request.review_reason = None  # type: ignore
+    signup_request.expires_at = None  # type: ignore
+    if not signup_request.verified_at:
+        signup_request.verified_at = verified_at  # type: ignore
+
+    db.flush()
+    return library, new_admin
+
+
+def provision_library_owner_signup(
+    db: Session,
+    *,
+    library_name: str,
+    max_seats: int,
+    contact_phone: str,
+    address: str | None,
+    admin_username: str,
+    admin_email: str,
+    password: str,
+    trial_days: int,
+):
+    library = create_library_with_seats(
+        db,
+        name=library_name,
+        max_seats=max_seats,
+        contact_phone=contact_phone,
+        contact_email=admin_email,
+        address=address,
+    )
+    admin = create_admin_account(
+        db,
+        username=admin_username,
+        password=password,
+        role="admin",
+        library_id=library.id,
+        email=admin_email,
+        status="active",
+    )
+    create_trial_subscription(
+        db,
+        library_id=library.id,
+        library_created_date=library.created_at,
+        trial_days=trial_days,
+    )
+    db.flush()
+    return library, admin
 
 
 # To create a library 

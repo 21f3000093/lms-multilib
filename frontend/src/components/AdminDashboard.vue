@@ -831,10 +831,10 @@ export default {
 
 <style scoped>
 .admin-dashboard {
-  --surface: rgba(148, 163, 184, 0.03);
-  --surface-border: rgba(255, 255, 255, 0.03);
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
+  --surface: var(--theme-surface);
+  --surface-border: var(--theme-surface-border);
+  --text-primary: var(--theme-text-primary);
+  --text-secondary: var(--theme-text-secondary);
 
   position: relative;
   min-height: 100vh;
@@ -849,11 +849,7 @@ export default {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background:
-    radial-gradient(45rem 24rem at 10% 15%, rgba(34, 211, 238, 0.14), transparent 70%),
-    radial-gradient(40rem 24rem at 86% 8%, rgba(59, 130, 246, 0.14), transparent 68%),
-    radial-gradient(36rem 22rem at 65% 88%, rgba(14, 165, 233, 0.11), transparent 70%),
-    linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
+  background: var(--theme-mesh-background);
   filter: saturate(115%);
   animation: mesh-drift 18s ease-in-out infinite alternate;
 }
@@ -875,16 +871,16 @@ export default {
   display: inline-flex;
   padding: 0.4rem 0.8rem;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  border: 1px solid var(--theme-border);
   font-size: 0.8rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #cbd5e1;
-  background: rgba(148, 163, 184, 0.07);
+  color: var(--theme-text-soft);
+  background: var(--theme-surface-soft);
 }
 
 .gradient-text {
-  background: linear-gradient(90deg, #22d3ee, #3b82f6);
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -963,12 +959,14 @@ export default {
   border-radius: 12px;
   display: grid;
   place-items: center;
-  background: rgba(148, 163, 184, 0.14);
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: var(--theme-surface-soft-strong);
+  border: 1px solid var(--theme-border-soft);
 }
 
 .shift-icon {
-  background: rgba(59, 130, 246, 0.2);
+  /* background: var(--theme-brand-background); */
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
+  /* background: rgba(59, 131, 246, 0.24); */
 }
 
 .students-icon {
@@ -980,11 +978,12 @@ export default {
 }
 
 .collection-icon {
-  background: rgba(14, 165, 233, 0.2);
+  /* background: rgba(14, 165, 233, 0.2); */
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
 }
 
 .movement-icon {
-  background: rgba(56, 189, 248, 0.2);
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
 }
 
 .svg {
@@ -1024,7 +1023,7 @@ export default {
 }
 
 .collection-amount {
-  color: #a7f3d0;
+  color: var(--theme-success-text);
 }
 
 .progress-container {
@@ -1034,7 +1033,7 @@ export default {
 .progress-bar {
   width: 100%;
   height: 10px;
-  background: rgba(148, 163, 184, 0.24);
+  background: var(--theme-surface-muted);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -1060,23 +1059,23 @@ export default {
 }
 
 .status-full {
-  background: rgba(239, 68, 68, 0.18);
-  color: #fecaca;
+  background: var(--theme-danger-soft);
+  color: var(--theme-danger-text);
 }
 
 .status-high {
-  background: rgba(245, 158, 11, 0.18);
-  color: #fde68a;
+  background: var(--theme-warning-soft);
+  color: var(--theme-warning-text);
 }
 
 .status-medium {
-  background: rgba(59, 130, 246, 0.18);
-  color: #bfdbfe;
+  background: var(--theme-info-soft);
+  color: var(--theme-info-text);
 }
 
 .status-low {
-  background: rgba(16, 185, 129, 0.18);
-  color: #a7f3d0;
+  background: var(--theme-success-soft);
+  color: var(--theme-success-text);
 }
 
 .students-breakdown {
@@ -1087,7 +1086,7 @@ export default {
 
 .breakdown-item {
   border-radius: 10px;
-  background: rgba(148, 163, 184, 0.12);
+  background: var(--theme-surface-soft-strong);
   padding: 0.5rem;
   text-align: center;
 }
@@ -1145,18 +1144,18 @@ export default {
 }
 
 .pace-on-track {
-  background: rgba(16, 185, 129, 0.2);
-  color: #a7f3d0;
+  background: var(--theme-success-soft);
+  color: var(--theme-success-text);
 }
 
 .pace-watch {
-  background: rgba(245, 158, 11, 0.2);
-  color: #fde68a;
+  background: var(--theme-warning-soft);
+  color: var(--theme-warning-text);
 }
 
 .pace-at-risk {
-  background: rgba(239, 68, 68, 0.2);
-  color: #fecaca;
+  background: var(--theme-danger-soft);
+  color: var(--theme-danger-text);
 }
 
 .movement-card {
@@ -1181,14 +1180,14 @@ export default {
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
-  border: 1px solid rgba(74, 222, 128, 0.34);
-  background: rgba(15, 23, 42, 0.62);
+  border: 1px solid var(--theme-success-border);
+  background: var(--theme-panel);
   padding: 0.2rem;
 }
 
 .movement-range-btn.active {
-  background: linear-gradient(90deg, rgba(34, 197, 94, 0.25), rgba(16, 185, 129, 0.3));
-  color: #dcfce7;
+  background: linear-gradient(90deg, rgba(34, 197, 94, 0.22), rgba(16, 185, 129, 0.28));
+  color: var(--theme-success-text);
 }
 
 .movement-grid {
@@ -1199,7 +1198,7 @@ export default {
 
 .movement-item {
   border-radius: 10px;
-  background: rgba(148, 163, 184, 0.12);
+  background: var(--theme-surface-soft-strong);
   padding: 0.5rem 0.56rem;
   display: flex;
   flex-direction: column;
@@ -1214,22 +1213,22 @@ export default {
 .movement-value {
   font-size: 1rem;
   font-weight: 800;
-  color: #e2e8f0;
+  color: var(--theme-text-primary);
 }
 
 .movement-positive {
-  color: #86efac;
+  color: var(--theme-success-text);
 }
 
 .movement-negative {
-  color: #fca5a5;
+  color: var(--theme-danger-text);
 }
 
 .movement-chart-wrap {
   margin-top: 0.58rem;
   border-radius: 12px;
-  background: rgba(15, 23, 42, 0.45);
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: var(--theme-panel-soft);
+  border: 1px solid var(--theme-border);
   padding: 0.5rem;
 }
 
@@ -1263,7 +1262,7 @@ export default {
 }
 
 .dot-net {
-  background: #67e8f9;
+  background: var(--theme-brand-pill-text);
 }
 
 .movement-chart {
@@ -1274,7 +1273,7 @@ export default {
 }
 
 .movement-zero-line {
-  stroke: rgba(148, 163, 184, 0.28);
+  stroke: var(--theme-border-strong);
   stroke-width: 1;
   stroke-dasharray: 4 3;
 }
@@ -1293,14 +1292,14 @@ export default {
 
 .movement-net-line {
   fill: none;
-  stroke: #67e8f9;
+  stroke: var(--theme-brand-pill-text);
   stroke-width: 2.1;
   stroke-linejoin: round;
   stroke-linecap: round;
 }
 
 .movement-net-point {
-  fill: #67e8f9;
+  fill: var(--theme-brand-pill-text);
   stroke: rgba(12, 74, 110, 0.85);
   stroke-width: 1;
 }
@@ -1312,10 +1311,10 @@ export default {
 }
 
 .movement-chip {
-  border: 1px solid rgba(148, 163, 184, 0.26);
+  border: 1px solid var(--theme-border);
   border-radius: 8px;
-  background: rgba(15, 23, 42, 0.4);
-  color: #cbd5e1;
+  background: var(--theme-panel-soft);
+  color: var(--theme-text-soft);
   font-size: 0.72rem;
   font-weight: 700;
   padding: 0.26rem 0.2rem;
@@ -1323,22 +1322,22 @@ export default {
 }
 
 .movement-chip.active {
-  border-color: rgba(34, 197, 94, 0.5);
-  background: rgba(34, 197, 94, 0.16);
-  color: #dcfce7;
+  border-color: var(--theme-success-border);
+  background: var(--theme-success-soft);
+  color: var(--theme-success-text);
 }
 
 .movement-detail-panel {
   margin-top: 0.42rem;
   border-radius: 10px;
-  background: rgba(30, 41, 59, 0.42);
-  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: var(--theme-panel-soft);
+  border: 1px solid var(--theme-border);
   padding: 0.42rem 0.5rem;
 }
 
 .movement-detail-month {
   margin: 0;
-  color: #bae6fd;
+  color: var(--theme-text-info);
   font-size: 0.78rem;
   font-weight: 700;
 }
@@ -1356,11 +1355,11 @@ export default {
   justify-content: space-between;
   gap: 0.35rem;
   font-size: 0.73rem;
-  color: #cbd5e1;
+  color: var(--theme-text-soft);
 }
 
 .movement-detail-grid strong {
-  color: #e2e8f0;
+  color: var(--theme-text-primary);
 }
 
 .trend-card {
@@ -1383,15 +1382,15 @@ export default {
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.34);
-  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid var(--theme-border-strong);
+  background: var(--theme-panel);
   padding: 0.2rem;
 }
 
 .range-btn {
   border: 0;
   background: transparent;
-  color: #cbd5e1;
+  color: var(--theme-text-soft);
   font-size: 0.75rem;
   font-weight: 700;
   padding: 0.28rem 0.55rem;
@@ -1400,8 +1399,8 @@ export default {
 }
 
 .range-btn.active {
-  background: linear-gradient(90deg, rgba(34, 211, 238, 0.25), rgba(59, 130, 246, 0.28));
-  color: #e0f2fe;
+  background: linear-gradient(90deg, rgba(34, 211, 238, 0.22), rgba(59, 130, 246, 0.24));
+  color: var(--theme-text-info);
 }
 
 .range-btn:disabled {
@@ -1419,7 +1418,7 @@ export default {
 .trend-column {
   position: relative;
   border-radius: 10px;
-  background: rgba(148, 163, 184, 0.08);
+  background: var(--theme-surface-soft);
   padding: 0.45rem 0.45rem 0.5rem;
   text-align: center;
 }
@@ -1427,8 +1426,8 @@ export default {
 .trend-bar-track {
   height: 92px;
   border-radius: 8px;
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: var(--theme-panel-strong);
+  border: 1px solid var(--theme-border);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -1444,7 +1443,7 @@ export default {
 }
 
 .trend-hitbox:focus-visible {
-  outline: 2px solid rgba(56, 189, 248, 0.75);
+  outline: 2px solid var(--theme-brand-border);
   outline-offset: 2px;
 }
 
@@ -1463,8 +1462,8 @@ export default {
   min-width: 132px;
   z-index: 3;
   border-radius: 10px;
-  border: 1px solid rgba(148, 163, 184, 0.34);
-  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid var(--theme-border-strong);
+  background: var(--theme-panel-solid);
   box-shadow: 0 12px 22px rgba(2, 8, 23, 0.35);
   padding: 0.42rem 0.5rem;
   text-align: left;
@@ -1473,20 +1472,20 @@ export default {
 .tooltip-month {
   margin: 0;
   font-size: 0.72rem;
-  color: #bae6fd;
+  color: var(--theme-text-info);
 }
 
 .tooltip-value {
   margin: 0.2rem 0 0;
   font-size: 0.78rem;
-  color: #e2e8f0;
+  color: var(--theme-text-primary);
   font-weight: 700;
 }
 
 .tooltip-delta {
   margin: 0.18rem 0 0;
   font-size: 0.7rem;
-  color: #cbd5e1;
+  color: var(--theme-text-soft);
 }
 
 .trend-month {
@@ -1499,7 +1498,7 @@ export default {
   margin: 0.12rem 0 0;
   font-size: 0.8rem;
   font-weight: 700;
-  color: #dbeafe;
+  color: var(--theme-text-info);
 }
 
 .insights-section {
@@ -1529,18 +1528,19 @@ export default {
 
 .insight-card {
   border-radius: 12px;
-  background: rgba(148, 163, 184, 0.12);
+  background: var(--theme-surface-soft-strong);
   padding: 0.65rem;
   display: flex;
   align-items: center;
   gap: 0.58rem;
+  text-align: left;
 }
 
 .insight-icon {
   width: 42px;
   height: 42px;
   border-radius: 10px;
-  background: rgba(15, 23, 42, 0.45);
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
   display: grid;
   place-items: center;
 }
@@ -1568,7 +1568,7 @@ export default {
 
 @media (max-width: 1100px) {
   .dashboard-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .trend-card {
@@ -1619,7 +1619,7 @@ export default {
   }
 
   .movement-detail-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 
   .current,

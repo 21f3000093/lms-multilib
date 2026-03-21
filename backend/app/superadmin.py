@@ -2,8 +2,20 @@
 
 from datetime import datetime, time, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
-from app import models, schemas
+from app import crud, models, schemas
+from app.auth_security import (
+    PENDING_APPROVAL,
+    REJECTED,
+    SIGNUP_RESUBMIT,
+    issue_auth_token,
+    log_security_event,
+    send_signup_approval_email,
+    send_signup_rejection_email,
+    utcnow,
+)
 from app.dependencies import (
     ensure_subscription_for_library,
     evaluate_subscription_access,
@@ -12,11 +24,7 @@ from app.dependencies import (
     get_subscription_grace_days,
     get_subscription_trial_days,
 )
-from fastapi_jwt_auth import AuthJWT
 from typing import List
-from passlib.context import CryptContext
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 
@@ -68,23 +76,23 @@ def create_library(library: schemas.LibraryCreate, db: Session = Depends(get_db)
     _require_superadmin(admin)
     if library.max_seats < 1 or library.max_seats > 200:
         raise HTTPException(status_code=400, detail="max_seats must be between 1 and 200")
-    
-    new_library = models.Library(
+
+    new_library = crud.create_library_with_seats(
+        db,
         name=library.name,
         address=library.address,
         contact_email=library.contact_email,
         contact_phone=library.contact_phone,
-        max_seats=library.max_seats
-        
+        max_seats=library.max_seats,
     )
-    db.add(new_library)
+    crud.create_trial_subscription(
+        db,
+        library_id=new_library.id,
+        library_created_date=new_library.created_at,
+        trial_days=get_subscription_trial_days(),
+    )
     db.commit()
     db.refresh(new_library)
-
-    for seat_number in range(1, library.max_seats + 1):
-        seat = models.Seat(seat_number=seat_number, library_id=new_library.id)
-        db.add(seat)
-    db.commit() 
 
     return new_library
 
@@ -99,21 +107,33 @@ def list_admins(db: Session = Depends(get_db), admin = Depends(get_current_admin
 def create_admin(admin_data: schemas.AdminCreate, db: Session = Depends(get_db), admin = Depends(get_current_admin)):
     _require_superadmin(admin)
 
-    existing = db.query(models.Admin).filter_by(username=admin_data.username).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="Admin username already exists")
-    
-    hashed_password = pwd_context.hash(admin_data.password) 
+    if crud.get_admin_by_username(db, admin_data.username.strip()):
+        raise HTTPException(status_code=409, detail="Admin username already exists")
 
+    cleaned_email = admin_data.email.strip().lower() if isinstance(admin_data.email, str) else None
+    if cleaned_email and crud.get_admin_by_email(db, cleaned_email):
+        raise HTTPException(status_code=409, detail="Admin email already exists")
 
-    new_admin = models.Admin(
-        username=admin_data.username,
-        password=hashed_password,  # 🛑 Consider hashing here!
-        role="admin",
-        library_id=admin_data.library_id
-    )
-    db.add(new_admin)
-    db.commit()
+    if admin_data.library_id is not None:
+        library = db.query(models.Library).filter(models.Library.id == admin_data.library_id).first()
+        if not library:
+            raise HTTPException(status_code=404, detail="Library not found")
+
+    try:
+        new_admin = crud.create_admin_account(
+            db,
+            username=admin_data.username,
+            password=admin_data.password,
+            role="admin",
+            library_id=admin_data.library_id,
+            email=cleaned_email,
+            status="active",
+        )
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Admin username or email already exists")
+
     db.refresh(new_admin)
     return new_admin
 
@@ -158,6 +178,172 @@ def get_students_by_library(library_id: int, db: Session = Depends(get_db), admi
     
     students = db.query(models.Student).filter(models.Student.library_id == library_id).all()
     return students
+
+
+@superadmin_router.get("/signup-requests", response_model=List[schemas.SignupQueueRowOut])
+def list_signup_requests(
+    status: str | None = Query(default=None),
+    q: str | None = Query(default=None),
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin),
+):
+    _require_superadmin(admin)
+
+    query = db.query(models.SignupRequest)
+    if status:
+        query = query.filter(models.SignupRequest.status == status.strip().lower())
+    if q:
+        search = f"%{q.strip()}%"
+        query = query.filter(
+            models.SignupRequest.library_name.ilike(search)
+            | models.SignupRequest.admin_username.ilike(search)
+            | models.SignupRequest.admin_email.ilike(search)
+            | models.SignupRequest.contact_phone.ilike(search)
+        )
+
+    signup_requests = (
+        query.order_by(models.SignupRequest.submitted_at.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+    if not signup_requests:
+        return []
+
+    signup_request_ids = [item.id for item in signup_requests]
+    risk_rows = (
+        db.query(
+            models.AuthSecurityEvent.signup_request_id,
+            func.count(models.AuthSecurityEvent.id).label("risk_count"),
+        )
+        .filter(models.AuthSecurityEvent.signup_request_id.in_(signup_request_ids))
+        .filter(models.AuthSecurityEvent.outcome.in_(["failure", "temporarily_locked", "captcha_required"]))
+        .group_by(models.AuthSecurityEvent.signup_request_id)
+        .all()
+    )
+    risk_map = {row.signup_request_id: int(row.risk_count or 0) for row in risk_rows}
+
+    rows = []
+    for item in signup_requests:
+        rows.append(
+            schemas.SignupQueueRowOut(
+                id=item.id,
+                public_id=item.public_id,
+                signup_method=item.signup_method or "password",
+                library_name=item.library_name,
+                max_seats=item.max_seats,
+                contact_phone=item.contact_phone,
+                address=item.address,
+                admin_username=item.admin_username,
+                admin_email=item.admin_email,
+                status=item.status,
+                submitted_at=item.submitted_at,
+                verification_sent_at=item.verification_sent_at,
+                verified_at=item.verified_at,
+                approved_at=item.approved_at,
+                rejected_at=item.rejected_at,
+                rejection_reason=item.rejection_reason,
+                review_reason=item.review_reason,
+                expires_at=item.expires_at,
+                created_library_id=item.created_library_id,
+                created_admin_id=item.created_admin_id,
+                recent_risk_events=risk_map.get(item.id, 0),
+            )
+        )
+    return rows
+
+
+@superadmin_router.post("/signup-requests/{signup_request_id}/approve", response_model=schemas.AuthActionResponse)
+def approve_signup_request(
+    signup_request_id: int,
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin),
+):
+    _require_superadmin(admin)
+
+    signup_request = db.query(models.SignupRequest).filter(models.SignupRequest.id == signup_request_id).first()
+    if not signup_request:
+        raise HTTPException(status_code=404, detail="Signup request not found")
+    if signup_request.status != PENDING_APPROVAL:
+        raise HTTPException(status_code=400, detail="Only pending approval requests can be approved")
+    if signup_request.created_admin_id or signup_request.created_library_id:
+        raise HTTPException(status_code=400, detail="Signup request has already been provisioned")
+
+    try:
+        library, new_admin = crud.activate_signup_request(
+            db,
+            signup_request=signup_request,
+            trial_days=get_subscription_trial_days(),
+        )
+        log_security_event(
+            db,
+            event_type="signup_approval",
+            outcome="approved",
+            target_email=signup_request.admin_email,
+            signup_request_id=signup_request.id,
+            admin_id=new_admin.id,
+            metadata={"approved_by_admin_id": admin.id, "library_id": library.id},
+        )
+        db.commit()
+    except (IntegrityError, ValueError):
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Provisioning failed because username or email already exists")
+
+    send_signup_approval_email(signup_request)
+    return schemas.AuthActionResponse(
+        ok=True,
+        message="Signup request approved and library provisioned successfully.",
+        public_id=signup_request.public_id,
+        status=signup_request.status,
+    )
+
+
+@superadmin_router.post("/signup-requests/{signup_request_id}/reject", response_model=schemas.AuthActionResponse)
+def reject_signup_request(
+    signup_request_id: int,
+    payload: schemas.SignupQueueRejectRequest,
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin),
+):
+    _require_superadmin(admin)
+
+    signup_request = db.query(models.SignupRequest).filter(models.SignupRequest.id == signup_request_id).first()
+    if not signup_request:
+        raise HTTPException(status_code=404, detail="Signup request not found")
+    if signup_request.status != PENDING_APPROVAL:
+        raise HTTPException(status_code=400, detail="Only pending approval requests can be rejected")
+
+    signup_request.status = REJECTED  # type: ignore
+    signup_request.rejected_at = utcnow()  # type: ignore
+    signup_request.rejection_reason = payload.reason.strip()  # type: ignore
+    signup_request.expires_at = None  # type: ignore
+
+    raw_token, _ = issue_auth_token(
+        db,
+        purpose=SIGNUP_RESUBMIT,
+        target_email=signup_request.admin_email,
+        signup_request_id=signup_request.id,
+        expires_minutes=60 * 24 * 7,
+    )
+    log_security_event(
+        db,
+        event_type="signup_approval",
+        outcome="rejected",
+        target_email=signup_request.admin_email,
+        signup_request_id=signup_request.id,
+        metadata={"rejected_by_admin_id": admin.id},
+    )
+    db.commit()
+
+    send_signup_rejection_email(signup_request, raw_token)
+    return schemas.AuthActionResponse(
+        ok=True,
+        message="Signup request rejected and resubmit link sent.",
+        public_id=signup_request.public_id,
+        status=signup_request.status,
+    )
 
 
 @superadmin_router.get("/subscriptions", response_model=List[schemas.SuperadminSubscriptionRowOut])
