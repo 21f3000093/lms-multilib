@@ -46,6 +46,43 @@
       </article>
     </section>
 
+    <section class="comparison section-shell">
+      <header class="section-header reveal" data-stagger="0">
+        <h2>The Transition: From Manual to Digital</h2>
+        <p>See how Smart Library App replaces scattered, time-heavy admin work with one connected operating workflow.</p>
+      </header>
+
+      <div class="comparison-grid">
+        <article class="glass-card comparison-card comparison-card-old reveal" data-stagger="1">
+          <p class="comparison-kicker">The Old Way</p>
+          <ul class="comparison-list">
+            <li v-for="item in oldWayPoints" :key="item" class="comparison-item">
+              <CircleX class="comparison-icon comparison-icon-old" aria-hidden="true" />
+              <span>{{ item }}</span>
+            </li>
+          </ul>
+        </article>
+
+        <div class="comparison-divider reveal" data-stagger="2" aria-hidden="true">
+          <span class="comparison-divider-line"></span>
+          <div class="comparison-divider-badge">
+            <ArrowRight class="comparison-divider-icon" aria-hidden="true" />
+          </div>
+          <span class="comparison-divider-line"></span>
+        </div>
+
+        <article class="glass-card comparison-card comparison-card-smart reveal" data-stagger="3">
+          <p class="comparison-kicker comparison-kicker-smart">The Smart Way</p>
+          <ul class="comparison-list">
+            <li v-for="item in smartWayPoints" :key="item" class="comparison-item">
+              <CheckCircle2 class="comparison-icon comparison-icon-smart" aria-hidden="true" />
+              <span>{{ item }}</span>
+            </li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
     <section class="features section-shell">
       <header class="section-header reveal" data-stagger="0">
         <h2>Built for scale, reliability, and predictable operations</h2>
@@ -99,9 +136,12 @@
 <script setup>
 import { onMounted, onBeforeUnmount, ref } from 'vue'
 import {
+  ArrowRight,
   Armchair,
   BarChart3,
   BookOpen,
+  CheckCircle2,
+  CircleX,
   CreditCard,
   MessageSquare,
   ShieldCheck,
@@ -115,6 +155,20 @@ const stats = [
   { value: '9k+', label: 'Students Managed', stagger: 2 },
   { value: '50+', label: 'Libraries Enabled', stagger: 3 },
   { value: '35%', label: 'Faster Admin Ops', stagger: 4 },
+]
+
+const oldWayPoints = [
+  'Manual notebooks & spreadsheets',
+  'Scattered fee records',
+  'Time-consuming manual reminders',
+  'No real-time seat visibility',
+]
+
+const smartWayPoints = [
+  'Unified digital workspace',
+  'Automated billing & receipts',
+  'Instant WhatsApp workflows',
+  'Live occupancy dashboard',
 ]
 
 const features = [
@@ -343,6 +397,7 @@ onBeforeUnmount(() => {
   gap: 0.9rem;
 }
 
+.glass-card,
 .stat-card,
 .bento-card,
 .cta-card {
@@ -368,6 +423,124 @@ onBeforeUnmount(() => {
   margin: 0.45rem 0 0;
   color: var(--text-secondary);
   font-size: 0.9rem;
+}
+
+.comparison {
+  margin-top: 3rem;
+}
+
+.comparison-grid {
+  margin-top: 1.3rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0.9rem;
+  align-items: stretch;
+}
+
+.comparison-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  padding: 1.2rem;
+  text-align: left;
+}
+
+.comparison-card-old {
+  border-color: var(--theme-border-strong);
+  background:
+    linear-gradient(145deg, var(--theme-surface-soft), transparent 58%),
+    var(--surface);
+  box-shadow: inset 0 1px 0 var(--theme-surface-border);
+}
+
+.comparison-card-smart {
+  border-color: var(--theme-brand-border);
+  background:
+    radial-gradient(circle at top right, var(--theme-brand-soft-strong), transparent 46%),
+    linear-gradient(145deg, var(--theme-brand-soft), transparent 60%),
+    var(--surface);
+  box-shadow: var(--theme-shadow-soft);
+}
+
+.comparison-kicker {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.comparison-kicker-smart {
+  color: var(--brand-a);
+}
+
+.comparison-list {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.comparison-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  color: var(--text-primary);
+  line-height: 1.55;
+}
+
+.comparison-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: 0 0 auto;
+  margin-top: 0.1rem;
+  stroke-width: 2.1;
+}
+
+.comparison-icon-old {
+  color: var(--text-secondary);
+}
+
+.comparison-icon-smart {
+  color: var(--brand-a);
+}
+
+.comparison-divider {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-width: 3.25rem;
+}
+
+.comparison-divider-line {
+  width: 1px;
+  flex: 1;
+  min-height: 2.75rem;
+  background: linear-gradient(180deg, transparent, var(--theme-border-strong), transparent);
+}
+
+.comparison-divider-badge {
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--theme-brand-border);
+  background:
+    radial-gradient(circle at 35% 30%, var(--theme-brand-soft-strong), transparent 60%),
+    var(--theme-panel-solid);
+  box-shadow: var(--theme-shadow-soft);
+}
+
+.comparison-divider-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+  color: var(--brand-a);
+  stroke-width: 2.1;
 }
 
 .features {
@@ -564,6 +737,27 @@ onBeforeUnmount(() => {
 
   .stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .comparison-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .comparison-divider {
+    flex-direction: row;
+    min-width: 0;
+  }
+
+  .comparison-divider-line {
+    width: 100%;
+    height: 1px;
+    min-height: 0;
+    min-width: 2.5rem;
+    background: linear-gradient(90deg, transparent, var(--theme-border-strong), transparent);
+  }
+
+  .comparison-divider-icon {
+    transform: rotate(90deg);
   }
 }
 
