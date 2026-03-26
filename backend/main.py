@@ -174,10 +174,10 @@ def _parse_allowed_origins(raw_origins: str | None) -> list[str]:
 
 configured_origins = _parse_allowed_origins(os.getenv("ALLOWED_ORIGINS"))
 default_origins = [
-    # "http://localhost:8080",
+    "http://localhost:8080",
     "https://www.smartlibraryapp.in",
     "https://app.smartlibraryapp.in",
-    # "https://lms-git-ios-shubham-nagars-projects-0c121e37.vercel.app",
+    "https://lms-git-ios-shubham-nagars-projects-0c121e37.vercel.app",
 ]
 
 # CORS config
