@@ -160,6 +160,33 @@ def get_library(library_id: int, db: Session = Depends(get_db), admin = Depends(
         raise HTTPException(status_code=404, detail="Library not found")
     return library
 
+
+@superadmin_router.patch("/libraries/{library_id}", response_model=schemas.LibraryOut)
+def update_library(
+    library_id: int,
+    payload: schemas.LibraryUpdate,
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin),
+):
+    _require_superadmin(admin)
+
+    library = db.query(models.Library).filter_by(id=library_id).first()
+    if not library:
+        raise HTTPException(status_code=404, detail="Library not found")
+
+    cleaned_name = payload.name.strip()
+    if not cleaned_name:
+        raise HTTPException(status_code=400, detail="Library name cannot be empty")
+
+    library.name = cleaned_name  # type: ignore[assignment]
+    library.contact_email = (payload.contact_email or "").strip().lower() or None  # type: ignore[assignment]
+    library.contact_phone = (payload.contact_phone or "").strip() or None  # type: ignore[assignment]
+    library.address = (payload.address or "").strip() or None  # type: ignore[assignment]
+
+    db.commit()
+    db.refresh(library)
+    return library
+
 @superadmin_router.delete("/admins/{admin_id}")
 def delete_admin(admin_id: int, db: Session = Depends(get_db), admin = Depends(get_current_admin)):
     _require_superadmin(admin)

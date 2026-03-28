@@ -112,6 +112,13 @@ class LibraryCreate(BaseModel):
     contact_phone: Optional[str] = None
     max_seats: int = Field(..., ge=1, le=200)
     
+
+class LibraryUpdate(BaseModel):
+    name: str
+    address: Optional[str] = None
+    contact_email: Optional[str] = None
+    contact_phone: Optional[str] = None
+
     
 class LibraryOut(LibraryCreate):
     id: int

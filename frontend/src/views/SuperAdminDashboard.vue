@@ -105,9 +105,14 @@
                 <td>{{ lib.contact_email || '—' }}</td>
                 <td>{{ lib.contact_phone || '—' }}</td>
                 <td>
-                  <router-link :to="`/superadmin/library/${lib.id}/students`" class="inline-link">
-                    View Students
-                  </router-link>
+                  <div class="library-actions">
+                    <button class="btn btn-ghost tiny" type="button" @click="openEditLibraryModal(lib)">
+                      Edit
+                    </button>
+                    <router-link :to="`/superadmin/library/${lib.id}/students`" class="inline-link">
+                      View Students
+                    </router-link>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -166,6 +171,51 @@
         </div>
       </article>
     </section>
+
+    <div v-if="editingLibrary" class="modal-overlay" @click.self="closeEditLibraryModal">
+      <section class="glass-card modal-content">
+        <header class="modal-head">
+          <div>
+            <h2>Edit Library</h2>
+            <p>Update the library name and contact details.</p>
+          </div>
+          <button class="modal-close" type="button" @click="closeEditLibraryModal" aria-label="Close edit library modal">
+            ×
+          </button>
+        </header>
+
+        <form class="modal-form" @submit.prevent="submitEditLibrary">
+          <label class="field-block">
+            <span class="field-label">Library Name</span>
+            <input v-model="editLibraryForm.name" class="field-input" type="text" required />
+          </label>
+
+          <label class="field-block">
+            <span class="field-label">Email</span>
+            <input v-model="editLibraryForm.contact_email" class="field-input" type="email" />
+          </label>
+
+          <label class="field-block">
+            <span class="field-label">Phone Number</span>
+            <input v-model="editLibraryForm.contact_phone" class="field-input" type="text" />
+          </label>
+
+          <label class="field-block">
+            <span class="field-label">Address</span>
+            <textarea v-model="editLibraryForm.address" class="field-input field-textarea" rows="3"></textarea>
+          </label>
+
+          <div class="modal-actions">
+            <button class="btn btn-ghost" type="button" @click="closeEditLibraryModal" :disabled="savingLibrary">
+              Cancel
+            </button>
+            <button class="btn btn-solid" type="submit" :disabled="savingLibrary">
+              {{ savingLibrary ? 'Saving...' : 'Save Changes' }}
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
   </main>
 </template>
 
@@ -178,6 +228,15 @@ export default {
     return {
       libraries: [],
       admins: [],
+      editingLibrary: null,
+      savingLibrary: false,
+      editLibraryForm: {
+        id: null,
+        name: '',
+        contact_email: '',
+        contact_phone: '',
+        address: ''
+      },
       newAdmin: {
         username: '',
         email: '',
@@ -199,6 +258,52 @@ export default {
     }
   },
   methods: {
+    openEditLibraryModal(library) {
+      this.editingLibrary = library
+      this.editLibraryForm = {
+        id: library.id,
+        name: library.name || '',
+        contact_email: library.contact_email || '',
+        contact_phone: library.contact_phone || '',
+        address: library.address || ''
+      }
+    },
+
+    closeEditLibraryModal() {
+      this.editingLibrary = null
+      this.savingLibrary = false
+      this.editLibraryForm = {
+        id: null,
+        name: '',
+        contact_email: '',
+        contact_phone: '',
+        address: ''
+      }
+    },
+
+    async submitEditLibrary() {
+      if (!this.editLibraryForm.id) return
+
+      try {
+        this.savingLibrary = true
+        const payload = {
+          name: this.editLibraryForm.name.trim(),
+          contact_email: this.editLibraryForm.contact_email.trim() || null,
+          contact_phone: this.editLibraryForm.contact_phone.trim() || null,
+          address: this.editLibraryForm.address.trim() || null
+        }
+
+        await API.patch(`/superadmin/libraries/${this.editLibraryForm.id}`, payload)
+        await this.loadLibraries()
+        this.closeEditLibraryModal()
+        alert('Library details updated successfully!')
+      } catch (err) {
+        alert('Failed to update library: ' + (err.response?.data?.detail || err.message))
+      } finally {
+        this.savingLibrary = false
+      }
+    },
+
     async createAdmin() {
       try {
         const payload = {
@@ -539,6 +644,13 @@ tbody tr:hover {
   flex-wrap: wrap;
 }
 
+.library-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
 .admin-actions select {
   border: 1px solid var(--theme-input-border);
   border-radius: 8px;
@@ -598,6 +710,99 @@ tbody tr:hover {
   border-radius: 8px;
   padding: 0.35rem 0.55rem;
   font-size: 0.75rem;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: var(--theme-overlay);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.modal-content {
+  width: min(560px, calc(100% - 1rem));
+  border-radius: 18px;
+  padding: 1rem;
+}
+
+.modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.8rem;
+  margin-bottom: 0.85rem;
+}
+
+.modal-head h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.modal-head p {
+  margin: 0.45rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.modal-close {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 999px;
+  border: 1px solid var(--theme-border-strong);
+  background: var(--theme-surface-soft-strong);
+  color: var(--theme-text-primary);
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.modal-form {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.field-block {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.field-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--theme-text-soft);
+}
+
+.field-input {
+  width: 100%;
+  border: 1px solid var(--theme-input-border);
+  border-radius: 12px;
+  background: var(--theme-input-bg);
+  color: var(--theme-text-strong);
+  font-size: 0.95rem;
+  padding: 0.7rem 0.75rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.field-input:focus {
+  border-color: var(--theme-brand-border);
+  box-shadow: 0 0 0 3px var(--theme-brand-ring);
+}
+
+.field-textarea {
+  resize: vertical;
+  min-height: 5.5rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  margin-top: 0.2rem;
 }
 
 @keyframes mesh-drift {
