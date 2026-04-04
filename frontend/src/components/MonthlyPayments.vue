@@ -325,13 +325,15 @@ export default {
     },
 
     totalAmount() {
-      return this.filteredPayments.reduce((sum, payment) => sum + payment.amount, 0).toLocaleString('en-IN')
+      return this.filteredPayments
+        .reduce((sum, payment) => sum + this.normalizeAmount(payment.amount), 0)
+        .toLocaleString('en-IN')
     },
 
     collectedAmount() {
       return this.filteredPayments
         .filter((payment) => payment.paid)
-        .reduce((sum, payment) => sum + payment.amount, 0)
+        .reduce((sum, payment) => sum + this.normalizeAmount(payment.amount), 0)
         .toLocaleString('en-IN')
     },
   },
@@ -400,10 +402,11 @@ export default {
       const libraryName = localStorage.getItem('library_name') || 'Your Library'
       const monthDate = new Date(this.selectedMonth + '-01')
       const monthName = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+      const formattedAmount = this.formatAmount(payment.amount)
 
       const msg =
         `Dear ${payment.student.name},\n` +
-        `We have received your library fee of ₹${payment.amount} for ${monthName}.\n` +
+        `We have received your library fee of ₹${formattedAmount} for ${monthName}.\n` +
         `Your payment has been successfully recorded.\n\n` +
         `Thanks,\n${libraryName}`
 
@@ -417,10 +420,11 @@ export default {
       const libraryName = localStorage.getItem('library_name') || 'Your Library'
       const monthDate = new Date(this.selectedMonth + '-01')
       const monthName = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+      const formattedAmount = this.formatAmount(payment.amount)
 
       const msg =
         `Dear ${payment.student.name},\n` +
-        `We have received your library fee of ₹${payment.amount} for ${monthName}.\n` +
+        `We have received your library fee of ₹${formattedAmount} for ${monthName}.\n` +
         `Your payment has been successfully recorded.\n\n` +
         `Thanks,\n${libraryName}`
 
@@ -465,8 +469,13 @@ export default {
       return `${day}-${month}-${year}`
     },
 
+    normalizeAmount(amount) {
+      const parsedAmount = Number(amount)
+      return Number.isFinite(parsedAmount) ? parsedAmount : 0
+    },
+
     formatAmount(amount) {
-      return amount.toLocaleString('en-IN')
+      return this.normalizeAmount(amount).toLocaleString('en-IN')
     },
 
     isPaymentToggling(paymentId) {

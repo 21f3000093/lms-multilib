@@ -211,7 +211,9 @@ export default {
 
   computed: {
     totalPendingAmount() {
-      return this.pendingList.reduce((sum, student) => sum + student.amount, 0).toLocaleString('en-IN')
+      return this.pendingList
+        .reduce((sum, student) => sum + this.normalizeAmount(student.amount), 0)
+        .toLocaleString('en-IN')
     },
   },
 
@@ -260,17 +262,23 @@ export default {
       const libraryName = localStorage.getItem('library_name') || 'Your Library'
       const monthDate = new Date(this.selectedStudent.month + '-01')
       const monthName = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+      const formattedAmount = this.formatAmount(this.selectedStudent.amount)
 
       return (
         `Dear ${this.selectedStudent.student_name},\n` +
-        `Your library fee of Rs.${this.selectedStudent.amount} for ${monthName} was due on ${this.selectedStudent.due_date}.\n` +
+        `Your library fee of Rs.${formattedAmount} for ${monthName} was due on ${this.selectedStudent.due_date}.\n` +
         `Please pay it as soon as possible to avoid disruption.\n\n` +
         `Thanks,\n${libraryName}`
       )
     },
 
+    normalizeAmount(amount) {
+      const parsedAmount = Number(amount)
+      return Number.isFinite(parsedAmount) ? parsedAmount : 0
+    },
+
     formatAmount(amount) {
-      return amount.toLocaleString('en-IN')
+      return this.normalizeAmount(amount).toLocaleString('en-IN')
     },
 
     formatDate(dateString) {
