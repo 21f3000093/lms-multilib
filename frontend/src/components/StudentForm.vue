@@ -118,17 +118,20 @@
 
             <label class="field-wrap" for="custom-fees">
               <span class="field-label">Monthly Fees</span>
-              <div class="input-wrap amount-wrap">
+              <div class="input-wrap amount-wrap" :class="{ error: feeError, success: isFeeValid && !feeError }">
                 <IndianRupee class="input-icon" aria-hidden="true" />
                 <input
                   id="custom-fees"
                   v-model.number="student.custom_fees"
                   type="number"
                   placeholder="Enter monthly fees"
-                  min="0"
+                  min="1"
                   required
+                  @input="onFeeInput"
+                  @blur="onFeeBlur"
                 />
               </div>
+              <p v-if="feeError" class="error-msg">{{ feeError }}</p>
             </label>
           </div>
         </section>
@@ -238,6 +241,7 @@ export default {
       availableSeats: [],
       loading: false,
       contactError: '',
+      feeError: '',
       showWelcomeModal: false,
       newStudentData: null,
     }
@@ -252,11 +256,16 @@ export default {
       return /^\d{10}$/.test(this.student.contact)
     },
 
+    isFeeValid() {
+      return Number.isInteger(this.student.custom_fees) && this.student.custom_fees > 0
+    },
+
     formValid() {
       return this.student.name.trim() &&
              this.isContactValid &&
              (this.student.shift1 || this.student.shift2 || this.student.shift3) &&
-             this.student.seat_id
+             this.student.seat_id &&
+             this.isFeeValid
     },
 
     welcomeModalMessage() {
@@ -321,11 +330,43 @@ export default {
       this.student.contact = this.student.contact.replace(/\s+/g, '')
     },
 
+    onFeeInput() {
+      const parsedFee = Number(this.student.custom_fees)
+      if (Number.isInteger(parsedFee) && parsedFee > 0) {
+        this.student.custom_fees = parsedFee
+        this.feeError = ''
+        return
+      }
+
+      if (this.student.custom_fees === null || this.student.custom_fees === '' || Number.isNaN(parsedFee)) {
+        this.feeError = 'Monthly fees are required'
+        return
+      }
+
+      this.feeError = 'Monthly fees must be greater than 0'
+    },
+
+    onFeeBlur() {
+      if (this.student.custom_fees === null || this.student.custom_fees === '') {
+        this.feeError = 'Monthly fees are required'
+        return
+      }
+
+      if (!this.isFeeValid) {
+        this.feeError = 'Monthly fees must be greater than 0'
+      }
+    },
+
     async submitForm() {
       if (this.loading || !this.formValid) return
 
       if (!this.isContactValid) {
         this.contactError = 'Contact number must be exactly 10 digits'
+        return
+      }
+
+      if (!this.isFeeValid) {
+        this.feeError = this.student.custom_fees === null ? 'Monthly fees are required' : 'Monthly fees must be greater than 0'
         return
       }
 
@@ -366,6 +407,7 @@ export default {
         date_of_joining: null,
         library_id: localStorage.getItem('library_id'),
       }
+      this.feeError = ''
     },
 
     sendWelcomeWhatsApp() {
