@@ -694,7 +694,7 @@ def create_monthly_payments_for_all(db: Session, month: str, library_id: int):
                 student_id=student.id,
                 month=month,
                 paid=False,
-                amount=student.custom_fees,
+                amount=int(student.custom_fees if student.custom_fees is not None else student.total_fee if student.total_fee is not None else 0),
                 library_id=library_id,
                 paid_at=None,
                 period_start=period_start,
@@ -709,6 +709,36 @@ def create_monthly_payments_for_all(db: Session, month: str, library_id: int):
 
 
     
+# Shared serializer for legacy monthly payment rows that may still have null amounts.
+def _resolved_monthly_payment_amount(payment: models.MonthlyPayment) -> int:
+    if payment.amount is not None:
+        return int(payment.amount)
+
+    student = payment.student
+    if student is not None:
+        if student.custom_fees is not None:
+            return int(student.custom_fees)
+        if student.total_fee is not None:
+            return int(student.total_fee)
+
+    return 0
+
+
+def serialize_monthly_payment(payment: models.MonthlyPayment) -> dict:
+    return {
+        "id": payment.id,
+        "student_id": payment.student_id,
+        "month": payment.month,
+        "amount": _resolved_monthly_payment_amount(payment),
+        "paid": bool(payment.paid),
+        "student": payment.student,
+        "paid_at": payment.paid_at,
+        "period_start": payment.period_start,
+        "period_end": payment.period_end,
+        "next_due_date": payment.next_due_date,
+    }
+
+
 # To mark a monthly payment as paid
 def mark_monthly_payment_as_paid(db: Session, payment_id: int, library_id: int):
     payment = (
@@ -727,7 +757,7 @@ def mark_monthly_payment_as_paid(db: Session, payment_id: int, library_id: int):
             payment.paid_at = datetime.now(ZoneInfo("Asia/Kolkata")) # type: ignore
         db.commit()
         db.refresh(payment)
-    return payment
+    return serialize_monthly_payment(payment) if payment else None
 
     
 
@@ -805,7 +835,7 @@ def get_monthly_payments(db: Session, month: str, library_id: int):
     for row in results:
         payment_data = {
             "id": row.id,
-            "amount": row.amount,
+            "amount": int(row.amount or 0),
             "paid": row.paid,
             "paid_at": row.paid_at.isoformat() if row.paid_at else None,
             "period_start": row.period_start.isoformat() if row.period_start else None,
@@ -840,7 +870,7 @@ def toggle_monthly_payment_status(db: Session, payment_id: int, library_id: int)
         payment.paid_at = datetime.now(ZoneInfo("Asia/Kolkata")) if payment.paid else None # type: ignore
         db.commit()
         db.refresh(payment)
-    return payment
+    return serialize_monthly_payment(payment) if payment else None
 
 # To delete a monthly payment record
 def delete_monthly_payment(db: Session, payment_id: int, library_id: int):
@@ -859,7 +889,7 @@ def delete_monthly_payment(db: Session, payment_id: int, library_id: int):
 
 # To get payments for a specific student 
 def get_student_payments(db: Session, student_id: int, library_id: int):
-    return (
+    payments = (
         db.query(models.MonthlyPayment)
         .join(models.Student, models.MonthlyPayment.student_id == models.Student.id)
         .filter(
@@ -870,6 +900,7 @@ def get_student_payments(db: Session, student_id: int, library_id: int):
         .order_by(models.MonthlyPayment.month.desc())
         .all()
     )
+    return [serialize_monthly_payment(payment) for payment in payments]
 
 
 # To export monthly payments to CSV 
@@ -886,7 +917,7 @@ def export_monthly_payments_csv(db: Session, month: str, library_id: int):
             payment.student.contact,
             payment.student.seat_id,
             payment.month,
-            payment.amount,
+            _resolved_monthly_payment_amount(payment),
             "Paid" if payment.paid else "Unpaid" # type: ignore
         ])
 

@@ -341,7 +341,7 @@ export default {
     },
 
     totalAmount() {
-      return this.payments.reduce((sum, payment) => sum + payment.amount, 0)
+      return this.payments.reduce((sum, payment) => sum + Number(payment.amount || 0), 0)
     },
 
     previewMonths() {
