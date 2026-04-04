@@ -475,7 +475,7 @@ def get_single_payment(
     if not payment:
         raise HTTPException(status_code=404, detail="Payment record not found")
     
-    return payment
+    return crud.serialize_monthly_payment(payment)
 
 
 @app.get("/public-receipts/{token}", response_model=schemas.PublicReceiptOut)
