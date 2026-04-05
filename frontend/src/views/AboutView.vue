@@ -2,38 +2,139 @@
   <main class="about-page" ref="pageRoot">
     <div class="mesh-layer" aria-hidden="true"></div>
 
-    <section class="hero section-shell">
-      <div class="hero-copy reveal" data-stagger="0">
-        <p class="kicker">Trusted By 100+ Libraries</p>
-        <h1>
-          The <span class="gradient-text">Operating System</span>
-          for modern study centers
-        </h1>
-        <p class="hero-subtitle">
-          Smart Library App helps you to manage students, seats, payments, and operations from one enterprise-grade dashboard.
-        </p>
-
-        <div class="hero-actions">
-          <a 
-            class="btn btn-solid magnetic" 
-            href="https://wa.me/919024600138?text=Hi%20Shubham!%20I'd%20like%20to%20book%20a%20demo%20for%20the%20Library%20App." 
-            target="_blank" 
+    <Transition name="sticky-cta">
+      <div v-if="showStickyCta" class="sticky-cta-bar">
+        <div class="sticky-cta-copy">
+          <p class="sticky-cta-kicker">Smart Library App</p>
+          <strong>Run students, seats, billing, and reminders from one workspace.</strong>
+        </div>
+        <div class="sticky-cta-actions">
+          <router-link class="btn btn-solid magnetic" to="/signup" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
+            Start Free
+          </router-link>
+          <a
+            class="btn btn-ghost magnetic"
+            href="https://wa.me/919024600138?text=Hi%20Shubham!%20I'd%20like%20to%20book%20a%20demo%20for%20the%20Smart%20Library%20App."
+            target="_blank"
             rel="noopener noreferrer"
-            @mousemove="onMagneticMove" 
+            @mousemove="onMagneticMove"
             @mouseleave="onMagneticLeave"
           >
             Book a Demo
           </a>
-          <a class="btn btn-ghost magnetic" href="tel:+919024600138" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
-            Talk to Sales
+        </div>
+      </div>
+    </Transition>
+
+    <section ref="heroSection" class="hero section-shell">
+      <div class="hero-copy reveal" data-stagger="0">
+        <p class="kicker">Run your library from one calmer workspace</p>
+        <h1>
+          The <span class="gradient-text">digital operating system</span>
+          for modern study centers
+        </h1>
+        <p class="hero-subtitle">
+          Smart Library App helps library owners and admins register students, assign seats, collect fees, send reminders,
+          and monitor daily operations without juggling notebooks, spreadsheets, and manual follow-ups.
+        </p>
+
+        <div class="hero-actions">
+          <router-link
+            class="btn btn-solid magnetic"
+            to="/signup"
+            @mousemove="onMagneticMove"
+            @mouseleave="onMagneticLeave"
+          >
+            Start Free
+          </router-link>
+          <router-link
+            class="btn btn-ghost magnetic"
+            to="/pricing-plans"
+            @mousemove="onMagneticMove"
+            @mouseleave="onMagneticLeave"
+          >
+            View Pricing
+          </router-link>
+          <a
+            class="btn btn-subtle magnetic"
+            href="https://wa.me/919024600138?text=Hi%20Shubham!%20I'd%20like%20to%20book%20a%20demo%20for%20the%20Smart%20Library%20App."
+            target="_blank"
+            rel="noopener noreferrer"
+            @mousemove="onMagneticMove"
+            @mouseleave="onMagneticLeave"
+          >
+            Book a Demo
           </a>
+        </div>
+
+        <div class="hero-points">
+          <div v-for="item in heroPoints" :key="item.label" class="point-chip reveal" :data-stagger="item.stagger">
+            <component :is="item.icon" class="point-icon" aria-hidden="true" />
+            {{ item.label }}
+          </div>
         </div>
       </div>
 
       <div class="hero-visual reveal" data-stagger="1">
-        <div class="hero-orb floaty">
-          <div class="orb-core">
-            <BookOpen class="orb-icon" aria-hidden="true" />
+        <div class="hero-preview glass-card">
+          <div class="preview-topbar">
+            <div>
+              <p class="preview-kicker">Live product preview</p>
+              <h3>Today’s library workspace</h3>
+            </div>
+            <span class="preview-status">Live</span>
+          </div>
+
+          <div class="preview-metrics">
+            <article v-for="metric in previewMetrics" :key="metric.label" class="preview-metric">
+              <p>{{ metric.label }}</p>
+              <strong>{{ metric.value }}</strong>
+            </article>
+          </div>
+
+          <div class="preview-grid">
+            <article class="preview-panel">
+              <header>
+                <h4>Today’s queue</h4>
+                <span>Priority actions</span>
+              </header>
+              <div class="preview-list">
+                <div v-for="task in previewTasks" :key="task.title" class="preview-row">
+                  <div>
+                    <p class="preview-row-title">{{ task.title }}</p>
+                    <p class="preview-row-copy">{{ task.copy }}</p>
+                  </div>
+                  <span class="preview-badge" :class="task.tone">{{ task.badge }}</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="preview-panel preview-panel-accent">
+              <header>
+                <h4>Automation pulse</h4>
+                <span>Always within reach</span>
+              </header>
+              <ul class="preview-signal-list">
+                <li v-for="signal in previewSignals" :key="signal" class="preview-signal-item">
+                  <CheckCircle2 class="preview-signal-icon" aria-hidden="true" />
+                  <span>{{ signal }}</span>
+                </li>
+              </ul>
+
+              <div class="preview-receipt">
+                <ReceiptText class="preview-receipt-icon" aria-hidden="true" />
+                <div>
+                  <strong>Receipt-ready records</strong>
+                  <p>Share payment proof in a tap and keep collections organized.</p>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div class="preview-floating glass-card">
+            <p class="preview-floating-kicker">Next follow-up</p>
+            <strong>12 unpaid students need reminders</strong>
+            <span>WhatsApp workflows are ready for today’s fee collection cycle.</span>
           </div>
         </div>
       </div>
@@ -44,6 +145,26 @@
         <p class="stat-value">{{ item.value }}</p>
         <p class="stat-label">{{ item.label }}</p>
       </article>
+    </section>
+
+    <section class="testimonials section-shell">
+      <header class="section-header reveal" data-stagger="0">
+        <h2>What library teams say after switching</h2>
+        <p>These placeholder testimonials show the kind of proof and trust layer the landing page is designed to support.</p>
+      </header>
+
+      <div class="testimonial-grid">
+        <article v-for="item in testimonials" :key="item.name" class="glass-card testimonial-card reveal" :data-stagger="item.stagger">
+          <div class="testimonial-stars" aria-label="5 star rating">
+            <Star v-for="star in 5" :key="star" class="testimonial-star" aria-hidden="true" />
+          </div>
+          <p class="testimonial-quote">“{{ item.quote }}”</p>
+          <div class="testimonial-meta">
+            <strong>{{ item.name }}</strong>
+            <span>{{ item.library }}</span>
+          </div>
+        </article>
+      </div>
     </section>
 
     <section class="comparison section-shell">
@@ -85,8 +206,8 @@
 
     <section class="features section-shell">
       <header class="section-header reveal" data-stagger="0">
-        <h2>Built for scale, reliability, and predictable operations</h2>
-        <p>Everything your admin team needs to run multi-library operations without workflow chaos.</p>
+        <h2>Everything your team needs to run the library without manual chaos</h2>
+        <p>From admissions to reminders to collections, every workflow is designed to keep operations visible, faster, and easier to trust.</p>
       </header>
 
       <div class="bento-grid">
@@ -106,27 +227,150 @@
       </div>
     </section>
 
+    <section class="showcase section-shell">
+      <header class="section-header reveal" data-stagger="0">
+        <h2>See the product across the workflows your team uses every day</h2>
+        <p>Switch between core pages below. Replace the placeholder screenshot sources with real product captures whenever you’re ready.</p>
+      </header>
+
+      <div class="showcase-shell glass-card reveal" data-stagger="1">
+        <div class="showcase-tabs" role="tablist" aria-label="App screenshot switcher">
+          <button
+            v-for="tab in showcaseTabs"
+            :key="tab.key"
+            type="button"
+            class="showcase-tab"
+            :class="{ 'is-active': activeShowcaseKey === tab.key }"
+            :aria-selected="activeShowcaseKey === tab.key"
+            @click="activeShowcaseKey = tab.key"
+          >
+            {{ tab.label }}
+          </button>
+        </div>
+
+        <Transition name="showcase-fade" mode="out-in">
+          <article :key="activeShowcase.key" class="showcase-stage">
+            <div class="showcase-copy">
+              <p class="showcase-kicker">{{ activeShowcase.label }}</p>
+              <h3>{{ activeShowcase.title }}</h3>
+              <p>{{ activeShowcase.description }}</p>
+            </div>
+            <div class="showcase-frame">
+              <img :src="activeShowcase.src" :alt="activeShowcase.alt" class="showcase-image" />
+            </div>
+          </article>
+        </Transition>
+      </div>
+    </section>
+
+    <section class="workflow section-shell">
+      <header class="section-header reveal" data-stagger="0">
+        <h2>How the workflow comes together</h2>
+        <p>Get started quickly and keep the whole library team aligned in four simple steps.</p>
+      </header>
+
+      <div class="workflow-grid">
+        <article v-for="step in workflowSteps" :key="step.title" class="glass-card workflow-card reveal" :data-stagger="step.stagger">
+          <div class="workflow-step">{{ step.step }}</div>
+          <component :is="step.icon" class="workflow-icon" aria-hidden="true" />
+          <h3>{{ step.title }}</h3>
+          <p>{{ step.description }}</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="pricing-teaser section-shell">
+      <header class="section-header reveal" data-stagger="0">
+        <h2>Flexible pricing that scales with your seat count</h2>
+        <p>Start at ₹9 per seat per month, reduce your monthly equivalent with longer billing cycles, and unlock bonus months on eligible first purchases.</p>
+      </header>
+
+      <div class="pricing-teaser-grid">
+        <article v-for="item in pricingHighlights" :key="item.title" class="glass-card teaser-card reveal" :data-stagger="item.stagger">
+          <component :is="item.icon" class="teaser-icon" aria-hidden="true" />
+          <p class="teaser-kicker">{{ item.kicker }}</p>
+          <h3>{{ item.title }}</h3>
+          <p>{{ item.description }}</p>
+        </article>
+      </div>
+
+      <div class="pricing-teaser-bar glass-card reveal" data-stagger="4">
+        <div>
+          <p class="pricing-teaser-eyebrow">Included in every plan</p>
+          <h3>No setup fee. Full feature access. Predictable seat-based billing.</h3>
+        </div>
+        <router-link class="btn btn-solid magnetic" to="/pricing-plans" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
+          Explore Full Pricing
+        </router-link>
+      </div>
+    </section>
+
+    <section class="trust section-shell">
+      <header class="section-header reveal" data-stagger="0">
+        <h2>Built for reliable day-to-day operations</h2>
+        <p>Every workflow is designed to help teams move faster without losing control, visibility, or payment confidence.</p>
+      </header>
+
+      <div class="trust-grid">
+        <article v-for="item in trustSignals" :key="item.title" class="glass-card trust-card reveal" :data-stagger="item.stagger">
+          <component :is="item.icon" class="trust-icon" aria-hidden="true" />
+          <h3>{{ item.title }}</h3>
+          <p>{{ item.description }}</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="faq section-shell">
+      <header class="section-header reveal" data-stagger="0">
+        <h2>Frequently asked questions</h2>
+        <p>Use this accordion to answer the objections and product questions visitors usually have before signing up.</p>
+      </header>
+
+      <div class="faq-list">
+        <article v-for="(item, index) in faqs" :key="item.question" class="glass-card faq-card reveal" :data-stagger="index + 1">
+          <button
+            type="button"
+            class="faq-trigger"
+            :aria-expanded="openFaqIndex === index"
+            @click="toggleFaq(index)"
+          >
+            <span>{{ item.question }}</span>
+            <ChevronDown class="faq-icon" :class="{ 'is-open': openFaqIndex === index }" aria-hidden="true" />
+          </button>
+          <Transition name="faq-collapse">
+            <div v-if="openFaqIndex === index" class="faq-answer">
+              <p>{{ item.answer }}</p>
+            </div>
+          </Transition>
+        </article>
+      </div>
+    </section>
+
     <section class="cta section-shell reveal" data-stagger="1">
       <div class="cta-card">
-        <p class="cta-kicker">Ready to scale faster?</p>
-        <h2>Launch a unified workflow for your entire library network.</h2>
+        <p class="cta-kicker">Ready to digitize your library operations?</p>
+        <h2>Launch one workspace for students, seats, collections, reminders, and growth.</h2>
         <p>
-          Replace fragmented processes with one secure platform for admin control, communication, and growth.
+          Replace fragmented admin work with one secure system your team can use every day.
         </p>
 
         <div class="cta-actions">
-          <a class="btn btn-solid magnetic" 
-            href="https://wa.me/919024600138?text=Hi%20Shubham!%20I'd%20like%20to%20start%20a%20conversation%20about%20the%20Smart%20Library%20app." 
-            target="_blank" 
-            rel="noopener noreferrer"
-            @mousemove="onMagneticMove" 
-            @mouseleave="onMagneticLeave"
-          >
-            Start Conversation
-          </a>
+          <router-link class="btn btn-solid magnetic" to="/signup" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
+            Create Library Account
+          </router-link>
           <router-link class="btn btn-ghost magnetic" to="/pricing-plans" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
             View Pricing
           </router-link>
+          <a
+            class="btn btn-subtle magnetic"
+            href="https://wa.me/919024600138?text=Hi%20Shubham!%20I'd%20like%20to%20book%20a%20demo%20for%20the%20Smart%20Library%20App."
+            target="_blank"
+            rel="noopener noreferrer"
+            @mousemove="onMagneticMove"
+            @mouseleave="onMagneticLeave"
+          >
+            Book a Demo
+          </a>
         </div>
       </div>
     </section>
@@ -134,27 +378,132 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref } from 'vue'
+import { computed, onMounted, onBeforeUnmount, ref } from 'vue'
 import {
   ArrowRight,
   Armchair,
+  BadgeCheck,
   BarChart3,
+  Bell,
   BookOpen,
   CheckCircle2,
+  ChevronDown,
+  CircleDollarSign,
   CircleX,
   CreditCard,
+  Gift,
+  LayoutDashboard,
   MessageSquare,
+  ReceiptText,
   ShieldCheck,
+  Sparkles,
+  Star,
+  UserPlus,
+  Users,
 } from 'lucide-vue-next'
 
 const pageRoot = ref(null)
-let observer = null
+const heroSection = ref(null)
+const showStickyCta = ref(false)
+const activeShowcaseKey = ref('dashboard')
+const openFaqIndex = ref(0)
+
+let revealObserver = null
+let heroObserver = null
+
+const createPlaceholderImage = (title, subtitle) => {
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" role="img" aria-label="${title}">
+      <defs>
+        <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%">
+          <stop offset="0%" stop-color="#0f172a" />
+          <stop offset="50%" stop-color="#0b1220" />
+          <stop offset="100%" stop-color="#111827" />
+        </linearGradient>
+        <linearGradient id="accent" x1="0%" x2="100%" y1="0%" y2="0%">
+          <stop offset="0%" stop-color="#0ea5e9" />
+          <stop offset="100%" stop-color="#2563eb" />
+        </linearGradient>
+      </defs>
+      <rect width="1400" height="900" rx="32" fill="url(#bg)" />
+      <rect x="44" y="44" width="1312" height="812" rx="28" fill="rgba(15, 23, 42, 0.82)" stroke="rgba(148, 163, 184, 0.18)" />
+      <rect x="82" y="86" width="280" height="728" rx="24" fill="rgba(15, 23, 42, 0.95)" stroke="rgba(148, 163, 184, 0.12)" />
+      <rect x="398" y="86" width="916" height="96" rx="24" fill="rgba(255,255,255,0.06)" />
+      <rect x="430" y="118" width="300" height="18" rx="9" fill="url(#accent)" />
+      <rect x="430" y="148" width="220" height="12" rx="6" fill="rgba(226,232,240,0.32)" />
+      <rect x="398" y="214" width="284" height="150" rx="24" fill="rgba(255,255,255,0.05)" />
+      <rect x="714" y="214" width="284" height="150" rx="24" fill="rgba(255,255,255,0.05)" />
+      <rect x="1030" y="214" width="284" height="150" rx="24" fill="rgba(255,255,255,0.05)" />
+      <rect x="398" y="398" width="450" height="380" rx="26" fill="rgba(255,255,255,0.05)" />
+      <rect x="880" y="398" width="434" height="380" rx="26" fill="rgba(14,165,233,0.10)" stroke="rgba(37,99,235,0.30)" />
+      <rect x="438" y="438" width="180" height="14" rx="7" fill="rgba(226,232,240,0.82)" />
+      <rect x="438" y="470" width="250" height="12" rx="6" fill="rgba(148,163,184,0.48)" />
+      <rect x="438" y="530" width="370" height="18" rx="9" fill="rgba(255,255,255,0.08)" />
+      <rect x="438" y="566" width="330" height="18" rx="9" fill="rgba(255,255,255,0.08)" />
+      <rect x="438" y="602" width="280" height="18" rx="9" fill="rgba(255,255,255,0.08)" />
+      <rect x="920" y="438" width="210" height="14" rx="7" fill="rgba(226,232,240,0.82)" />
+      <rect x="920" y="470" width="320" height="12" rx="6" fill="rgba(148,163,184,0.48)" />
+      <rect x="920" y="530" width="334" height="18" rx="9" fill="rgba(255,255,255,0.08)" />
+      <rect x="920" y="566" width="284" height="18" rx="9" fill="rgba(255,255,255,0.08)" />
+      <rect x="920" y="602" width="248" height="18" rx="9" fill="rgba(255,255,255,0.08)" />
+      <text x="700" y="835" fill="#e2e8f0" font-size="42" font-family="Inter, Arial, sans-serif" text-anchor="middle" font-weight="700">${title}</text>
+      <text x="700" y="870" fill="#94a3b8" font-size="24" font-family="Inter, Arial, sans-serif" text-anchor="middle">${subtitle}</text>
+    </svg>
+  `
+
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`
+}
+
+const heroPoints = [
+  { icon: BadgeCheck, label: 'Google sign-in onboarding', stagger: 2 },
+  { icon: MessageSquare, label: 'WhatsApp reminder workflows', stagger: 3 },
+  { icon: ReceiptText, label: 'Receipt-ready payment records', stagger: 4 },
+]
+
+const previewMetrics = [
+  { label: 'Active students', value: '184' },
+  { label: 'Seats occupied', value: '92%' },
+  { label: 'Collected this month', value: '₹1.68L' },
+]
+
+const previewTasks = [
+  { title: 'Admissions desk', copy: '4 new students are ready for seat assignment today.', badge: 'New', tone: 'tone-info' },
+  { title: 'Fee follow-up', copy: '12 reminders are queued for this morning’s collection cycle.', badge: 'Queued', tone: 'tone-warning' },
+  { title: 'Receipts', copy: '3 paid records are ready to share instantly with students.', badge: 'Ready', tone: 'tone-success' },
+]
+
+const previewSignals = [
+  'Track monthly payments and receipt history in one view',
+  'See live seat occupancy by shift before admitting new students',
+  'Keep admin and superadmin responsibilities separate and safer',
+]
 
 const stats = [
-  { value: '100%', label: 'Platform Uptime', stagger: 1 },
-  { value: '9k+', label: 'Students Managed', stagger: 2 },
-  { value: '50+', label: 'Libraries Enabled', stagger: 3 },
-  { value: '35%', label: 'Faster Admin Ops', stagger: 4 },
+  { value: '50+', label: 'libraries already operating digitally', stagger: 1 },
+  { value: '9k+', label: 'student records managed on platform', stagger: 2 },
+  { value: '35%', label: 'faster admin follow-ups for daily ops', stagger: 3 },
+  { value: '1', label: 'connected workspace for seats, fees, and reminders', stagger: 4 },
+]
+
+const testimonials = [
+  {
+    name: 'Aarav Jain',
+    library: 'Green Valley Library',
+    quote: 'We cut manual follow-up time dramatically because seats, collections, and reminders now live in one place.',
+    stagger: 1,
+  },
+  {
+    name: 'Neha Sharma',
+    library: 'Scholars Study Hub',
+    quote: 'The dashboard gives our team clarity every morning. We no longer guess which seats are free or which fees are pending.',
+    stagger: 2,
+  },
+  {
+    name: 'Rohit Verma',
+    library: 'Focus Point Reading Room',
+    quote: 'Receipts and payment history are much easier to manage now. Parents and students get answers faster, and our staff does too.',
+    stagger: 3,
+  },
 ]
 
 const oldWayPoints = [
@@ -174,40 +523,205 @@ const smartWayPoints = [
 const features = [
   {
     icon: Armchair,
-    title: 'Live Seat Intelligence',
-    description: 'Track seat occupancy by shift in real-time with clear utilization visibility.',
+    title: 'See every seat and shift live',
+    description: 'Know exactly which seats are occupied across shifts before assigning or moving students.',
     span: 'span-2-rows',
     stagger: 1,
   },
   {
-    icon: MessageSquare,
-    title: 'Automated Messaging',
-    description: 'Send reminders and important notices with template-driven WhatsApp workflows.',
+    icon: Users,
+    title: 'Register and place students without spreadsheet confusion',
+    description: 'Capture student details, assign seats, and keep profiles updated from one admissions flow.',
     span: 'span-2-cols',
     stagger: 2,
   },
   {
     icon: CreditCard,
-    title: 'Fee Collection Control',
-    description: 'Centralize monthly payment tracking, due detection, and receipts.',
+    title: 'Keep fees, receipts, and payment history organized',
+    description: 'Track monthly billing, mark payments, and share receipts without scattered manual records.',
     span: '',
     stagger: 3,
   },
   {
-    icon: BarChart3,
-    title: 'Operator Analytics',
-    description: 'Monitor trends, active students, and growth metrics at a glance.',
+    icon: MessageSquare,
+    title: 'Follow up instantly instead of manually chasing dues',
+    description: 'Run reminder workflows through WhatsApp and keep fee follow-ups fast and consistent.',
     span: '',
     stagger: 4,
   },
   {
-    icon: ShieldCheck,
-    title: 'Role-Based Governance',
-    description: 'Separate superadmin and admin responsibilities with safer access boundaries.',
+    icon: BarChart3,
+    title: 'Monitor occupancy, collections, and growth at a glance',
+    description: 'Use dashboards and trends to make better day-to-day decisions without waiting on reports.',
     span: 'span-2-cols',
     stagger: 5,
   },
+  {
+    icon: ShieldCheck,
+    title: 'Control access with safer admin roles',
+    description: 'Separate operational admin work from superadmin controls while keeping the data centralized.',
+    span: '',
+    stagger: 6,
+  },
 ]
+
+const showcaseTabs = [
+  {
+    key: 'dashboard',
+    label: 'Dashboard',
+    title: 'Collections, occupancy, and action items in one glance',
+    description: 'Use your dashboard to see revenue health, occupied seats, pending work, and trend signals before the day gets busy.',
+    alt: 'Placeholder dashboard screenshot for Smart Library App',
+    src: createPlaceholderImage('Dashboard View', 'Replace with your real dashboard screenshot'),
+  },
+  {
+    key: 'students',
+    label: 'Students',
+    title: 'Student records that stay organized and searchable',
+    description: 'Keep admissions, contact details, seat allocation, and payment history connected to each student profile.',
+    alt: 'Placeholder students screenshot for Smart Library App',
+    src: createPlaceholderImage('Students View', 'Replace with your real student list screenshot'),
+  },
+  {
+    key: 'seats',
+    label: 'Seats',
+    title: 'Live seat visibility by shift',
+    description: 'Know what is occupied, what is available, and what can be assigned before staff spend time checking manually.',
+    alt: 'Placeholder seat map screenshot for Smart Library App',
+    src: createPlaceholderImage('Seat Map View', 'Replace with your real seat map screenshot'),
+  },
+  {
+    key: 'payments',
+    label: 'Payments',
+    title: 'Monthly fee control and receipt-ready records',
+    description: 'Track who has paid, who is pending, and what receipts are ready to share without fragmented records.',
+    alt: 'Placeholder payments screenshot for Smart Library App',
+    src: createPlaceholderImage('Payments View', 'Replace with your real monthly payments screenshot'),
+  },
+  {
+    key: 'reminders',
+    label: 'Reminders',
+    title: 'Reminder workflows that save follow-up time',
+    description: 'Move from manual chase-ups to ready-to-send fee reminders that keep collections moving consistently.',
+    alt: 'Placeholder reminders screenshot for Smart Library App',
+    src: createPlaceholderImage('Reminders View', 'Replace with your real reminders screenshot'),
+  },
+]
+
+const activeShowcase = computed(() => showcaseTabs.find((tab) => tab.key === activeShowcaseKey.value) || showcaseTabs[0])
+
+const workflowSteps = [
+  {
+    step: '01',
+    icon: UserPlus,
+    title: 'Create your library account',
+    description: 'Start your workspace, verify ownership, and get your library ready for daily operations.',
+    stagger: 1,
+  },
+  {
+    step: '02',
+    icon: Armchair,
+    title: 'Add students and assign seats',
+    description: 'Register students, map them to seats and shifts, and keep admissions structured from day one.',
+    stagger: 2,
+  },
+  {
+    step: '03',
+    icon: Bell,
+    title: 'Track fees and send reminders',
+    description: 'Keep billing, receipts, and WhatsApp follow-ups in one organized collection workflow.',
+    stagger: 3,
+  },
+  {
+    step: '04',
+    icon: LayoutDashboard,
+    title: 'Monitor operations from one dashboard',
+    description: 'See occupancy, payment health, and key activity signals without switching between tools.',
+    stagger: 4,
+  },
+]
+
+const pricingHighlights = [
+  {
+    icon: CircleDollarSign,
+    kicker: 'Monthly flexibility',
+    title: 'Start at ₹9 per seat per month',
+    description: 'A simple starting point for libraries that want full feature access without setup costs.',
+    stagger: 1,
+  },
+  {
+    icon: Sparkles,
+    kicker: 'Smarter scaling',
+    title: 'Lower your effective monthly cost on longer plans',
+    description: 'Annual and multi-month billing cycles reduce cost per seat as operations become more stable.',
+    stagger: 2,
+  },
+  {
+    icon: Gift,
+    kicker: 'First-purchase advantage',
+    title: 'Unlock bonus months on eligible plans',
+    description: 'Grow with predictable billing and extra value when you commit to longer operating cycles.',
+    stagger: 3,
+  },
+]
+
+const trustSignals = [
+  {
+    icon: ShieldCheck,
+    title: 'Secure admin access',
+    description: 'Protected login, password recovery, and safer access patterns for the people running daily operations.',
+    stagger: 1,
+  },
+  {
+    icon: BadgeCheck,
+    title: 'Google sign-in ready',
+    description: 'Reduce login friction for admins while keeping onboarding faster and cleaner.',
+    stagger: 2,
+  },
+  {
+    icon: BookOpen,
+    title: 'Role-based governance',
+    description: 'Separate admin and superadmin workflows so operational control stays organized as you scale.',
+    stagger: 3,
+  },
+  {
+    icon: ReceiptText,
+    title: 'Audit-friendly payment records',
+    description: 'Keep receipts, history, and collections visible so teams can answer questions with confidence.',
+    stagger: 4,
+  },
+]
+
+const faqs = [
+  {
+    question: 'How is pricing calculated?',
+    answer: 'Pricing is seat-based, so your cost scales with the number of seats you manage. Longer billing cycles reduce the effective monthly cost per seat.',
+  },
+  {
+    question: 'Are there seat limits on the platform?',
+    answer: 'You can start with a small library and scale up. Plans are designed to grow with your seat capacity rather than force a one-size-fits-all limit.',
+  },
+  {
+    question: 'Does the app support WhatsApp reminders?',
+    answer: 'Yes. Smart Library App supports reminder workflows that help admins follow up on pending fees much faster than manual messaging.',
+  },
+  {
+    question: 'How is my library data kept secure?',
+    answer: 'The app uses authenticated access, role-based controls, and structured records so library data stays organized and available only to the right users.',
+  },
+  {
+    question: 'Is there a trial period before I commit?',
+    answer: 'Yes. The product supports a self-serve signup flow and trial-first onboarding so you can evaluate the workflow before making a longer commitment.',
+  },
+  {
+    question: 'Can this support multi-branch or growing operations?',
+    answer: 'Yes. The platform is designed for growing library networks with superadmin oversight, standardized workflows, and pricing that scales with usage.',
+  },
+]
+
+const toggleFaq = (index) => {
+  openFaqIndex.value = openFaqIndex.value === index ? -1 : index
+}
 
 const onMagneticMove = (event) => {
   const element = event.currentTarget
@@ -232,7 +746,7 @@ const onMagneticLeave = (event) => {
 onMounted(() => {
   const targets = pageRoot.value?.querySelectorAll('.reveal') || []
 
-  observer = new IntersectionObserver(
+  revealObserver = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
         if (!entry.isIntersecting) {
@@ -242,7 +756,7 @@ onMounted(() => {
         const stagger = Number(entry.target.dataset.stagger || 0)
         entry.target.style.transitionDelay = `${Math.min(stagger * 80, 420)}ms`
         entry.target.classList.add('is-visible')
-        observer?.unobserve(entry.target)
+        revealObserver?.unobserve(entry.target)
       })
     },
     {
@@ -251,12 +765,29 @@ onMounted(() => {
     }
   )
 
-  targets.forEach((target) => observer?.observe(target))
+  targets.forEach((target) => revealObserver?.observe(target))
+
+  heroObserver = new IntersectionObserver(
+    (entries) => {
+      const [entry] = entries
+      showStickyCta.value = !entry.isIntersecting
+    },
+    {
+      threshold: 0.08,
+      rootMargin: '0px 0px -12% 0px',
+    }
+  )
+
+  if (heroSection.value) {
+    heroObserver.observe(heroSection.value)
+  }
 })
 
 onBeforeUnmount(() => {
-  observer?.disconnect()
-  observer = null
+  revealObserver?.disconnect()
+  revealObserver = null
+  heroObserver?.disconnect()
+  heroObserver = null
 })
 </script>
 
@@ -277,7 +808,7 @@ onBeforeUnmount(() => {
   padding: 2rem 2rem 4rem;
   color: var(--text-primary);
   background: var(--bg);
-  font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   overflow: hidden;
   isolation: isolate;
 }
@@ -296,16 +827,60 @@ onBeforeUnmount(() => {
   margin: 0 auto;
 }
 
+.sticky-cta-bar {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1200;
+  width: min(1080px, calc(100% - 2rem));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem 1rem;
+  border-radius: 18px;
+  border: 1px solid var(--theme-border-strong);
+  background: var(--theme-nav-surface-strong);
+  box-shadow: var(--theme-shadow-elevated);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.sticky-cta-kicker {
+  margin: 0;
+  color: var(--theme-text-secondary);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sticky-cta-copy strong {
+  display: block;
+  margin-top: 0.22rem;
+  font-size: 0.92rem;
+}
+
+.sticky-cta-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
 .hero {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
-  gap: 2.5rem;
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
+  gap: 2.4rem;
   align-items: center;
   padding-top: 2rem;
 }
 
 .kicker,
-.cta-kicker {
+.cta-kicker,
+.preview-kicker,
+.teaser-kicker,
+.pricing-teaser-eyebrow,
+.showcase-kicker {
   margin: 0;
   display: inline-flex;
   padding: 0.4rem 0.8rem;
@@ -320,7 +895,7 @@ onBeforeUnmount(() => {
 
 .hero h1 {
   margin: 0.9rem 0 0;
-  font-size: clamp(2.4rem, 6vw, 5.2rem);
+  font-size: clamp(2.4rem, 6vw, 5.1rem);
   line-height: 1.02;
   letter-spacing: -0.03em;
   text-wrap: balance;
@@ -335,9 +910,14 @@ onBeforeUnmount(() => {
 
 .hero-subtitle,
 .section-header p,
-.cta-card p {
+.cta-card p,
+.teaser-card p,
+.workflow-card p,
+.trust-card p,
+.showcase-copy p,
+.faq-answer p,
+.testimonial-quote {
   margin: 1.1rem 0 0;
-  /* max-width: 62ch; */
   color: var(--text-secondary);
   line-height: 1.6;
   text-wrap: balance;
@@ -349,7 +929,32 @@ onBeforeUnmount(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 0.8rem;
-  justify-content: center;
+}
+
+.hero-points {
+  margin-top: 1.15rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.point-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--theme-border-soft);
+  background: var(--theme-panel);
+  color: var(--theme-text-soft);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.point-icon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--theme-brand-pill-text);
 }
 
 .hero-visual {
@@ -357,41 +962,254 @@ onBeforeUnmount(() => {
   justify-content: center;
 }
 
-.hero-orb {
-  /* width: min(360px, 84vw); */
-  aspect-ratio: 1;
-  border-radius: 28px;
-  /* border: 1px solid var(--surface-border); */
-  /* background:
-    linear-gradient(145deg, rgba(148, 163, 184, 0.14), rgba(148, 163, 184, 0.02)),
-    rgba(148, 163, 184, 0.02); */
-  backdrop-filter: blur(12px);
-  display: grid;
-  place-items: center;
-  /* box-shadow: 0 26px 60px rgba(2, 6, 23, 0.45); */
+.hero-preview {
+  position: relative;
+  width: min(100%, 540px);
+  border-radius: 26px;
+  padding: 1.2rem;
+  overflow: visible;
+  box-shadow: var(--theme-shadow-elevated);
 }
 
-.orb-core {
-  width: 12rem;
-  height: 12rem;
+.preview-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.preview-topbar h3 {
+  margin: 0.45rem 0 0;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.preview-status {
+  padding: 0.42rem 0.8rem;
   border-radius: 999px;
-  display: grid;
-  place-items: center;
-  background: radial-gradient(circle at 28% 22%, rgba(34, 211, 238, 0.5), rgba(30, 41, 59, 0.08));
-  box-shadow:
-    inset 0 0 30px rgba(226, 232, 240, 0.16),
-    0 20px 40px rgba(34, 211, 238, 0.18);
+  background: var(--theme-success-soft);
+  color: var(--theme-success-text);
+  border: 1px solid var(--theme-success-border);
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 
-.orb-icon {
-  width: 3.4rem;
-  height: 3.4rem;
-  color: var(--theme-text-strong);
-  stroke-width: 1.8;
+.preview-metrics {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.preview-metric {
+  border-radius: 16px;
+  padding: 0.9rem;
+  border: 1px solid var(--theme-border-soft);
+  background: var(--theme-panel-soft);
+}
+
+.preview-metric p {
+  margin: 0;
+  color: var(--theme-text-secondary);
+  font-size: 0.82rem;
+}
+
+.preview-metric strong {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 1.2rem;
+  letter-spacing: -0.03em;
+}
+
+.preview-grid {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 0.8rem;
+}
+
+.preview-panel {
+  border-radius: 18px;
+  padding: 1rem;
+  border: 1px solid var(--theme-border-soft);
+  background: var(--theme-panel-strong);
+}
+
+.preview-panel-accent {
+  background:
+    radial-gradient(circle at top right, var(--theme-brand-soft-strong), transparent 44%),
+    var(--theme-panel-strong);
+  border-color: var(--theme-brand-border);
+}
+
+.preview-panel header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  align-items: baseline;
+}
+
+.preview-panel h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.preview-panel header span {
+  font-size: 0.78rem;
+  color: var(--theme-text-secondary);
+}
+
+.preview-list {
+  margin-top: 0.8rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.preview-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.8rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--theme-border-soft);
+}
+
+.preview-row:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.preview-row-title {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.preview-row-copy {
+  margin: 0.28rem 0 0;
+  color: var(--theme-text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.preview-badge {
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.tone-info {
+  background: var(--theme-info-soft);
+  color: var(--theme-info-text);
+  border-color: var(--theme-info-border);
+}
+
+.tone-warning {
+  background: var(--theme-warning-soft);
+  color: var(--theme-warning-text);
+  border-color: var(--theme-warning-border);
+}
+
+.tone-success {
+  background: var(--theme-success-soft);
+  color: var(--theme-success-text);
+  border-color: var(--theme-success-border);
+}
+
+.preview-signal-list {
+  list-style: none;
+  margin: 0.85rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.preview-signal-item {
+  display: flex;
+  gap: 0.55rem;
+  align-items: flex-start;
+  color: var(--theme-text-soft);
+  line-height: 1.45;
+}
+
+.preview-signal-icon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--theme-brand-pill-text);
+  margin-top: 0.1rem;
+}
+
+.preview-receipt {
+  margin-top: 1rem;
+  border-radius: 16px;
+  padding: 0.9rem;
+  background: var(--theme-panel-solid);
+  border: 1px solid var(--theme-brand-border);
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+}
+
+.preview-receipt-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--theme-brand-pill-text);
+  margin-top: 0.1rem;
+}
+
+.preview-receipt strong,
+.preview-floating strong {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.preview-receipt p,
+.preview-floating span {
+  margin: 0.3rem 0 0;
+  color: var(--theme-text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.preview-floating {
+  position: absolute;
+  right: -1.2rem;
+  bottom: 1.35rem;
+  width: min(240px, 72vw);
+  border-radius: 18px;
+  padding: 0.95rem;
+  border: 1px solid var(--theme-brand-border);
+  box-shadow: var(--theme-shadow-soft);
+  background:
+    radial-gradient(circle at top right, var(--theme-brand-soft-strong), transparent 52%),
+    var(--theme-panel-solid);
+}
+
+.preview-floating-kicker {
+  margin: 0;
+  color: var(--theme-text-secondary);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.stats,
+.testimonials,
+.workflow,
+.pricing-teaser,
+.trust,
+.features,
+.comparison,
+.showcase,
+.faq,
+.cta {
+  margin-top: 3rem;
 }
 
 .stats {
-  margin-top: 2rem;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.9rem;
@@ -400,7 +1218,13 @@ onBeforeUnmount(() => {
 .glass-card,
 .stat-card,
 .bento-card,
-.cta-card {
+.cta-card,
+.workflow-card,
+.trust-card,
+.teaser-card,
+.showcase-shell,
+.testimonial-card,
+.faq-card {
   border: 1px solid var(--surface-border);
   background: var(--surface);
   backdrop-filter: blur(12px);
@@ -425,8 +1249,55 @@ onBeforeUnmount(() => {
   font-size: 0.9rem;
 }
 
-.comparison {
-  margin-top: 3rem;
+.section-header h2,
+.cta-card h2 {
+  margin: 0;
+  font-size: clamp(1.5rem, 3.3vw, 2.4rem);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.testimonial-grid {
+  margin-top: 1.3rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.testimonial-card {
+  border-radius: 18px;
+  padding: 1.2rem;
+}
+
+.testimonial-stars {
+  display: flex;
+  gap: 0.28rem;
+}
+
+.testimonial-star {
+  width: 1rem;
+  height: 1rem;
+  color: var(--theme-warning-text);
+  fill: currentColor;
+}
+
+.testimonial-quote {
+  margin-top: 0.95rem;
+}
+
+.testimonial-meta {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.testimonial-meta strong {
+  font-size: 0.95rem;
+}
+
+.testimonial-meta span {
+  color: var(--theme-text-secondary);
+  font-size: 0.86rem;
 }
 
 .comparison-grid {
@@ -543,18 +1414,6 @@ onBeforeUnmount(() => {
   stroke-width: 2.1;
 }
 
-.features {
-  margin-top: 3rem;
-}
-
-.section-header h2,
-.cta-card h2 {
-  margin: 0;
-  font-size: clamp(1.5rem, 3.3vw, 2.4rem);
-  letter-spacing: -0.02em;
-  text-wrap: balance;
-}
-
 .bento-grid {
   margin-top: 1.3rem;
   display: grid;
@@ -594,7 +1453,12 @@ onBeforeUnmount(() => {
   opacity: 1;
 }
 
-.bento-card h3 {
+.bento-card h3,
+.workflow-card h3,
+.teaser-card h3,
+.trust-card h3,
+.showcase-copy h3,
+.faq-trigger {
   margin: 0.65rem 0 0;
   font-size: 1.15rem;
 }
@@ -615,7 +1479,10 @@ onBeforeUnmount(() => {
   border: 1px solid var(--theme-border-soft);
 }
 
-.feature-icon {
+.feature-icon,
+.workflow-icon,
+.teaser-icon,
+.trust-icon {
   width: 1.3rem;
   height: 1.3rem;
   color: var(--theme-text-soft);
@@ -631,9 +1498,188 @@ onBeforeUnmount(() => {
   grid-row: span 2;
 }
 
-.cta {
-  margin-top: 3rem;
-  margin-bottom: 0.5rem;
+.showcase-shell {
+  margin-top: 1.3rem;
+  border-radius: 22px;
+  padding: 1.1rem;
+}
+
+.showcase-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.showcase-tab {
+  padding: 0.72rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--theme-border-soft);
+  background: var(--theme-surface-soft);
+  color: var(--theme-text-primary);
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 180ms ease, background 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.showcase-tab:hover {
+  transform: translateY(-1px);
+  border-color: var(--theme-brand-border);
+}
+
+.showcase-tab.is-active {
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
+  color: var(--theme-brand-on);
+  border-color: transparent;
+  box-shadow: var(--theme-shadow-soft);
+}
+
+.showcase-stage {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: 1.1rem;
+  align-items: center;
+}
+
+.showcase-copy h3 {
+  margin-top: 0.7rem;
+  font-size: clamp(1.25rem, 2.7vw, 1.8rem);
+  letter-spacing: -0.02em;
+}
+
+.showcase-copy p {
+  margin-top: 0.8rem;
+}
+
+.showcase-frame {
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid var(--theme-border-soft);
+  background: var(--theme-panel-strong);
+  box-shadow: var(--theme-shadow-soft);
+}
+
+.showcase-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 14 / 9;
+  object-fit: cover;
+}
+
+.workflow-grid,
+.pricing-teaser-grid,
+.trust-grid {
+  margin-top: 1.3rem;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.workflow-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.pricing-teaser-grid,
+.trust-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.workflow-card,
+.teaser-card,
+.trust-card {
+  border-radius: 18px;
+  padding: 1.2rem;
+}
+
+.workflow-step {
+  width: fit-content;
+  min-width: 2.55rem;
+  height: 2.55rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--theme-brand-soft);
+  border: 1px solid var(--theme-brand-border);
+  color: var(--theme-brand-pill-text);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.workflow-icon,
+.teaser-icon,
+.trust-icon {
+  margin-top: 1rem;
+}
+
+.workflow-card p,
+.teaser-card p,
+.trust-card p {
+  margin-top: 0.55rem;
+}
+
+.pricing-teaser-bar {
+  margin-top: 1rem;
+  border-radius: 20px;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  box-shadow: var(--theme-shadow-soft);
+}
+
+.pricing-teaser-eyebrow {
+  margin-bottom: 0.65rem;
+}
+
+.pricing-teaser-bar h3 {
+  margin: 0;
+  font-size: clamp(1.15rem, 2.4vw, 1.5rem);
+  letter-spacing: -0.02em;
+}
+
+.faq-list {
+  margin-top: 1.3rem;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.faq-card {
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.faq-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border: 0;
+  background: transparent;
+  color: var(--theme-text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.faq-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--theme-text-secondary);
+  transition: transform 180ms ease;
+}
+
+.faq-icon.is-open {
+  transform: rotate(180deg);
+}
+
+.faq-answer {
+  padding: 0 1.1rem 1rem;
+}
+
+.faq-answer p {
+  margin: 0;
 }
 
 .cta-card {
@@ -688,8 +1734,16 @@ onBeforeUnmount(() => {
   background: var(--theme-surface-soft);
 }
 
-.btn-ghost:hover {
+.btn-subtle {
+  color: var(--theme-text-soft);
+  border-color: transparent;
+  background: transparent;
+}
+
+.btn-ghost:hover,
+.btn-subtle:hover {
   border-color: var(--theme-brand-border);
+  background: var(--theme-surface-soft-strong);
 }
 
 .reveal {
@@ -703,8 +1757,39 @@ onBeforeUnmount(() => {
   transform: translateY(0);
 }
 
-.floaty {
-  animation: float 6s ease-in-out infinite;
+.sticky-cta-enter-active,
+.sticky-cta-leave-active,
+.showcase-fade-enter-active,
+.showcase-fade-leave-active {
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.sticky-cta-enter-from,
+.sticky-cta-leave-to,
+.showcase-fade-enter-from,
+.showcase-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.faq-collapse-enter-active,
+.faq-collapse-leave-active {
+  overflow: hidden;
+  transition: max-height 240ms ease, opacity 220ms ease, transform 220ms ease;
+}
+
+.faq-collapse-enter-from,
+.faq-collapse-leave-to {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.faq-collapse-enter-to,
+.faq-collapse-leave-from {
+  max-height: 220px;
+  opacity: 1;
+  transform: translateY(0);
 }
 
 @keyframes mesh-drift {
@@ -716,17 +1801,7 @@ onBeforeUnmount(() => {
   }
 }
 
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-14px);
-  }
-}
-
-@media (max-width: 1024px) {
+@media (max-width: 1100px) {
   .hero {
     grid-template-columns: 1fr;
   }
@@ -735,7 +1810,29 @@ onBeforeUnmount(() => {
     order: -1;
   }
 
-  .stats {
+  .workflow-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .preview-floating {
+    position: static;
+    width: 100%;
+    margin-top: 0.9rem;
+    border-color: var(--theme-brand-border);
+    background:
+      radial-gradient(circle at top right, var(--theme-brand-soft-strong), transparent 52%),
+      var(--theme-panel-solid);
+    box-shadow: var(--theme-shadow-soft);
+  }
+
+  .showcase-stage {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1024px) {
+  .stats,
+  .testimonial-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -759,6 +1856,16 @@ onBeforeUnmount(() => {
   .comparison-divider-icon {
     transform: rotate(90deg);
   }
+
+  .pricing-teaser-grid,
+  .trust-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pricing-teaser-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 @media (max-width: 767px) {
@@ -766,9 +1873,30 @@ onBeforeUnmount(() => {
     padding: 2rem 1rem 5rem;
   }
 
-  .orb-core {
-    width: 9rem;
-    height: 9rem;
+  .section-shell {
+    width: min(100%, calc(100% - 0.5rem));
+  }
+
+  .hero-preview,
+  .showcase-shell {
+    padding: 1rem;
+  }
+
+  .preview-metrics,
+  .preview-grid,
+  .workflow-grid,
+  .stats,
+  .testimonial-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .showcase-tabs {
+    flex-direction: column;
+  }
+
+  .showcase-tab {
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .bento-grid {
@@ -783,12 +1911,24 @@ onBeforeUnmount(() => {
     grid-row: span 1;
   }
 
-  .stats {
-    grid-template-columns: 1fr;
-  }
-
   .cta-card {
     padding: 1.3rem;
+  }
+
+  .hero-actions,
+  .cta-actions,
+  .sticky-cta-actions {
+    align-items: stretch;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 479px) {
+  .sticky-cta-bar {
+    display: none;
   }
 }
 </style>

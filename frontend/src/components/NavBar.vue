@@ -233,7 +233,7 @@ export default {
   computed: {
     homeRoute() {
       if (!this.isLoggedIn) {
-        return '/login'
+        return '/'
       }
       return this.role === 'superadmin' ? '/superadmin' : '/dashboard'
     },
