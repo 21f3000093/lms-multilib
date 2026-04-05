@@ -12,16 +12,9 @@
           <router-link class="btn btn-solid magnetic" to="/signup" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
             Start Free
           </router-link>
-          <a
-            class="btn btn-ghost magnetic"
-            href="https://wa.me/919024600138?text=Hi%20Shubham!%20I'd%20like%20to%20book%20a%20demo%20for%20the%20Smart%20Library%20App."
-            target="_blank"
-            rel="noopener noreferrer"
-            @mousemove="onMagneticMove"
-            @mouseleave="onMagneticLeave"
-          >
-            Book a Demo
-          </a>
+          <router-link class="btn btn-ghost magnetic" to="/pricing-plans" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
+            View Pricing
+          </router-link>
         </div>
       </div>
     </Transition>
@@ -55,16 +48,6 @@
           >
             View Pricing
           </router-link>
-          <a
-            class="btn btn-subtle magnetic"
-            href="https://wa.me/919024600138?text=Hi%20Shubham!%20I'd%20like%20to%20book%20a%20demo%20for%20the%20Smart%20Library%20App."
-            target="_blank"
-            rel="noopener noreferrer"
-            @mousemove="onMagneticMove"
-            @mouseleave="onMagneticLeave"
-          >
-            Book a Demo
-          </a>
         </div>
 
         <div class="hero-points">
@@ -75,96 +58,6 @@
         </div>
       </div>
 
-      <div class="hero-visual reveal" data-stagger="1">
-        <div class="hero-preview glass-card">
-          <div class="preview-topbar">
-            <div>
-              <p class="preview-kicker">Live product preview</p>
-              <h3>Today’s library workspace</h3>
-            </div>
-            <span class="preview-status">Live</span>
-          </div>
-
-          <div class="preview-metrics">
-            <article v-for="metric in previewMetrics" :key="metric.label" class="preview-metric">
-              <p>{{ metric.label }}</p>
-              <strong>{{ metric.value }}</strong>
-            </article>
-          </div>
-
-          <div class="preview-grid">
-            <article class="preview-panel">
-              <header>
-                <h4>Today’s queue</h4>
-                <span>Priority actions</span>
-              </header>
-              <div class="preview-list">
-                <div v-for="task in previewTasks" :key="task.title" class="preview-row">
-                  <div>
-                    <p class="preview-row-title">{{ task.title }}</p>
-                    <p class="preview-row-copy">{{ task.copy }}</p>
-                  </div>
-                  <span class="preview-badge" :class="task.tone">{{ task.badge }}</span>
-                </div>
-              </div>
-            </article>
-
-            <article class="preview-panel preview-panel-accent">
-              <header>
-                <h4>Automation pulse</h4>
-                <span>Always within reach</span>
-              </header>
-              <ul class="preview-signal-list">
-                <li v-for="signal in previewSignals" :key="signal" class="preview-signal-item">
-                  <CheckCircle2 class="preview-signal-icon" aria-hidden="true" />
-                  <span>{{ signal }}</span>
-                </li>
-              </ul>
-
-              <div class="preview-receipt">
-                <ReceiptText class="preview-receipt-icon" aria-hidden="true" />
-                <div>
-                  <strong>Receipt-ready records</strong>
-                  <p>Share payment proof in a tap and keep collections organized.</p>
-                </div>
-              </div>
-            </article>
-          </div>
-
-          <div class="preview-floating glass-card">
-            <p class="preview-floating-kicker">Next follow-up</p>
-            <strong>12 unpaid students need reminders</strong>
-            <span>WhatsApp workflows are ready for today’s fee collection cycle.</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="stats section-shell reveal" data-stagger="0">
-      <article v-for="item in stats" :key="item.label" class="stat-card reveal" :data-stagger="item.stagger">
-        <p class="stat-value">{{ item.value }}</p>
-        <p class="stat-label">{{ item.label }}</p>
-      </article>
-    </section>
-
-    <section class="testimonials section-shell">
-      <header class="section-header reveal" data-stagger="0">
-        <h2>What library teams say after switching</h2>
-        <p>These placeholder testimonials show the kind of proof and trust layer the landing page is designed to support.</p>
-      </header>
-
-      <div class="testimonial-grid">
-        <article v-for="item in testimonials" :key="item.name" class="glass-card testimonial-card reveal" :data-stagger="item.stagger">
-          <div class="testimonial-stars" aria-label="5 star rating">
-            <Star v-for="star in 5" :key="star" class="testimonial-star" aria-hidden="true" />
-          </div>
-          <p class="testimonial-quote">“{{ item.quote }}”</p>
-          <div class="testimonial-meta">
-            <strong>{{ item.name }}</strong>
-            <span>{{ item.library }}</span>
-          </div>
-        </article>
-      </div>
     </section>
 
     <section class="comparison section-shell">
@@ -279,6 +172,33 @@
       </div>
     </section>
 
+    <section class="stats section-shell reveal" data-stagger="0">
+      <article v-for="item in stats" :key="item.label" class="stat-card reveal" :data-stagger="item.stagger">
+        <p class="stat-value">{{ item.value }}</p>
+        <p class="stat-label">{{ item.label }}</p>
+      </article>
+    </section>
+
+    <section class="testimonials section-shell">
+      <header class="section-header reveal" data-stagger="0">
+        <h2>What library teams say after switching</h2>
+        <p>These placeholder testimonials show the kind of proof and trust layer the landing page is designed to support.</p>
+      </header>
+
+      <div class="testimonial-grid">
+        <article v-for="item in testimonials" :key="item.name" class="glass-card testimonial-card reveal" :data-stagger="item.stagger">
+          <div class="testimonial-stars" aria-label="5 star rating">
+            <Star v-for="star in 5" :key="star" class="testimonial-star" aria-hidden="true" />
+          </div>
+          <p class="testimonial-quote">“{{ item.quote }}”</p>
+          <div class="testimonial-meta">
+            <strong>{{ item.name }}</strong>
+            <span>{{ item.library }}</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
     <section class="pricing-teaser section-shell">
       <header class="section-header reveal" data-stagger="0">
         <h2>Flexible pricing that scales with your seat count</h2>
@@ -302,21 +222,6 @@
         <router-link class="btn btn-solid magnetic" to="/pricing-plans" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
           Explore Full Pricing
         </router-link>
-      </div>
-    </section>
-
-    <section class="trust section-shell">
-      <header class="section-header reveal" data-stagger="0">
-        <h2>Built for reliable day-to-day operations</h2>
-        <p>Every workflow is designed to help teams move faster without losing control, visibility, or payment confidence.</p>
-      </header>
-
-      <div class="trust-grid">
-        <article v-for="item in trustSignals" :key="item.title" class="glass-card trust-card reveal" :data-stagger="item.stagger">
-          <component :is="item.icon" class="trust-icon" aria-hidden="true" />
-          <h3>{{ item.title }}</h3>
-          <p>{{ item.description }}</p>
-        </article>
       </div>
     </section>
 
@@ -361,16 +266,6 @@
           <router-link class="btn btn-ghost magnetic" to="/pricing-plans" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
             View Pricing
           </router-link>
-          <a
-            class="btn btn-subtle magnetic"
-            href="https://wa.me/919024600138?text=Hi%20Shubham!%20I'd%20like%20to%20book%20a%20demo%20for%20the%20Smart%20Library%20App."
-            target="_blank"
-            rel="noopener noreferrer"
-            @mousemove="onMagneticMove"
-            @mouseleave="onMagneticLeave"
-          >
-            Book a Demo
-          </a>
         </div>
       </div>
     </section>
@@ -385,7 +280,6 @@ import {
   BadgeCheck,
   BarChart3,
   Bell,
-  BookOpen,
   CheckCircle2,
   ChevronDown,
   CircleDollarSign,
@@ -458,24 +352,6 @@ const heroPoints = [
   { icon: BadgeCheck, label: 'Google sign-in onboarding', stagger: 2 },
   { icon: MessageSquare, label: 'WhatsApp reminder workflows', stagger: 3 },
   { icon: ReceiptText, label: 'Receipt-ready payment records', stagger: 4 },
-]
-
-const previewMetrics = [
-  { label: 'Active students', value: '184' },
-  { label: 'Seats occupied', value: '92%' },
-  { label: 'Collected this month', value: '₹1.68L' },
-]
-
-const previewTasks = [
-  { title: 'Admissions desk', copy: '4 new students are ready for seat assignment today.', badge: 'New', tone: 'tone-info' },
-  { title: 'Fee follow-up', copy: '12 reminders are queued for this morning’s collection cycle.', badge: 'Queued', tone: 'tone-warning' },
-  { title: 'Receipts', copy: '3 paid records are ready to share instantly with students.', badge: 'Ready', tone: 'tone-success' },
-]
-
-const previewSignals = [
-  'Track monthly payments and receipt history in one view',
-  'See live seat occupancy by shift before admitting new students',
-  'Keep admin and superadmin responsibilities separate and safer',
 ]
 
 const stats = [
@@ -558,8 +434,8 @@ const features = [
   },
   {
     icon: ShieldCheck,
-    title: 'Control access with safer admin roles',
-    description: 'Separate operational admin work from superadmin controls while keeping the data centralized.',
+    title: 'Keep library data safe and secure',
+    description: 'Store student, payment, and seat records in one protected system instead of risking errors across scattered manual tools.',
     span: '',
     stagger: 6,
   },
@@ -662,33 +538,6 @@ const pricingHighlights = [
     title: 'Unlock bonus months on eligible plans',
     description: 'Grow with predictable billing and extra value when you commit to longer operating cycles.',
     stagger: 3,
-  },
-]
-
-const trustSignals = [
-  {
-    icon: ShieldCheck,
-    title: 'Secure admin access',
-    description: 'Protected login, password recovery, and safer access patterns for the people running daily operations.',
-    stagger: 1,
-  },
-  {
-    icon: BadgeCheck,
-    title: 'Google sign-in ready',
-    description: 'Reduce login friction for admins while keeping onboarding faster and cleaner.',
-    stagger: 2,
-  },
-  {
-    icon: BookOpen,
-    title: 'Role-based governance',
-    description: 'Separate admin and superadmin workflows so operational control stays organized as you scale.',
-    stagger: 3,
-  },
-  {
-    icon: ReceiptText,
-    title: 'Audit-friendly payment records',
-    description: 'Keep receipts, history, and collections visible so teams can answer questions with confidence.',
-    stagger: 4,
   },
 ]
 
@@ -869,15 +718,15 @@ onBeforeUnmount(() => {
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
-  gap: 2.4rem;
-  align-items: center;
+  grid-template-columns: 1fr;
+  gap: 1.4rem;
+  align-items: start;
   padding-top: 2rem;
+  max-width: 780px;
 }
 
 .kicker,
 .cta-kicker,
-.preview-kicker,
 .teaser-kicker,
 .pricing-teaser-eyebrow,
 .showcase-kicker {
@@ -913,7 +762,6 @@ onBeforeUnmount(() => {
 .cta-card p,
 .teaser-card p,
 .workflow-card p,
-.trust-card p,
 .showcase-copy p,
 .faq-answer p,
 .testimonial-quote {
@@ -957,250 +805,10 @@ onBeforeUnmount(() => {
   color: var(--theme-brand-pill-text);
 }
 
-.hero-visual {
-  display: flex;
-  justify-content: center;
-}
-
-.hero-preview {
-  position: relative;
-  width: min(100%, 540px);
-  border-radius: 26px;
-  padding: 1.2rem;
-  overflow: visible;
-  box-shadow: var(--theme-shadow-elevated);
-}
-
-.preview-topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-}
-
-.preview-topbar h3 {
-  margin: 0.45rem 0 0;
-  font-size: 1.25rem;
-  letter-spacing: -0.02em;
-}
-
-.preview-status {
-  padding: 0.42rem 0.8rem;
-  border-radius: 999px;
-  background: var(--theme-success-soft);
-  color: var(--theme-success-text);
-  border: 1px solid var(--theme-success-border);
-  font-size: 0.78rem;
-  font-weight: 700;
-}
-
-.preview-metrics {
-  margin-top: 1rem;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
-}
-
-.preview-metric {
-  border-radius: 16px;
-  padding: 0.9rem;
-  border: 1px solid var(--theme-border-soft);
-  background: var(--theme-panel-soft);
-}
-
-.preview-metric p {
-  margin: 0;
-  color: var(--theme-text-secondary);
-  font-size: 0.82rem;
-}
-
-.preview-metric strong {
-  display: block;
-  margin-top: 0.35rem;
-  font-size: 1.2rem;
-  letter-spacing: -0.03em;
-}
-
-.preview-grid {
-  margin-top: 1rem;
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 0.8rem;
-}
-
-.preview-panel {
-  border-radius: 18px;
-  padding: 1rem;
-  border: 1px solid var(--theme-border-soft);
-  background: var(--theme-panel-strong);
-}
-
-.preview-panel-accent {
-  background:
-    radial-gradient(circle at top right, var(--theme-brand-soft-strong), transparent 44%),
-    var(--theme-panel-strong);
-  border-color: var(--theme-brand-border);
-}
-
-.preview-panel header {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.8rem;
-  align-items: baseline;
-}
-
-.preview-panel h4 {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.preview-panel header span {
-  font-size: 0.78rem;
-  color: var(--theme-text-secondary);
-}
-
-.preview-list {
-  margin-top: 0.8rem;
-  display: grid;
-  gap: 0.75rem;
-}
-
-.preview-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.8rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--theme-border-soft);
-}
-
-.preview-row:last-child {
-  padding-bottom: 0;
-  border-bottom: 0;
-}
-
-.preview-row-title {
-  margin: 0;
-  font-size: 0.92rem;
-  font-weight: 700;
-}
-
-.preview-row-copy {
-  margin: 0.28rem 0 0;
-  color: var(--theme-text-secondary);
-  font-size: 0.82rem;
-  line-height: 1.5;
-}
-
-.preview-badge {
-  padding: 0.35rem 0.6rem;
-  border-radius: 999px;
-  font-size: 0.74rem;
-  font-weight: 700;
-  white-space: nowrap;
-  border: 1px solid transparent;
-}
-
-.tone-info {
-  background: var(--theme-info-soft);
-  color: var(--theme-info-text);
-  border-color: var(--theme-info-border);
-}
-
-.tone-warning {
-  background: var(--theme-warning-soft);
-  color: var(--theme-warning-text);
-  border-color: var(--theme-warning-border);
-}
-
-.tone-success {
-  background: var(--theme-success-soft);
-  color: var(--theme-success-text);
-  border-color: var(--theme-success-border);
-}
-
-.preview-signal-list {
-  list-style: none;
-  margin: 0.85rem 0 0;
-  padding: 0;
-  display: grid;
-  gap: 0.75rem;
-}
-
-.preview-signal-item {
-  display: flex;
-  gap: 0.55rem;
-  align-items: flex-start;
-  color: var(--theme-text-soft);
-  line-height: 1.45;
-}
-
-.preview-signal-icon {
-  width: 1rem;
-  height: 1rem;
-  color: var(--theme-brand-pill-text);
-  margin-top: 0.1rem;
-}
-
-.preview-receipt {
-  margin-top: 1rem;
-  border-radius: 16px;
-  padding: 0.9rem;
-  background: var(--theme-panel-solid);
-  border: 1px solid var(--theme-brand-border);
-  display: flex;
-  gap: 0.7rem;
-  align-items: flex-start;
-}
-
-.preview-receipt-icon {
-  width: 1.1rem;
-  height: 1.1rem;
-  color: var(--theme-brand-pill-text);
-  margin-top: 0.1rem;
-}
-
-.preview-receipt strong,
-.preview-floating strong {
-  display: block;
-  font-size: 0.95rem;
-}
-
-.preview-receipt p,
-.preview-floating span {
-  margin: 0.3rem 0 0;
-  color: var(--theme-text-secondary);
-  font-size: 0.82rem;
-  line-height: 1.5;
-}
-
-.preview-floating {
-  position: absolute;
-  right: -1.2rem;
-  bottom: 1.35rem;
-  width: min(240px, 72vw);
-  border-radius: 18px;
-  padding: 0.95rem;
-  border: 1px solid var(--theme-brand-border);
-  box-shadow: var(--theme-shadow-soft);
-  background:
-    radial-gradient(circle at top right, var(--theme-brand-soft-strong), transparent 52%),
-    var(--theme-panel-solid);
-}
-
-.preview-floating-kicker {
-  margin: 0;
-  color: var(--theme-text-secondary);
-  font-size: 0.76rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 .stats,
 .testimonials,
 .workflow,
 .pricing-teaser,
-.trust,
 .features,
 .comparison,
 .showcase,
@@ -1220,7 +828,6 @@ onBeforeUnmount(() => {
 .bento-card,
 .cta-card,
 .workflow-card,
-.trust-card,
 .teaser-card,
 .showcase-shell,
 .testimonial-card,
@@ -1456,7 +1063,6 @@ onBeforeUnmount(() => {
 .bento-card h3,
 .workflow-card h3,
 .teaser-card h3,
-.trust-card h3,
 .showcase-copy h3,
 .faq-trigger {
   margin: 0.65rem 0 0;
@@ -1481,8 +1087,7 @@ onBeforeUnmount(() => {
 
 .feature-icon,
 .workflow-icon,
-.teaser-icon,
-.trust-icon {
+.teaser-icon {
   width: 1.3rem;
   height: 1.3rem;
   color: var(--theme-text-soft);
@@ -1568,8 +1173,7 @@ onBeforeUnmount(() => {
 }
 
 .workflow-grid,
-.pricing-teaser-grid,
-.trust-grid {
+.pricing-teaser-grid {
   margin-top: 1.3rem;
   display: grid;
   gap: 0.9rem;
@@ -1579,14 +1183,12 @@ onBeforeUnmount(() => {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.pricing-teaser-grid,
-.trust-grid {
+.pricing-teaser-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .workflow-card,
-.teaser-card,
-.trust-card {
+.teaser-card {
   border-radius: 18px;
   padding: 1.2rem;
 }
@@ -1606,14 +1208,12 @@ onBeforeUnmount(() => {
 }
 
 .workflow-icon,
-.teaser-icon,
-.trust-icon {
+.teaser-icon {
   margin-top: 1rem;
 }
 
 .workflow-card p,
-.teaser-card p,
-.trust-card p {
+.teaser-card p {
   margin-top: 0.55rem;
 }
 
@@ -1802,27 +1402,8 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 1100px) {
-  .hero {
-    grid-template-columns: 1fr;
-  }
-
-  .hero-visual {
-    order: -1;
-  }
-
   .workflow-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .preview-floating {
-    position: static;
-    width: 100%;
-    margin-top: 0.9rem;
-    border-color: var(--theme-brand-border);
-    background:
-      radial-gradient(circle at top right, var(--theme-brand-soft-strong), transparent 52%),
-      var(--theme-panel-solid);
-    box-shadow: var(--theme-shadow-soft);
   }
 
   .showcase-stage {
@@ -1857,8 +1438,7 @@ onBeforeUnmount(() => {
     transform: rotate(90deg);
   }
 
-  .pricing-teaser-grid,
-  .trust-grid {
+  .pricing-teaser-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1877,13 +1457,10 @@ onBeforeUnmount(() => {
     width: min(100%, calc(100% - 0.5rem));
   }
 
-  .hero-preview,
   .showcase-shell {
     padding: 1rem;
   }
 
-  .preview-metrics,
-  .preview-grid,
   .workflow-grid,
   .stats,
   .testimonial-grid {
