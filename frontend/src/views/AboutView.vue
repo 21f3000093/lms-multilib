@@ -2,33 +2,20 @@
   <main class="about-page" ref="pageRoot">
     <div class="mesh-layer" aria-hidden="true"></div>
 
-    <Transition name="sticky-cta">
-      <div v-if="showStickyCta" class="sticky-cta-bar">
-        <div class="sticky-cta-copy">
-          <p class="sticky-cta-kicker">Smart Library App</p>
-          <strong>Run students, seats, billing, and reminders from one workspace.</strong>
-        </div>
-        <div class="sticky-cta-actions">
-          <router-link class="btn btn-solid magnetic" to="/signup" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
-            Start Free
-          </router-link>
-          <router-link class="btn btn-ghost magnetic" to="/pricing-plans" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
-            View Pricing
-          </router-link>
-        </div>
-      </div>
-    </Transition>
-
     <section ref="heroSection" class="hero section-shell">
       <div class="hero-copy reveal" data-stagger="0">
-        <p class="kicker">Run your library from one calmer workspace</p>
+        <p class="kicker">Ditch the registers. Save 2 hours every day.</p>
         <h1>
-          The <span class="gradient-text">digital operating system</span>
-          for modern study centers
+          The simplest way to
+          <br />
+          <span class="typewriter-shell">
+            <span ref="typewriterTarget" class="gradient-text"></span>
+          </span>
         </h1>
         <p class="hero-subtitle">
-          Smart Library App helps library owners and admins register students, assign seats, collect fees, send reminders,
-          and monitor daily operations without juggling notebooks, spreadsheets, and manual follow-ups.
+          Stop juggling spreadsheets and manual registers. <strong>Smart Library</strong> automates your
+          student admissions, seat bookings, and fee reminders—so you can focus on providing
+          a quiet space for students.
         </p>
 
         <div class="hero-actions">
@@ -63,7 +50,7 @@
     <section class="comparison section-shell">
       <header class="section-header reveal" data-stagger="0">
         <h2>The Transition: From Manual to Digital</h2>
-        <p>See how Smart Library App replaces scattered, time-heavy admin work with one connected operating workflow.</p>
+        <p>See how the Smart Library App turns hours of messy paperwork and manual calculations into a few simple clicks.</p>
       </header>
 
       <div class="comparison-grid">
@@ -99,8 +86,8 @@
 
     <section class="features section-shell">
       <header class="section-header reveal" data-stagger="0">
-        <h2>Everything your team needs to run the library without manual chaos</h2>
-        <p>From admissions to reminders to collections, every workflow is designed to keep operations visible, faster, and easier to trust.</p>
+        <h2>Everything you need to run the library without manual chaos</h2>
+        <p>Manage everything from new admissions to monthly fee reminders in one single place. No more lost registers, missing WhatsApp messages, or calculation mistakes.</p>
       </header>
 
       <div class="bento-grid">
@@ -122,8 +109,8 @@
 
     <section class="showcase section-shell">
       <header class="section-header reveal" data-stagger="0">
-        <h2>See the product across the workflows your team uses every day</h2>
-        <p>Switch between core pages below. Replace the placeholder screenshot sources with real product captures whenever you’re ready.</p>
+        <h2>See the product across the workflows</h2>
+        <p>Take a quick tour of the app. See exactly how easy it is to track your seats, manage students, and check pending fees.</p>
       </header>
 
       <div class="showcase-shell glass-card reveal" data-stagger="1">
@@ -182,7 +169,7 @@
     <section class="testimonials section-shell">
       <header class="section-header reveal" data-stagger="0">
         <h2>What library teams say after switching</h2>
-        <p>These placeholder testimonials show the kind of proof and trust layer the landing page is designed to support.</p>
+        <p>Join other smart study center owners who have saved time, reduced paperwork, and grown their business with us.</p>
       </header>
 
       <div class="testimonial-grid">
@@ -228,7 +215,7 @@
     <section class="faq section-shell">
       <header class="section-header reveal" data-stagger="0">
         <h2>Frequently asked questions</h2>
-        <p>Use this accordion to answer the objections and product questions visitors usually have before signing up.</p>
+        <p>Got questions? We have answers. Here is everything you need to know about getting started with Smart Library.</p>
       </header>
 
       <div class="faq-list">
@@ -254,10 +241,8 @@
     <section class="cta section-shell reveal" data-stagger="1">
       <div class="cta-card">
         <p class="cta-kicker">Ready to digitize your library operations?</p>
-        <h2>Launch one workspace for students, seats, collections, reminders, and growth.</h2>
-        <p>
-          Replace fragmented admin work with one secure system your team can use every day.
-        </p>
+        <h2>Ready to make your library truly smart?</h2>
+        <p>Get rid of the manual registers today. Run your entire study center from your phone or laptop with zero stress.</p>
 
         <div class="cta-actions">
           <router-link class="btn btn-solid magnetic" to="/signup" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
@@ -273,7 +258,8 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onBeforeUnmount, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import Typed from 'typed.js'
 import {
   ArrowRight,
   Armchair,
@@ -298,60 +284,62 @@ import {
 
 const pageRoot = ref(null)
 const heroSection = ref(null)
+const typewriterTarget = ref(null)
 const showStickyCta = ref(false)
 const activeShowcaseKey = ref('dashboard')
 const openFaqIndex = ref(0)
 
 let revealObserver = null
 let heroObserver = null
+let typedInstance = null
 
-const createPlaceholderImage = (title, subtitle) => {
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" role="img" aria-label="${title}">
-      <defs>
-        <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%">
-          <stop offset="0%" stop-color="#0f172a" />
-          <stop offset="50%" stop-color="#0b1220" />
-          <stop offset="100%" stop-color="#111827" />
-        </linearGradient>
-        <linearGradient id="accent" x1="0%" x2="100%" y1="0%" y2="0%">
-          <stop offset="0%" stop-color="#0ea5e9" />
-          <stop offset="100%" stop-color="#2563eb" />
-        </linearGradient>
-      </defs>
-      <rect width="1400" height="900" rx="32" fill="url(#bg)" />
-      <rect x="44" y="44" width="1312" height="812" rx="28" fill="rgba(15, 23, 42, 0.82)" stroke="rgba(148, 163, 184, 0.18)" />
-      <rect x="82" y="86" width="280" height="728" rx="24" fill="rgba(15, 23, 42, 0.95)" stroke="rgba(148, 163, 184, 0.12)" />
-      <rect x="398" y="86" width="916" height="96" rx="24" fill="rgba(255,255,255,0.06)" />
-      <rect x="430" y="118" width="300" height="18" rx="9" fill="url(#accent)" />
-      <rect x="430" y="148" width="220" height="12" rx="6" fill="rgba(226,232,240,0.32)" />
-      <rect x="398" y="214" width="284" height="150" rx="24" fill="rgba(255,255,255,0.05)" />
-      <rect x="714" y="214" width="284" height="150" rx="24" fill="rgba(255,255,255,0.05)" />
-      <rect x="1030" y="214" width="284" height="150" rx="24" fill="rgba(255,255,255,0.05)" />
-      <rect x="398" y="398" width="450" height="380" rx="26" fill="rgba(255,255,255,0.05)" />
-      <rect x="880" y="398" width="434" height="380" rx="26" fill="rgba(14,165,233,0.10)" stroke="rgba(37,99,235,0.30)" />
-      <rect x="438" y="438" width="180" height="14" rx="7" fill="rgba(226,232,240,0.82)" />
-      <rect x="438" y="470" width="250" height="12" rx="6" fill="rgba(148,163,184,0.48)" />
-      <rect x="438" y="530" width="370" height="18" rx="9" fill="rgba(255,255,255,0.08)" />
-      <rect x="438" y="566" width="330" height="18" rx="9" fill="rgba(255,255,255,0.08)" />
-      <rect x="438" y="602" width="280" height="18" rx="9" fill="rgba(255,255,255,0.08)" />
-      <rect x="920" y="438" width="210" height="14" rx="7" fill="rgba(226,232,240,0.82)" />
-      <rect x="920" y="470" width="320" height="12" rx="6" fill="rgba(148,163,184,0.48)" />
-      <rect x="920" y="530" width="334" height="18" rx="9" fill="rgba(255,255,255,0.08)" />
-      <rect x="920" y="566" width="284" height="18" rx="9" fill="rgba(255,255,255,0.08)" />
-      <rect x="920" y="602" width="248" height="18" rx="9" fill="rgba(255,255,255,0.08)" />
-      <text x="700" y="835" fill="#e2e8f0" font-size="42" font-family="Inter, Arial, sans-serif" text-anchor="middle" font-weight="700">${title}</text>
-      <text x="700" y="870" fill="#94a3b8" font-size="24" font-family="Inter, Arial, sans-serif" text-anchor="middle">${subtitle}</text>
-    </svg>
-  `
+// const createPlaceholderImage = (title, subtitle) => {
+//   const svg = `
+//     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" role="img" aria-label="${title}">
+//       <defs>
+//         <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%">
+//           <stop offset="0%" stop-color="#0f172a" />
+//           <stop offset="50%" stop-color="#0b1220" />
+//           <stop offset="100%" stop-color="#111827" />
+//         </linearGradient>
+//         <linearGradient id="accent" x1="0%" x2="100%" y1="0%" y2="0%">
+//           <stop offset="0%" stop-color="#0ea5e9" />
+//           <stop offset="100%" stop-color="#2563eb" />
+//         </linearGradient>
+//       </defs>
+//       <rect width="1400" height="900" rx="32" fill="url(#bg)" />
+//       <rect x="44" y="44" width="1312" height="812" rx="28" fill="rgba(15, 23, 42, 0.82)" stroke="rgba(148, 163, 184, 0.18)" />
+//       <rect x="82" y="86" width="280" height="728" rx="24" fill="rgba(15, 23, 42, 0.95)" stroke="rgba(148, 163, 184, 0.12)" />
+//       <rect x="398" y="86" width="916" height="96" rx="24" fill="rgba(255,255,255,0.06)" />
+//       <rect x="430" y="118" width="300" height="18" rx="9" fill="url(#accent)" />
+//       <rect x="430" y="148" width="220" height="12" rx="6" fill="rgba(226,232,240,0.32)" />
+//       <rect x="398" y="214" width="284" height="150" rx="24" fill="rgba(255,255,255,0.05)" />
+//       <rect x="714" y="214" width="284" height="150" rx="24" fill="rgba(255,255,255,0.05)" />
+//       <rect x="1030" y="214" width="284" height="150" rx="24" fill="rgba(255,255,255,0.05)" />
+//       <rect x="398" y="398" width="450" height="380" rx="26" fill="rgba(255,255,255,0.05)" />
+//       <rect x="880" y="398" width="434" height="380" rx="26" fill="rgba(14,165,233,0.10)" stroke="rgba(37,99,235,0.30)" />
+//       <rect x="438" y="438" width="180" height="14" rx="7" fill="rgba(226,232,240,0.82)" />
+//       <rect x="438" y="470" width="250" height="12" rx="6" fill="rgba(148,163,184,0.48)" />
+//       <rect x="438" y="530" width="370" height="18" rx="9" fill="rgba(255,255,255,0.08)" />
+//       <rect x="438" y="566" width="330" height="18" rx="9" fill="rgba(255,255,255,0.08)" />
+//       <rect x="438" y="602" width="280" height="18" rx="9" fill="rgba(255,255,255,0.08)" />
+//       <rect x="920" y="438" width="210" height="14" rx="7" fill="rgba(226,232,240,0.82)" />
+//       <rect x="920" y="470" width="320" height="12" rx="6" fill="rgba(148,163,184,0.48)" />
+//       <rect x="920" y="530" width="334" height="18" rx="9" fill="rgba(255,255,255,0.08)" />
+//       <rect x="920" y="566" width="284" height="18" rx="9" fill="rgba(255,255,255,0.08)" />
+//       <rect x="920" y="602" width="248" height="18" rx="9" fill="rgba(255,255,255,0.08)" />
+//       <text x="700" y="835" fill="#e2e8f0" font-size="42" font-family="Inter, Arial, sans-serif" text-anchor="middle" font-weight="700">${title}</text>
+//       <text x="700" y="870" fill="#94a3b8" font-size="24" font-family="Inter, Arial, sans-serif" text-anchor="middle">${subtitle}</text>
+//     </svg>
+//   `
 
-  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`
-}
+//   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`
+// }
 
 const heroPoints = [
-  { icon: BadgeCheck, label: 'Google sign-in onboarding', stagger: 2 },
-  { icon: MessageSquare, label: 'WhatsApp reminder workflows', stagger: 3 },
-  { icon: ReceiptText, label: 'Receipt-ready payment records', stagger: 4 },
+  { icon: BadgeCheck, label: 'Fast 1-click Google login', stagger: 2 },
+  { icon: MessageSquare, label: 'Automated WhatsApp messages', stagger: 3 },
+  { icon: ReceiptText, label: 'Downloadable payment receipts', stagger: 4 },
 ]
 
 const stats = [
@@ -363,20 +351,20 @@ const stats = [
 
 const testimonials = [
   {
-    name: 'Aarav Jain',
-    library: 'Green Valley Library',
+    name: 'Lokesh Soni',
+    library: 'Soni Library',
     quote: 'We cut manual follow-up time dramatically because seats, collections, and reminders now live in one place.',
     stagger: 1,
   },
   {
     name: 'Neha Sharma',
-    library: 'Scholars Study Hub',
+    library: 'Scholars Library',
     quote: 'The dashboard gives our team clarity every morning. We no longer guess which seats are free or which fees are pending.',
     stagger: 2,
   },
   {
-    name: 'Rohit Verma',
-    library: 'Focus Point Reading Room',
+    name: 'Rohit Gupta',
+    library: 'Focus Point Library',
     quote: 'Receipts and payment history are much easier to manage now. Parents and students get answers faster, and our staff does too.',
     stagger: 3,
   },
@@ -446,25 +434,29 @@ const showcaseTabs = [
     key: 'dashboard',
     label: 'Dashboard',
     title: 'Collections, occupancy, and action items in one glance',
-    description: 'Use your dashboard to see revenue health, occupied seats, pending work, and trend signals before the day gets busy.',
-    alt: 'Placeholder dashboard screenshot for Smart Library App',
-    src: createPlaceholderImage('Dashboard View', 'Replace with your real dashboard screenshot'),
+    description: 'Use your dashboard to instantly see your daily revenue, which seats are full, and whose fees are pending.',
+    alt: 'Placeholder dashboard for Smart Library App',
+    // src: createPlaceholderImage('Dashboard View', 'Replace with your real dashboard screenshot'),
+    // src: require('/public/img/screenshots/dashm.png'),
+    src: require('/public/img/screenshots/dashboard.png'),
   },
   {
     key: 'students',
     label: 'Students',
     title: 'Student records that stay organized and searchable',
     description: 'Keep admissions, contact details, seat allocation, and payment history connected to each student profile.',
-    alt: 'Placeholder students screenshot for Smart Library App',
-    src: createPlaceholderImage('Students View', 'Replace with your real student list screenshot'),
+    alt: 'Placeholder students for Smart Library App',
+    // src: createPlaceholderImage('Students View', 'Replace with your real student list screenshot'),
+    src: require('/public/img/screenshots/students.png'),
   },
   {
     key: 'seats',
     label: 'Seats',
     title: 'Live seat visibility by shift',
     description: 'Know what is occupied, what is available, and what can be assigned before staff spend time checking manually.',
-    alt: 'Placeholder seat map screenshot for Smart Library App',
-    src: createPlaceholderImage('Seat Map View', 'Replace with your real seat map screenshot'),
+    alt: 'Placeholder seat map for Smart Library App',
+    // src: createPlaceholderImage('Seat Map View', 'Replace with your real seat map screenshot'),
+    src: require('/public/img/screenshots/seats.png'),
   },
   {
     key: 'payments',
@@ -472,7 +464,8 @@ const showcaseTabs = [
     title: 'Monthly fee control and receipt-ready records',
     description: 'Track who has paid, who is pending, and what receipts are ready to share without fragmented records.',
     alt: 'Placeholder payments screenshot for Smart Library App',
-    src: createPlaceholderImage('Payments View', 'Replace with your real monthly payments screenshot'),
+    // src: createPlaceholderImage('Payments View', 'Replace with your real monthly payments screenshot'),
+    src: require('/public/img/screenshots/payments.png'),
   },
   {
     key: 'reminders',
@@ -480,7 +473,8 @@ const showcaseTabs = [
     title: 'Reminder workflows that save follow-up time',
     description: 'Move from manual chase-ups to ready-to-send fee reminders that keep collections moving consistently.',
     alt: 'Placeholder reminders screenshot for Smart Library App',
-    src: createPlaceholderImage('Reminders View', 'Replace with your real reminders screenshot'),
+    // src: createPlaceholderImage('Reminders View', 'Replace with your real reminders screenshot'),
+    src: require('/public/img/screenshots/reminders.png'),
   },
 ]
 
@@ -491,7 +485,7 @@ const workflowSteps = [
     step: '01',
     icon: UserPlus,
     title: 'Create your library account',
-    description: 'Start your workspace, verify ownership, and get your library ready for daily operations.',
+    description: 'Sign up with your email and enter your library details in just 2 minutes.',
     stagger: 1,
   },
   {
@@ -556,16 +550,16 @@ const faqs = [
   },
   {
     question: 'How is my library data kept secure?',
-    answer: 'The app uses authenticated access, role-based controls, and structured records so library data stays organized and available only to the right users.',
+    answer: 'Your data is backed up safely on the cloud. Only you can access your student and payment records.',
   },
   {
     question: 'Is there a trial period before I commit?',
-    answer: 'Yes. The product supports a self-serve signup flow and trial-first onboarding so you can evaluate the workflow before making a longer commitment.',
+    answer: 'Yes! You can create an account and try the app completely free to see how it works for your library before choosing a plan.',
   },
-  {
-    question: 'Can this support multi-branch or growing operations?',
-    answer: 'Yes. The platform is designed for growing library networks with superadmin oversight, standardized workflows, and pricing that scales with usage.',
-  },
+  // {
+  //   question: 'Can this support multi-branch or growing operations?',
+  //   answer: 'Absolutely. If you own multiple library branches, you can manage all of them from one single main account.',
+  // },
 ]
 
 const toggleFaq = (index) => {
@@ -630,13 +624,32 @@ onMounted(() => {
   if (heroSection.value) {
     heroObserver.observe(heroSection.value)
   }
+
+  if (typewriterTarget.value) {
+    typedInstance = new Typed(typewriterTarget.value, {
+      strings: [
+        'manage library',
+        'track attendance',
+        'collect fees',
+        'assign seats',
+        'send reminders',
+      ],
+      typeSpeed: 100,
+      backSpeed: 100,
+      backDelay: 1000,
+      loop: true,
+      showCursor: false,
+    })
+  }
 })
 
-onBeforeUnmount(() => {
+onUnmounted(() => {
   revealObserver?.disconnect()
   revealObserver = null
   heroObserver?.disconnect()
   heroObserver = null
+  typedInstance?.destroy()
+  typedInstance = null
 })
 </script>
 
@@ -722,7 +735,11 @@ onBeforeUnmount(() => {
   gap: 1.4rem;
   align-items: start;
   padding-top: 2rem;
-  max-width: 780px;
+  text-wrap-style: balance;
+}
+
+.hero-copy {
+  text-align: center;
 }
 
 .kicker,
@@ -751,10 +768,48 @@ onBeforeUnmount(() => {
 }
 
 .gradient-text {
+  display: inline-block;
+  min-height: 1.1em;
   background: linear-gradient(90deg, var(--brand-a), var(--brand-b));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  white-space: nowrap;
+}
+
+.typewriter-shell {
+  position: relative;
+  display: inline-block;
+  min-height: 1.1em;
+  max-width: 100%;
+  vertical-align: bottom;
+}
+
+.typewriter-shell::before {
+  content: 'send WhatsApp reminders';
+  display: block;
+  visibility: hidden;
+  white-space: nowrap;
+}
+
+.typewriter-shell > .gradient-text {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.typewriter-shell > .gradient-text::after {
+  content: '';
+  position: absolute;
+  top: 0.08em;
+  right: -0.12em;
+  width: 0.08em;
+  height: 0.88em;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--brand-a), var(--brand-b));
+  box-shadow: 0 0 12px var(--theme-brand-soft-strong);
+  animation: typed-cursor-blink 1s step-end infinite;
 }
 
 .hero-subtitle,
@@ -768,7 +823,7 @@ onBeforeUnmount(() => {
   margin: 1.1rem 0 0;
   color: var(--text-secondary);
   line-height: 1.6;
-  text-wrap: balance;
+  /* text-wrap: balance; */
 }
 
 .hero-actions,
@@ -777,6 +832,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 0.8rem;
+  justify-content: center;
 }
 
 .hero-points {
@@ -784,6 +840,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 0.7rem;
+  justify-content: center;
 }
 
 .point-chip {
@@ -1143,7 +1200,7 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
   gap: 1.1rem;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .showcase-copy h3 {
@@ -1159,16 +1216,16 @@ onBeforeUnmount(() => {
 .showcase-frame {
   border-radius: 20px;
   overflow: hidden;
-  border: 1px solid var(--theme-border-soft);
-  background: var(--theme-panel-strong);
-  box-shadow: var(--theme-shadow-soft);
+  /* border: 1px solid var(--theme-border-soft); */
+  /* background: var(--theme-panel-strong); */
+  /* box-shadow: var(--theme-shadow-soft); */
 }
 
 .showcase-image {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 14 / 9;
+  /* aspect-ratio: 14 / 9; */
   object-fit: cover;
 }
 
@@ -1280,6 +1337,7 @@ onBeforeUnmount(() => {
 
 .faq-answer p {
   margin: 0;
+  text-align: left;
 }
 
 .cta-card {
@@ -1305,6 +1363,7 @@ onBeforeUnmount(() => {
   letter-spacing: 0.01em;
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
   will-change: transform;
+  width: 20%;
 }
 
 .btn::after {
@@ -1401,6 +1460,17 @@ onBeforeUnmount(() => {
   }
 }
 
+@keyframes typed-cursor-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
 @media (max-width: 1100px) {
   .workflow-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1461,6 +1531,52 @@ onBeforeUnmount(() => {
     padding: 1rem;
   }
 
+  .hero {
+    max-width: 100%;
+  }
+
+  .hero h1 {
+    font-size: clamp(2rem, 9.6vw, 2.85rem);
+    line-height: 1.06;
+  }
+
+  .kicker {
+    max-width: 100%;
+    justify-content: center;
+    text-align: center;
+    white-space: normal;
+  }
+
+  .typewriter-shell {
+    display: grid;
+    width: min(100%, 16ch);
+    margin-inline: auto;
+  }
+
+  .typewriter-shell::before,
+  .typewriter-shell > .gradient-text {
+    grid-area: 1 / 1;
+    white-space: normal;
+    text-align: center;
+    max-width: 100%;
+  }
+
+  .typewriter-shell > .gradient-text {
+    position: static;
+    transform: none;
+  }
+
+  .hero-subtitle {
+    max-width: 32rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
   .workflow-grid,
   .stats,
   .testimonial-grid {
@@ -1499,7 +1615,7 @@ onBeforeUnmount(() => {
   }
 
   .btn {
-    width: 100%;
+    width: min(100%, 18rem);
   }
 }
 

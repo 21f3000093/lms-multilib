@@ -10,16 +10,16 @@
           <span class="gradient-text">smart workspace</span>
         </h1>
         <p>
-          Continue managing your library's students, seat availability, and automated communications with ease.
+          Manage your daily admissions, check live seat availability, and send automated fee reminders with ease.
         </p>
         <div class="intro-points">
           <div class="point-chip">
             <LayoutDashboard class="point-icon" aria-hidden="true" />
-            Unified Admin Dashboard
+            Everything in One Place
           </div>
           <div class="point-chip">
             <Zap class="point-icon" aria-hidden="true" />
-            Automated Workflows
+            Instant WhatsApp Reminders
           </div>
           <div class="point-chip">
             <ShieldCheck class="point-icon" aria-hidden="true" />
@@ -117,13 +117,14 @@
     </section>
 
     <footer class="page-footer">
-      <p>© 2026 Smart Library App. All rights reserved.</p>
+      <p>© {{ currentYear }} Smart Library App. All rights reserved.</p>
     </footer>
   </main>
 </template>
 
 <script setup>
 import { onMounted, ref } from 'vue'
+import { computed } from 'vue'
 import {
   AlertCircle,
   ArrowRight,
@@ -146,6 +147,7 @@ import { homeRouteForRole, storeAdminSession } from '../utils/authSession'
 import GoogleAuthButton from '../components/GoogleAuthButton.vue'
 import TurnstileWidget from '../components/TurnstileWidget.vue'
 
+const currentYear = computed(() => new Date().getFullYear())
 const router = useRouter()
 const toast = useToast()
 
@@ -366,9 +368,9 @@ onMounted(() => {
 
 .login-shell {
   width: min(1080px, 100%);
-  margin: 0 auto;
+  margin: 10vh auto;
   display: grid;
-  /* grid-template-columns: 1fr 1fr; */
+  grid-template-columns: 1fr 1fr;
   gap: 1.1rem;
 }
 
@@ -380,6 +382,8 @@ onMounted(() => {
   -webkit-backdrop-filter: blur(12px);
   border-radius: 20px;
   padding: 1.4rem;
+  width:fit-content ;
+  margin: auto;
 }
 
 .kicker {
@@ -679,6 +683,7 @@ onMounted(() => {
 @media (max-width: 960px) {
   .login-shell {
     grid-template-columns: 1fr;
+    margin: auto auto;
   }
 }
 
