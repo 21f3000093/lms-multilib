@@ -2,20 +2,12 @@
   <main class="about-page" ref="pageRoot">
     <div class="mesh-layer" aria-hidden="true"></div>
 
-    <section ref="heroSection" class="hero section-shell">
+    <section class="hero section-shell">
       <div class="hero-copy reveal" data-stagger="0">
-        <p class="kicker">Ditch the registers. Save 2 hours every day.</p>
-        <h1>
-          The simplest way to
-          <br />
-          <span class="typewriter-shell">
-            <span ref="typewriterTarget" class="gradient-text"></span>
-          </span>
-        </h1>
+        <p class="kicker">Smart Library App</p>
+        <h1>Run your library from one dashboard</h1>
         <p class="hero-subtitle">
-          Stop juggling spreadsheets and manual registers. <strong>Smart Library</strong> automates your
-          student admissions, seat bookings, and fee reminders—so you can focus on providing
-          a quiet space for students.
+          Manage admissions, seats, fees, receipts, and WhatsApp reminders without notebooks or spreadsheets.
         </p>
 
         <div class="hero-actions">
@@ -45,12 +37,72 @@
         </div>
       </div>
 
+      <div class="hero-visual reveal" data-stagger="1">
+        <div class="hero-device-stage">
+          <img
+            :src="heroScreenshot"
+            alt="Smart Library dashboard showing occupancy, collections, and library performance"
+            class="hero-image"
+          />
+        </div>
+        <div class="hero-float-card hero-float-card-top">
+          <span class="float-value">Live</span>
+          <span class="float-label">seat visibility</span>
+        </div>
+        <div class="hero-float-card hero-float-card-bottom">
+          <span class="float-value">₹</span>
+          <span class="float-label">fees and receipts</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats section-shell reveal" data-stagger="0">
+      <article v-for="item in stats" :key="item.label" class="stat-card reveal" :data-stagger="item.stagger">
+        <p class="stat-value">{{ item.value }}</p>
+        <p class="stat-label">{{ item.label }}</p>
+      </article>
+    </section>
+
+    <section class="showcase section-shell">
+      <header class="section-header reveal" data-stagger="0">
+        <h2>See Smart Library in action</h2>
+        <p>Switch through the core workflows your team uses every day.</p>
+      </header>
+
+      <div class="showcase-shell glass-card reveal" data-stagger="1">
+        <div class="showcase-tabs" role="tablist" aria-label="App screenshot switcher">
+          <button
+            v-for="tab in showcaseTabs"
+            :key="tab.key"
+            type="button"
+            class="showcase-tab"
+            :class="{ 'is-active': activeShowcaseKey === tab.key }"
+            :aria-selected="activeShowcaseKey === tab.key"
+            @click="activeShowcaseKey = tab.key"
+          >
+            {{ tab.label }}
+          </button>
+        </div>
+
+        <Transition name="showcase-fade" mode="out-in">
+          <article :key="activeShowcase.key" class="showcase-stage">
+            <div class="showcase-frame">
+              <img :src="activeShowcase.src" :alt="activeShowcase.alt" class="showcase-image" />
+            </div>
+            <div class="showcase-copy">
+              <p class="showcase-kicker">{{ activeShowcase.label }}</p>
+              <h3>{{ activeShowcase.title }}</h3>
+              <p>{{ activeShowcase.description }}</p>
+            </div>
+          </article>
+        </Transition>
+      </div>
     </section>
 
     <section class="comparison section-shell">
       <header class="section-header reveal" data-stagger="0">
-        <h2>The Transition: From Manual to Digital</h2>
-        <p>See how the Smart Library App turns hours of messy paperwork and manual calculations into a few simple clicks.</p>
+        <h2>Manual work vs Smart Library</h2>
+        <p>Replace scattered records with one visible workflow for seats, students, fees, and reminders.</p>
       </header>
 
       <div class="comparison-grid">
@@ -82,71 +134,27 @@
           </ul>
         </article>
       </div>
-    </section>
 
-    <section class="features section-shell">
-      <header class="section-header reveal" data-stagger="0">
-        <h2>Everything you need to run the library without manual chaos</h2>
-        <p>Manage everything from new admissions to monthly fee reminders in one single place. No more lost registers, missing WhatsApp messages, or calculation mistakes.</p>
-      </header>
-
-      <div class="bento-grid">
+      <div class="feature-strip">
         <article
           v-for="feature in features"
           :key="feature.title"
-          class="bento-card reveal"
-          :class="feature.span"
+          class="feature-pill-card reveal"
           :data-stagger="feature.stagger"
         >
-          <div class="icon-wrap">
-            <component :is="feature.icon" class="feature-icon" aria-hidden="true" />
+          <component :is="feature.icon" class="feature-pill-icon" aria-hidden="true" />
+          <div>
+            <h3>{{ feature.title }}</h3>
+            <p>{{ feature.description }}</p>
           </div>
-          <h3>{{ feature.title }}</h3>
-          <p>{{ feature.description }}</p>
         </article>
-      </div>
-    </section>
-
-    <section class="showcase section-shell">
-      <header class="section-header reveal" data-stagger="0">
-        <h2>See the product across the workflows</h2>
-        <p>Take a quick tour of the app. See exactly how easy it is to track your seats, manage students, and check pending fees.</p>
-      </header>
-
-      <div class="showcase-shell glass-card reveal" data-stagger="1">
-        <div class="showcase-tabs" role="tablist" aria-label="App screenshot switcher">
-          <button
-            v-for="tab in showcaseTabs"
-            :key="tab.key"
-            type="button"
-            class="showcase-tab"
-            :class="{ 'is-active': activeShowcaseKey === tab.key }"
-            :aria-selected="activeShowcaseKey === tab.key"
-            @click="activeShowcaseKey = tab.key"
-          >
-            {{ tab.label }}
-          </button>
-        </div>
-
-        <Transition name="showcase-fade" mode="out-in">
-          <article :key="activeShowcase.key" class="showcase-stage">
-            <div class="showcase-copy">
-              <p class="showcase-kicker">{{ activeShowcase.label }}</p>
-              <h3>{{ activeShowcase.title }}</h3>
-              <p>{{ activeShowcase.description }}</p>
-            </div>
-            <div class="showcase-frame">
-              <img :src="activeShowcase.src" :alt="activeShowcase.alt" class="showcase-image" />
-            </div>
-          </article>
-        </Transition>
       </div>
     </section>
 
     <section class="workflow section-shell">
       <header class="section-header reveal" data-stagger="0">
-        <h2>How the workflow comes together</h2>
-        <p>Get started quickly and keep the whole library team aligned in four simple steps.</p>
+        <h2>Start fast, then run daily work from one place</h2>
+        <p>Four steps from setup to daily operations.</p>
       </header>
 
       <div class="workflow-grid">
@@ -159,17 +167,10 @@
       </div>
     </section>
 
-    <section class="stats section-shell reveal" data-stagger="0">
-      <article v-for="item in stats" :key="item.label" class="stat-card reveal" :data-stagger="item.stagger">
-        <p class="stat-value">{{ item.value }}</p>
-        <p class="stat-label">{{ item.label }}</p>
-      </article>
-    </section>
-
     <section class="testimonials section-shell">
       <header class="section-header reveal" data-stagger="0">
         <h2>What library teams say after switching</h2>
-        <p>Join other smart study center owners who have saved time, reduced paperwork, and grown their business with us.</p>
+        <p>Less paperwork, clearer operations, faster follow-ups.</p>
       </header>
 
       <div class="testimonial-grid">
@@ -189,7 +190,7 @@
     <section class="pricing-teaser section-shell">
       <header class="section-header reveal" data-stagger="0">
         <h2>Flexible pricing that scales with your seat count</h2>
-        <p>Start at ₹9 per seat per month, reduce your monthly equivalent with longer billing cycles, and unlock bonus months on eligible first purchases.</p>
+        <p>Start at ₹9 per seat per month with lower effective costs on longer plans.</p>
       </header>
 
       <div class="pricing-teaser-grid">
@@ -215,7 +216,7 @@
     <section class="faq section-shell">
       <header class="section-header reveal" data-stagger="0">
         <h2>Frequently asked questions</h2>
-        <p>Got questions? We have answers. Here is everything you need to know about getting started with Smart Library.</p>
+        <p>The basics before you create your library account.</p>
       </header>
 
       <div class="faq-list">
@@ -242,7 +243,7 @@
       <div class="cta-card">
         <p class="cta-kicker">Ready to digitize your library operations?</p>
         <h2>Ready to make your library truly smart?</h2>
-        <p>Get rid of the manual registers today. Run your entire study center from your phone or laptop with zero stress.</p>
+        <p>Run your study center from your phone or laptop without manual registers.</p>
 
         <div class="cta-actions">
           <router-link class="btn btn-solid magnetic" to="/signup" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
@@ -259,11 +260,9 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import Typed from 'typed.js'
 import {
   ArrowRight,
   Armchair,
-  BadgeCheck,
   BarChart3,
   Bell,
   CheckCircle2,
@@ -283,70 +282,24 @@ import {
 } from 'lucide-vue-next'
 
 const pageRoot = ref(null)
-const heroSection = ref(null)
-const typewriterTarget = ref(null)
-const showStickyCta = ref(false)
-const activeShowcaseKey = ref('dashboard')
+const activeShowcaseKey = ref('students')
 const openFaqIndex = ref(0)
 
 let revealObserver = null
-let heroObserver = null
-let typedInstance = null
-
-// const createPlaceholderImage = (title, subtitle) => {
-//   const svg = `
-//     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" role="img" aria-label="${title}">
-//       <defs>
-//         <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%">
-//           <stop offset="0%" stop-color="#0f172a" />
-//           <stop offset="50%" stop-color="#0b1220" />
-//           <stop offset="100%" stop-color="#111827" />
-//         </linearGradient>
-//         <linearGradient id="accent" x1="0%" x2="100%" y1="0%" y2="0%">
-//           <stop offset="0%" stop-color="#0ea5e9" />
-//           <stop offset="100%" stop-color="#2563eb" />
-//         </linearGradient>
-//       </defs>
-//       <rect width="1400" height="900" rx="32" fill="url(#bg)" />
-//       <rect x="44" y="44" width="1312" height="812" rx="28" fill="rgba(15, 23, 42, 0.82)" stroke="rgba(148, 163, 184, 0.18)" />
-//       <rect x="82" y="86" width="280" height="728" rx="24" fill="rgba(15, 23, 42, 0.95)" stroke="rgba(148, 163, 184, 0.12)" />
-//       <rect x="398" y="86" width="916" height="96" rx="24" fill="rgba(255,255,255,0.06)" />
-//       <rect x="430" y="118" width="300" height="18" rx="9" fill="url(#accent)" />
-//       <rect x="430" y="148" width="220" height="12" rx="6" fill="rgba(226,232,240,0.32)" />
-//       <rect x="398" y="214" width="284" height="150" rx="24" fill="rgba(255,255,255,0.05)" />
-//       <rect x="714" y="214" width="284" height="150" rx="24" fill="rgba(255,255,255,0.05)" />
-//       <rect x="1030" y="214" width="284" height="150" rx="24" fill="rgba(255,255,255,0.05)" />
-//       <rect x="398" y="398" width="450" height="380" rx="26" fill="rgba(255,255,255,0.05)" />
-//       <rect x="880" y="398" width="434" height="380" rx="26" fill="rgba(14,165,233,0.10)" stroke="rgba(37,99,235,0.30)" />
-//       <rect x="438" y="438" width="180" height="14" rx="7" fill="rgba(226,232,240,0.82)" />
-//       <rect x="438" y="470" width="250" height="12" rx="6" fill="rgba(148,163,184,0.48)" />
-//       <rect x="438" y="530" width="370" height="18" rx="9" fill="rgba(255,255,255,0.08)" />
-//       <rect x="438" y="566" width="330" height="18" rx="9" fill="rgba(255,255,255,0.08)" />
-//       <rect x="438" y="602" width="280" height="18" rx="9" fill="rgba(255,255,255,0.08)" />
-//       <rect x="920" y="438" width="210" height="14" rx="7" fill="rgba(226,232,240,0.82)" />
-//       <rect x="920" y="470" width="320" height="12" rx="6" fill="rgba(148,163,184,0.48)" />
-//       <rect x="920" y="530" width="334" height="18" rx="9" fill="rgba(255,255,255,0.08)" />
-//       <rect x="920" y="566" width="284" height="18" rx="9" fill="rgba(255,255,255,0.08)" />
-//       <rect x="920" y="602" width="248" height="18" rx="9" fill="rgba(255,255,255,0.08)" />
-//       <text x="700" y="835" fill="#e2e8f0" font-size="42" font-family="Inter, Arial, sans-serif" text-anchor="middle" font-weight="700">${title}</text>
-//       <text x="700" y="870" fill="#94a3b8" font-size="24" font-family="Inter, Arial, sans-serif" text-anchor="middle">${subtitle}</text>
-//     </svg>
-//   `
-
-//   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`
-// }
+const screenshotBase = '/img/screenshots'
+const heroScreenshot = `${screenshotBase}/dashboard.png`
 
 const heroPoints = [
-  { icon: BadgeCheck, label: 'Fast 1-click Google login', stagger: 2 },
-  { icon: MessageSquare, label: 'Automated WhatsApp messages', stagger: 3 },
-  { icon: ReceiptText, label: 'Downloadable payment receipts', stagger: 4 },
+  { icon: Armchair, label: 'Live seat map', stagger: 2 },
+  { icon: ReceiptText, label: 'Payment receipts', stagger: 3 },
+  { icon: MessageSquare, label: 'WhatsApp reminders', stagger: 4 },
 ]
 
 const stats = [
-  { value: '50+', label: 'libraries already operating digitally', stagger: 1 },
-  { value: '9k+', label: 'student records managed on platform', stagger: 2 },
-  { value: '35%', label: 'faster admin follow-ups for daily ops', stagger: 3 },
-  { value: '1', label: 'connected workspace for seats, fees, and reminders', stagger: 4 },
+  { value: '50+', label: 'libraries operating digitally', stagger: 1 },
+  { value: '9k+', label: 'student records managed', stagger: 2 },
+  { value: '35%', label: 'faster daily follow-ups', stagger: 3 },
+  { value: '1', label: 'workspace for seats, fees, and reminders', stagger: 4 },
 ]
 
 const testimonials = [
@@ -387,44 +340,38 @@ const smartWayPoints = [
 const features = [
   {
     icon: Armchair,
-    title: 'See every seat and shift live',
-    description: 'Know exactly which seats are occupied across shifts before assigning or moving students.',
-    span: 'span-2-rows',
+    title: 'Live seats',
+    description: 'See occupancy by shift before assigning a student.',
     stagger: 1,
   },
   {
     icon: Users,
-    title: 'Register and place students without spreadsheet confusion',
-    description: 'Capture student details, assign seats, and keep profiles updated from one admissions flow.',
-    span: 'span-2-cols',
+    title: 'Student profiles',
+    description: 'Keep contact, seat, shift, and payment details connected.',
     stagger: 2,
   },
   {
     icon: CreditCard,
-    title: 'Keep fees, receipts, and payment history organized',
-    description: 'Track monthly billing, mark payments, and share receipts without scattered manual records.',
-    span: '',
+    title: 'Fee records',
+    description: 'Track monthly dues, paid status, and receipts in one view.',
     stagger: 3,
   },
   {
     icon: MessageSquare,
-    title: 'Follow up instantly instead of manually chasing dues',
-    description: 'Run reminder workflows through WhatsApp and keep fee follow-ups fast and consistent.',
-    span: '',
+    title: 'Reminders',
+    description: 'Send ready-to-use WhatsApp follow-ups for pending fees.',
     stagger: 4,
   },
   {
     icon: BarChart3,
-    title: 'Monitor occupancy, collections, and growth at a glance',
-    description: 'Use dashboards and trends to make better day-to-day decisions without waiting on reports.',
-    span: 'span-2-cols',
+    title: 'Dashboard',
+    description: 'Watch collections, occupancy, and movement trends quickly.',
     stagger: 5,
   },
   {
     icon: ShieldCheck,
-    title: 'Keep library data safe and secure',
-    description: 'Store student, payment, and seat records in one protected system instead of risking errors across scattered manual tools.',
-    span: '',
+    title: 'Secure access',
+    description: 'Keep library operations behind authenticated admin access.',
     stagger: 6,
   },
 ]
@@ -433,48 +380,42 @@ const showcaseTabs = [
   {
     key: 'dashboard',
     label: 'Dashboard',
-    title: 'Collections, occupancy, and action items in one glance',
-    description: 'Use your dashboard to instantly see your daily revenue, which seats are full, and whose fees are pending.',
-    alt: 'Placeholder dashboard for Smart Library App',
-    // src: createPlaceholderImage('Dashboard View', 'Replace with your real dashboard screenshot'),
-    // src: require('/public/img/screenshots/dashm.png'),
-    src: require('/public/img/screenshots/dashboard.png'),
+    title: 'Collections and occupancy in one glance',
+    description: 'Daily revenue, full seats, pending fees, and trends stay visible.',
+    alt: 'Smart Library dashboard with occupancy, collection, and student movement metrics',
+    src: `${screenshotBase}/dashboard.png`,
   },
   {
     key: 'students',
     label: 'Students',
-    title: 'Student records that stay organized and searchable',
-    description: 'Keep admissions, contact details, seat allocation, and payment history connected to each student profile.',
-    alt: 'Placeholder students for Smart Library App',
-    // src: createPlaceholderImage('Students View', 'Replace with your real student list screenshot'),
-    src: require('/public/img/screenshots/students.png'),
+    title: 'Searchable student records',
+    description: 'Admissions, contact details, seats, and payment history stay connected.',
+    alt: 'Smart Library student list with contact, seat, shift, and fee details',
+    src: `${screenshotBase}/students.png`,
   },
   {
     key: 'seats',
     label: 'Seats',
     title: 'Live seat visibility by shift',
-    description: 'Know what is occupied, what is available, and what can be assigned before staff spend time checking manually.',
-    alt: 'Placeholder seat map for Smart Library App',
-    // src: createPlaceholderImage('Seat Map View', 'Replace with your real seat map screenshot'),
-    src: require('/public/img/screenshots/seats.png'),
+    description: 'See occupied and available seats before assigning anyone.',
+    alt: 'Smart Library seat map showing seat availability by shift',
+    src: `${screenshotBase}/seats.png`,
   },
   {
     key: 'payments',
     label: 'Payments',
-    title: 'Monthly fee control and receipt-ready records',
-    description: 'Track who has paid, who is pending, and what receipts are ready to share without fragmented records.',
-    alt: 'Placeholder payments screenshot for Smart Library App',
-    // src: createPlaceholderImage('Payments View', 'Replace with your real monthly payments screenshot'),
-    src: require('/public/img/screenshots/payments.png'),
+    title: 'Monthly fees and receipts',
+    description: 'Track paid, pending, and receipt-ready records without scattered books.',
+    alt: 'Smart Library monthly payment list with paid and pending fee records',
+    src: `${screenshotBase}/payments.png`,
   },
   {
     key: 'reminders',
     label: 'Reminders',
-    title: 'Reminder workflows that save follow-up time',
-    description: 'Move from manual chase-ups to ready-to-send fee reminders that keep collections moving consistently.',
-    alt: 'Placeholder reminders screenshot for Smart Library App',
-    // src: createPlaceholderImage('Reminders View', 'Replace with your real reminders screenshot'),
-    src: require('/public/img/screenshots/reminders.png'),
+    title: 'Ready-to-send reminders',
+    description: 'Prepare fee follow-ups fast and keep collections moving.',
+    alt: 'Smart Library WhatsApp reminders workflow for pending fee follow-ups',
+    src: `${screenshotBase}/reminders.png`,
   },
 ]
 
@@ -609,47 +550,11 @@ onMounted(() => {
   )
 
   targets.forEach((target) => revealObserver?.observe(target))
-
-  heroObserver = new IntersectionObserver(
-    (entries) => {
-      const [entry] = entries
-      showStickyCta.value = !entry.isIntersecting
-    },
-    {
-      threshold: 0.08,
-      rootMargin: '0px 0px -12% 0px',
-    }
-  )
-
-  if (heroSection.value) {
-    heroObserver.observe(heroSection.value)
-  }
-
-  if (typewriterTarget.value) {
-    typedInstance = new Typed(typewriterTarget.value, {
-      strings: [
-        'manage library',
-        'track attendance',
-        'collect fees',
-        'assign seats',
-        'send reminders',
-      ],
-      typeSpeed: 100,
-      backSpeed: 100,
-      backDelay: 1000,
-      loop: true,
-      showCursor: false,
-    })
-  }
 })
 
 onUnmounted(() => {
   revealObserver?.disconnect()
   revealObserver = null
-  heroObserver?.disconnect()
-  heroObserver = null
-  typedInstance?.destroy()
-  typedInstance = null
 })
 </script>
 
@@ -689,57 +594,18 @@ onUnmounted(() => {
   margin: 0 auto;
 }
 
-.sticky-cta-bar {
-  position: fixed;
-  top: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1200;
-  width: min(1080px, calc(100% - 2rem));
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.8rem 1rem;
-  border-radius: 18px;
-  border: 1px solid var(--theme-border-strong);
-  background: var(--theme-nav-surface-strong);
-  box-shadow: var(--theme-shadow-elevated);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-.sticky-cta-kicker {
-  margin: 0;
-  color: var(--theme-text-secondary);
-  font-size: 0.76rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.sticky-cta-copy strong {
-  display: block;
-  margin-top: 0.22rem;
-  font-size: 0.92rem;
-}
-
-.sticky-cta-actions {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
 .hero {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.4rem;
-  align-items: start;
-  padding-top: 2rem;
+  grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
+  gap: clamp(1.35rem, 3.5vw, 2.7rem);
+  align-items: center;
+  padding-top: 1.7rem;
   text-wrap-style: balance;
 }
 
 .hero-copy {
-  text-align: center;
+  max-width: 34rem;
+  text-align: left;
 }
 
 .kicker,
@@ -761,55 +627,75 @@ onUnmounted(() => {
 
 .hero h1 {
   margin: 0.9rem 0 0;
-  font-size: clamp(2.4rem, 6vw, 5.1rem);
-  line-height: 1.02;
+  font-size: clamp(2.35rem, 4.35vw, 4.15rem);
+  line-height: 1.04;
   letter-spacing: -0.03em;
   text-wrap: balance;
 }
 
-.gradient-text {
-  display: inline-block;
-  min-height: 1.1em;
-  background: linear-gradient(90deg, var(--brand-a), var(--brand-b));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  white-space: nowrap;
-}
-
-.typewriter-shell {
+.hero-visual {
   position: relative;
-  display: inline-block;
-  min-height: 1.1em;
-  max-width: 100%;
-  vertical-align: bottom;
+  min-width: 0;
 }
 
-.typewriter-shell::before {
-  content: 'send WhatsApp reminders';
-  display: block;
-  visibility: hidden;
-  white-space: nowrap;
+.hero-device-stage {
+  position: relative;
+  /* overflow: hidden; */
+  min-height: clamp(18rem, 35vw, 29rem);
+  /* border: 1px solid var(--theme-border-soft); */
+  border-radius: 28px;
+  /* background:
+    radial-gradient(circle at 64% 42%, var(--theme-brand-soft-strong), transparent 38%),
+    radial-gradient(circle at 20% 78%, var(--theme-surface-soft-strong), transparent 36%),
+    linear-gradient(145deg, var(--theme-panel), var(--theme-surface-soft));
+  box-shadow: var(--theme-shadow-elevated); */
 }
 
-.typewriter-shell > .gradient-text {
+.hero-image {
   position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  width: min(112%, 42rem);
+  max-width: none;
+  right: -12%;
+  top: 50%;
+  transform: translateY(-49%);
+  filter: drop-shadow(0 28px 34px rgba(15, 23, 42, 0.18));
 }
 
-.typewriter-shell > .gradient-text::after {
-  content: '';
+.hero-float-card {
   position: absolute;
-  top: 0.08em;
-  right: -0.12em;
-  width: 0.08em;
-  height: 0.88em;
-  border-radius: 999px;
-  background: linear-gradient(180deg, var(--brand-a), var(--brand-b));
-  box-shadow: 0 0 12px var(--theme-brand-soft-strong);
-  animation: typed-cursor-blink 1s step-end infinite;
+  display: none;
+  gap: 0.1rem;
+  min-width: 8.8rem;
+  padding: 0.78rem 0.9rem;
+  border: 1px solid var(--theme-border-soft);
+  border-radius: 16px;
+  background: var(--theme-nav-surface-strong);
+  box-shadow: var(--theme-shadow-soft);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.hero-float-card-top {
+  top: 14%;
+  right: -0.35rem;
+}
+
+.hero-float-card-bottom {
+  left: -0.25rem;
+  bottom: 13%;
+}
+
+.float-value {
+  color: var(--theme-text-strong);
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.float-label {
+  color: var(--theme-text-secondary);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .hero-subtitle,
@@ -823,10 +709,17 @@ onUnmounted(() => {
   margin: 1.1rem 0 0;
   color: var(--text-secondary);
   line-height: 1.6;
-  /* text-wrap: balance; */
+  text-wrap: balance;
 }
 
-.hero-actions,
+.hero-actions{
+  margin-top: 1.7rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  justify-content: flex-start;
+}
+
 .cta-actions {
   margin-top: 1.7rem;
   display: flex;
@@ -840,7 +733,7 @@ onUnmounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 0.7rem;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .point-chip {
@@ -866,7 +759,6 @@ onUnmounted(() => {
 .testimonials,
 .workflow,
 .pricing-teaser,
-.features,
 .comparison,
 .showcase,
 .faq,
@@ -882,7 +774,7 @@ onUnmounted(() => {
 
 .glass-card,
 .stat-card,
-.bento-card,
+.feature-pill-card,
 .cta-card,
 .workflow-card,
 .teaser-card,
@@ -1078,46 +970,31 @@ onUnmounted(() => {
   stroke-width: 2.1;
 }
 
-.bento-grid {
-  margin-top: 1.3rem;
+.feature-strip {
+  margin-top: 1rem;
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  grid-auto-rows: minmax(150px, auto);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.9rem;
 }
 
-.bento-card {
-  position: relative;
-  overflow: hidden;
+.feature-pill-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.78rem;
   border-radius: 18px;
-  padding: 1.15rem;
-  grid-column: span 4;
-  transition: transform 240ms ease, border-color 240ms ease, box-shadow 240ms ease;
+  padding: 1rem;
+  text-align: left;
 }
 
-.bento-card::before {
-  content: '';
-  position: absolute;
-  inset: -35% auto auto -15%;
-  width: 11rem;
-  height: 11rem;
-  background: radial-gradient(circle, rgba(34, 211, 238, 0.2), transparent 70%);
-  opacity: 0;
-  transition: opacity 260ms ease;
-  pointer-events: none;
+.feature-pill-icon {
+  width: 1.22rem;
+  height: 1.22rem;
+  margin-top: 0.2rem;
+  color: var(--theme-brand-pill-text);
+  flex: 0 0 auto;
 }
 
-.bento-card:hover {
-  transform: translateY(-4px);
-  border-color: var(--theme-brand-border);
-  box-shadow: var(--theme-shadow-soft);
-}
-
-.bento-card:hover::before {
-  opacity: 1;
-}
-
-.bento-card h3,
+.feature-pill-card h3,
 .workflow-card h3,
 .teaser-card h3,
 .showcase-copy h3,
@@ -1126,38 +1003,22 @@ onUnmounted(() => {
   font-size: 1.15rem;
 }
 
-.bento-card p {
+.feature-pill-card h3 {
+  margin-top: 0;
+}
+
+.feature-pill-card p {
   margin: 0.55rem 0 0;
   color: var(--text-secondary);
   line-height: 1.5;
 }
 
-.icon-wrap {
-  width: 2.7rem;
-  height: 2.7rem;
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
-  background: var(--theme-surface-soft-strong);
-  border: 1px solid var(--theme-border-soft);
-}
-
-.feature-icon,
 .workflow-icon,
 .teaser-icon {
   width: 1.3rem;
   height: 1.3rem;
   color: var(--theme-text-soft);
   stroke-width: 2.1;
-}
-
-.span-2-cols {
-  grid-column: span 8;
-}
-
-.span-2-rows {
-  grid-column: span 4;
-  grid-row: span 2;
 }
 
 .showcase-shell {
@@ -1198,9 +1059,14 @@ onUnmounted(() => {
 .showcase-stage {
   margin-top: 1rem;
   display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-  gap: 1.1rem;
-  align-items: flex-start;
+  grid-template-columns: minmax(0, 1.34fr) minmax(260px, 0.66fr);
+  gap: 1.15rem;
+  align-items: center;
+}
+
+.showcase-copy {
+  /* text-align: left; */
+  align-self: start;
 }
 
 .showcase-copy h3 {
@@ -1214,19 +1080,25 @@ onUnmounted(() => {
 }
 
 .showcase-frame {
+  position: relative;
   border-radius: 20px;
   overflow: hidden;
-  /* border: 1px solid var(--theme-border-soft); */
-  /* background: var(--theme-panel-strong); */
-  /* box-shadow: var(--theme-shadow-soft); */
+  /* border: 1px solid var(--theme-border-soft);
+  background:
+    radial-gradient(circle at 55% 42%, var(--theme-brand-soft-strong), transparent 40%),
+    linear-gradient(145deg, var(--theme-panel), var(--theme-surface-soft));
+  box-shadow: var(--theme-shadow-soft); */
+  aspect-ratio: 16 / 16;
 }
 
 .showcase-image {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
-  height: auto;
-  /* aspect-ratio: 14 / 9; */
-  object-fit: cover;
+  height: 100%;
+  /* object-fit: cover; */
+  object-position: center;
 }
 
 .workflow-grid,
@@ -1363,7 +1235,6 @@ onUnmounted(() => {
   letter-spacing: 0.01em;
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
   will-change: transform;
-  width: 20%;
 }
 
 .btn::after {
@@ -1416,15 +1287,11 @@ onUnmounted(() => {
   transform: translateY(0);
 }
 
-.sticky-cta-enter-active,
-.sticky-cta-leave-active,
 .showcase-fade-enter-active,
 .showcase-fade-leave-active {
   transition: opacity 220ms ease, transform 220ms ease;
 }
 
-.sticky-cta-enter-from,
-.sticky-cta-leave-to,
 .showcase-fade-enter-from,
 .showcase-fade-leave-to {
   opacity: 0;
@@ -1460,24 +1327,32 @@ onUnmounted(() => {
   }
 }
 
-@keyframes typed-cursor-blink {
-  0%,
-  49% {
-    opacity: 1;
-  }
-  50%,
-  100% {
-    opacity: 0;
-  }
-}
-
 @media (max-width: 1100px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-copy {
+    max-width: 44rem;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .hero-actions,
+  .hero-points {
+    justify-content: center;
+  }
+
   .workflow-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .showcase-stage {
     grid-template-columns: 1fr;
+  }
+
+  .showcase-copy {
+    max-width: 44rem;
   }
 }
 
@@ -1512,6 +1387,10 @@ onUnmounted(() => {
     grid-template-columns: 1fr;
   }
 
+  .feature-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .pricing-teaser-bar {
     flex-direction: column;
     align-items: flex-start;
@@ -1533,10 +1412,11 @@ onUnmounted(() => {
 
   .hero {
     max-width: 100%;
+    padding-top: 1rem;
   }
 
   .hero h1 {
-    font-size: clamp(2rem, 9.6vw, 2.85rem);
+    font-size: clamp(2rem, 9vw, 2.75rem);
     line-height: 1.06;
   }
 
@@ -1545,25 +1425,6 @@ onUnmounted(() => {
     justify-content: center;
     text-align: center;
     white-space: normal;
-  }
-
-  .typewriter-shell {
-    display: grid;
-    width: min(100%, 16ch);
-    margin-inline: auto;
-  }
-
-  .typewriter-shell::before,
-  .typewriter-shell > .gradient-text {
-    grid-area: 1 / 1;
-    white-space: normal;
-    text-align: center;
-    max-width: 100%;
-  }
-
-  .typewriter-shell > .gradient-text {
-    position: static;
-    transform: none;
   }
 
   .hero-subtitle {
@@ -1577,10 +1438,28 @@ onUnmounted(() => {
     align-items: center;
   }
 
+  .hero-float-card {
+    display: none;
+  }
+
+  .hero-device-stage {
+    min-height: 18rem;
+  }
+
+  .hero-image {
+    width: min(100%, 31rem);
+    right: -0%;
+  }
+
   .workflow-grid,
   .stats,
-  .testimonial-grid {
-    grid-template-columns: 1fr;
+  .testimonial-grid,
+  .feature-strip {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .showcase-frame {
+    aspect-ratio: 4 / 4;
   }
 
   .showcase-tabs {
@@ -1592,36 +1471,18 @@ onUnmounted(() => {
     justify-content: flex-start;
   }
 
-  .bento-grid {
-    grid-template-columns: 1fr;
-    grid-auto-rows: auto;
-  }
-
-  .bento-card,
-  .span-2-cols,
-  .span-2-rows {
-    grid-column: span 1;
-    grid-row: span 1;
-  }
-
   .cta-card {
     padding: 1.3rem;
   }
 
-  .hero-actions,
-  .cta-actions,
-  .sticky-cta-actions {
+  /* .hero-actions,
+  .cta-actions {
     align-items: stretch;
-  }
+  } */
 
   .btn {
     width: min(100%, 18rem);
   }
 }
 
-@media (max-width: 479px) {
-  .sticky-cta-bar {
-    display: none;
-  }
-}
 </style>
