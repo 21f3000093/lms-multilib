@@ -4,31 +4,35 @@
 
     <section class="login-shell">
       <article class="intro-card">
-        <p class="kicker">Smart Library App</p>
-        <h1>
-          Welcome back to your
-          <span class="gradient-text">smart workspace</span>
-        </h1>
-        <p>
-          Manage your daily admissions, check live seat availability, and send automated fee reminders with ease.
-        </p>
-        <div class="intro-points">
-          <div class="point-chip">
-            <LayoutDashboard class="point-icon" aria-hidden="true" />
-            Everything in One Place
-          </div>
-          <div class="point-chip">
-            <Zap class="point-icon" aria-hidden="true" />
-            Instant WhatsApp Reminders
-          </div>
-          <div class="point-chip">
-            <ShieldCheck class="point-icon" aria-hidden="true" />
-            Secure Multi-role Access
+        <div class="intro-card-inner">
+          <p class="kicker">Smart Library App</p>
+          <h1>
+            Welcome back to your
+            <span class="gradient-text">smart workspace</span>
+          </h1>
+          <p>
+            Manage your daily admissions, check live seat availability, and send automated fee reminders with ease.
+          </p>
+          <div class="intro-points">
+            <div class="point-chip">
+              <LayoutDashboard class="point-icon" aria-hidden="true" />
+              Everything in One Place
+            </div>
+            <div class="point-chip">
+              <Zap class="point-icon" aria-hidden="true" />
+              Instant WhatsApp Reminders
+            </div>
+            <div class="point-chip">
+              <ShieldCheck class="point-icon" aria-hidden="true" />
+              Secure Multi-role Access
+            </div>
           </div>
         </div>
       </article>
 
       <article class="form-card">
+        <div class="form-card-accent" aria-hidden="true"></div>
+
         <header class="form-head">
           <h2>Admin Login</h2>
           <p>Sign in to continue to your dashboard.</p>
@@ -107,11 +111,14 @@
         </form>
 
         <div class="form-footer-links">
-          <router-link to="/signup">Start Free Trial</router-link>
-          <span>•</span>
-          <router-link to="/pricing-plans">Pricing</router-link>
-          <span>•</span>
-          <router-link to="/about">About</router-link>
+          <p class="form-footer-prompt">New to Smart Library?</p>
+          <div class="form-footer-link-row">
+            <router-link to="/signup">Start Free Trial</router-link>
+            <span>•</span>
+            <router-link to="/pricing-plans">Pricing</router-link>
+            <span>•</span>
+            <router-link to="/about">About</router-link>
+          </div>
         </div>
       </article>
     </section>
@@ -351,10 +358,12 @@ onMounted(() => {
   position: relative;
   overflow: hidden;
   isolation: isolate;
+  display: flex;
+  flex-direction: column;
   font-family: Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   color: var(--text-primary);
   background: var(--bg);
-  padding: 2rem 1rem 2rem;
+  padding: 2rem 1rem 1.5rem;
 }
 
 .mesh-layer {
@@ -368,10 +377,12 @@ onMounted(() => {
 
 .login-shell {
   width: min(1080px, 100%);
-  margin: 10vh auto;
+  margin: auto;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1.05fr;
+  align-items: stretch;
   gap: 1.1rem;
+  box-sizing: border-box;
 }
 
 .intro-card,
@@ -382,13 +393,49 @@ onMounted(() => {
   -webkit-backdrop-filter: blur(12px);
   border-radius: 20px;
   padding: 1.4rem;
-  width:fit-content ;
-  margin: auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.intro-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.intro-card::before {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at 80% 20%, var(--theme-brand-soft-strong), transparent 55%);
+  content: '';
+  pointer-events: none;
+  z-index: 0;
+}
+
+.intro-card-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 0;
+  height: 100%;
+}
+
+.form-card-accent {
+  height: 4px;
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
+  margin: -1.4rem -1.4rem 1.2rem -1.4rem;
 }
 
 .kicker {
   margin: 0;
   display: inline-flex;
+  align-self: flex-start;
   padding: 0.4rem 0.8rem;
   border-radius: 999px;
   border: 1px solid var(--theme-border);
@@ -426,13 +473,17 @@ onMounted(() => {
   gap: 0.55rem;
 }
 
-.point {
-  display: inline-flex;
+.point,
+.point-chip {
+  display: flex;
   align-items: center;
-  gap: 0.45rem;
-  color: var(--theme-text-info);
+  gap: 0.55rem;
+  color: var(--theme-text-soft);
   font-weight: 600;
   font-size: 0.9rem;
+  border-left: 2px solid var(--theme-brand-border);
+  padding-left: 0.75rem;
+  border-radius: 0;
 }
 
 .point-icon {
@@ -511,6 +562,7 @@ onMounted(() => {
   padding: 0 0.65rem;
   border: 1px solid var(--theme-input-border);
   background: var(--theme-input-bg);
+  min-width: 0;
 }
 
 .input-wrap.error {
@@ -531,6 +583,7 @@ onMounted(() => {
 
 .input-wrap input {
   width: 100%;
+  min-width: 0;
   border: none;
   outline: none;
   background: transparent;
@@ -637,10 +690,22 @@ onMounted(() => {
 
 .form-footer-links {
   margin-top: 0.95rem;
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  color: var(--theme-text-muted);
+}
+
+.form-footer-prompt {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.84rem;
+}
+
+.form-footer-link-row {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  color: var(--theme-text-muted);
 }
 
 .form-footer-links a {
@@ -656,7 +721,8 @@ onMounted(() => {
 
 .page-footer {
   width: min(1080px, 100%);
-  margin: 1.2rem auto 0;
+  margin: 0.8rem auto 0;
+  margin-top: auto;
   text-align: center;
   color: var(--theme-text-muted);
   font-size: 0.84rem;
@@ -682,20 +748,29 @@ onMounted(() => {
 
 @media (max-width: 960px) {
   .login-shell {
+    width: 100%;
     grid-template-columns: 1fr;
     margin: auto auto;
+    padding: 0 0.25rem;
+  }
+
+  .form-card {
+    order: -1;
   }
 }
 
 @media (max-width: 767px) {
   .login-page {
-    padding-top: 2rem;
-    padding-bottom: 1.5rem;
+    padding: 1.25rem 0.75rem 1.5rem;
   }
 
   .intro-card,
   .form-card {
     padding: 1.1rem;
+  }
+
+  .form-card-accent {
+    margin: -1.1rem -1.1rem 1.1rem -1.1rem;
   }
 
   .intro-card h1 {
