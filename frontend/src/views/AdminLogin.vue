@@ -3,35 +3,9 @@
     <div class="mesh-layer" aria-hidden="true"></div>
 
     <section class="login-shell">
-      <article class="intro-card">
-        <div class="intro-card-inner">
-          <p class="kicker">Smart Library App</p>
-          <h1>
-            Welcome back to your
-            <span class="gradient-text">smart workspace</span>
-          </h1>
-          <p>
-            Manage your daily admissions, check live seat availability, and send automated fee reminders with ease.
-          </p>
-          <div class="intro-points">
-            <div class="point-chip">
-              <LayoutDashboard class="point-icon" aria-hidden="true" />
-              Everything in One Place
-            </div>
-            <div class="point-chip">
-              <Zap class="point-icon" aria-hidden="true" />
-              Instant WhatsApp Reminders
-            </div>
-            <div class="point-chip">
-              <ShieldCheck class="point-icon" aria-hidden="true" />
-              Secure Multi-role Access
-            </div>
-          </div>
-        </div>
-      </article>
-
       <article class="form-card">
         <div class="form-card-accent" aria-hidden="true"></div>
+        <p class="form-kicker">Smart Library App</p>
 
         <header class="form-head">
           <h2>Admin Login</h2>
@@ -120,6 +94,17 @@
             <router-link to="/about">About</router-link>
           </div>
         </div>
+
+        <div class="trust-strip">
+          <ShieldCheck class="trust-icon" />
+          <span>Secure</span>
+          <span class="trust-dot">·</span>
+          <Zap class="trust-icon" />
+          <span>WhatsApp Reminders</span>
+          <span class="trust-dot">·</span>
+          <BadgeCheck class="trust-icon" />
+          <span>Role-based Access</span>
+        </div>
       </article>
     </section>
 
@@ -140,10 +125,9 @@ import {
   LoaderCircle,
   Lock,
   User,
-  // ADD THESE:
-  LayoutDashboard, 
   Zap,
-  ShieldCheck
+  ShieldCheck,
+  BadgeCheck
 } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toast-notification'
@@ -363,7 +347,7 @@ onMounted(() => {
   font-family: Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   color: var(--text-primary);
   background: var(--bg);
-  padding: 2rem 1rem 1.5rem;
+  /* padding: 2rem 1rem 1.5rem;  */
 }
 
 .mesh-layer {
@@ -376,16 +360,17 @@ onMounted(() => {
 }
 
 .login-shell {
-  width: min(1080px, 100%);
-  margin: auto;
-  display: grid;
-  grid-template-columns: 1fr 1.05fr;
-  align-items: stretch;
-  gap: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1rem;
   box-sizing: border-box;
 }
 
-.intro-card,
 .form-card {
   border: 1px solid var(--surface-border);
   background: var(--surface);
@@ -393,36 +378,11 @@ onMounted(() => {
   -webkit-backdrop-filter: blur(12px);
   border-radius: 20px;
   padding: 1.4rem;
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  width: min(460px, 100%);
+  margin: 0 auto;
   box-sizing: border-box;
-}
-
-.intro-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  overflow: hidden;
-}
-
-.intro-card::before {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(circle at 80% 20%, var(--theme-brand-soft-strong), transparent 55%);
-  content: '';
-  pointer-events: none;
-  z-index: 0;
-}
-
-.intro-card-inner {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  gap: 0;
-  height: 100%;
 }
 
 .form-card-accent {
@@ -432,8 +392,8 @@ onMounted(() => {
   margin: -1.4rem -1.4rem 1.2rem -1.4rem;
 }
 
-.kicker {
-  margin: 0;
+.form-kicker {
+  margin: 0 auto 1rem;
   display: inline-flex;
   align-self: flex-start;
   padding: 0.4rem 0.8rem;
@@ -444,52 +404,6 @@ onMounted(() => {
   text-transform: uppercase;
   color: var(--theme-text-soft);
   background: var(--theme-surface-soft);
-}
-
-.intro-card h1 {
-  margin: 0.9rem 0 0;
-  font-size: clamp(1.9rem, 4.4vw, 3rem);
-  line-height: 1.05;
-  letter-spacing: -0.03em;
-  text-wrap: balance;
-}
-
-.gradient-text {
-  background: linear-gradient(90deg, var(--brand-a), var(--brand-b));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.intro-card p {
-  margin: 1rem 0 0;
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
-
-.intro-points {
-  margin-top: 1.2rem;
-  display: grid;
-  gap: 0.55rem;
-}
-
-.point,
-.point-chip {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  color: var(--theme-text-soft);
-  font-weight: 600;
-  font-size: 0.9rem;
-  border-left: 2px solid var(--theme-brand-border);
-  padding-left: 0.75rem;
-  border-radius: 0;
-}
-
-.point-icon {
-  width: 1rem;
-  height: 1rem;
-  color: var(--theme-brand-pill-text);
 }
 
 .form-head h2 {
@@ -719,6 +633,29 @@ onMounted(() => {
   color: var(--theme-brand-pill-text);
 }
 
+.trust-strip {
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--theme-border-soft);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem 0.55rem;
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+}
+
+.trust-icon {
+  width: 0.85rem;
+  height: 0.85rem;
+  color: var(--theme-brand-pill-text);
+}
+
+.trust-dot {
+  color: var(--theme-border-strong);
+}
+
 .page-footer {
   width: min(1080px, 100%);
   margin: 0.8rem auto 0;
@@ -749,32 +686,24 @@ onMounted(() => {
 @media (max-width: 960px) {
   .login-shell {
     width: 100%;
-    grid-template-columns: 1fr;
-    margin: auto auto;
-    padding: 0 0.25rem;
   }
 
   .form-card {
-    order: -1;
+    width: min(460px, 100%);
   }
 }
 
 @media (max-width: 767px) {
-  .login-page {
+  /* .login-page {
     padding: 1.25rem 0.75rem 1.5rem;
-  }
+  } */
 
-  .intro-card,
   .form-card {
     padding: 1.1rem;
   }
 
   .form-card-accent {
     margin: -1.1rem -1.1rem 1.1rem -1.1rem;
-  }
-
-  .intro-card h1 {
-    font-size: clamp(1.7rem, 8vw, 2.3rem);
   }
 }
 </style>
