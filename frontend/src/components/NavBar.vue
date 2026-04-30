@@ -49,6 +49,10 @@
             <!-- <span>{{ nextThemeLabel }}</span> -->
           </button>
           <router-link to="/login" class="public-link public-link-primary desktop-only">Login</router-link>
+          <router-link to="/login" class="public-link public-link-primary mobile-login-link mobile-only" @click="closeMenu">
+            <LogIn class="mobile-login-icon" aria-hidden="true" />
+            <span>Login</span>
+          </router-link>
         </div>
 
         <div v-if="isLoggedIn" class="topbar-actions">
@@ -658,6 +662,18 @@ export default {
   border-color: var(--theme-brand-border);
   background: var(--theme-brand-soft-strong);
   color: var(--theme-text-strong);
+}
+
+.mobile-login-link {
+  align-items: center;
+  gap: 0.34rem;
+  min-height: 1.2rem;
+  padding: 0.42rem 0.58rem;
+}
+
+.mobile-login-icon {
+  width: 0.9rem;
+  height: 0.9rem;
 }
 
 .theme-toggle {

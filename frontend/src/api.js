@@ -6,6 +6,8 @@ import 'vue-toast-notification/dist/theme-sugar.css';
 
 // Create a toast instance
 const toast = useToast();
+let loginRedirectScheduled = false;
+let billingRedirectScheduled = false;
 
 // Helper functions for different toast types
 const showErrorToast = (message, timeout = 5000) => {
@@ -63,6 +65,33 @@ const API = axios.create({
   withCredentials: true,  // 🔒 Send secure HttpOnly cookie with every request
 });
 
+const clearAuthState = () => {
+  localStorage.removeItem('role');
+  localStorage.removeItem('username');
+  localStorage.removeItem('library_id');
+  localStorage.removeItem('library_name');
+};
+
+const scheduleLoginRedirect = (message, type = 'warning') => {
+  if (loginRedirectScheduled) {
+    return;
+  }
+
+  loginRedirectScheduled = true;
+  if (type === 'error') {
+    showErrorToast(message, 5000);
+  } else {
+    showWarningToast(message, 5000);
+  }
+  clearAuthState();
+
+  setTimeout(() => {
+    if (window.location.pathname !== '/login') {
+      window.location.href = '/login';
+    }
+  }, 2000);
+};
+
 
 
 
@@ -80,10 +109,13 @@ API.interceptors.response.use(
 
       if (status === 402) {
         if (detailCode === 'subscription_expired') {
-          showWarningToast(detailMessage || 'Your subscription is inactive or expired. Please renew to continue.', 5000);
-          if (window.location.pathname !== '/billing') {
+          if (!billingRedirectScheduled) {
+            billingRedirectScheduled = true;
+            showWarningToast(detailMessage || 'Your subscription is inactive or expired. Please renew to continue.', 5000);
             setTimeout(() => {
-              window.location.href = '/billing';
+              if (window.location.pathname !== '/billing') {
+                window.location.href = '/billing';
+              }
             }, 1200);
           }
         } else {
@@ -92,13 +124,13 @@ API.interceptors.response.use(
       }
 
       if (status === 403) {
-        showErrorToast('Your account is inactive.Please contact the Admin for more details.', 5000);
+        scheduleLoginRedirect('Your account is inactive. Please contact the admin for more details.', 'error');
       } 
       else if (status === 401) {
         if (detail === 'invalid_credentials') {
           showErrorToast('Invalid username, email, or password.');
         } else if (detail === 'token_expired_or_invalid') {
-          showWarningToast('Your session has expired. Please log in again.');
+          scheduleLoginRedirect('Your session has expired. Please log in again.');
         } else {
           showErrorToast('Unauthorized access.');
         }
@@ -116,19 +148,6 @@ API.interceptors.response.use(
       //     window.location.href = '/login';
       //   }, 2000);
       // }
-
-      // Only force logout on explicit token error or 403
-      if (status === 403 || (status === 401 && detail === 'token_expired_or_invalid')) {
-        localStorage.removeItem('role');
-        localStorage.removeItem('username');
-        localStorage.removeItem('library_id');
-        localStorage.removeItem('library_name');
-
-        setTimeout(() => {
-          window.location.href = '/login';
-        }, 2000);
-      }
-
     }
 
     return Promise.reject(error);
