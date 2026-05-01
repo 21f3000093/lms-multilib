@@ -617,6 +617,7 @@ export default {
 
 .month-input {
   color-scheme: inherit;
+  width: -webkit-fill-available;
 }
 
 .month-input::-webkit-calendar-picker-indicator {

@@ -78,9 +78,17 @@
                 </span>
               </td>
               <td>
-                <button @click="openReminderModal(student)" class="action-btn action-success" type="button">
-                  Send Reminder
-                </button>
+                <div class="reminder-actions">
+                  <button @click="sendReminderWhatsApp(student)" class="action-btn action-whatsapp" type="button">
+                    WhatsApp
+                  </button>
+                  <button @click="sendReminderSMS(student)" class="action-btn action-sms" type="button">
+                    SMS
+                  </button>
+                  <button @click="callStudent(student)" class="action-btn action-call" type="button">
+                    Call
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -123,34 +131,28 @@
           </div>
         </div>
 
-        <button @click="openReminderModal(student)" class="action-btn action-success mobile-action" type="button">
-          Send Reminder
-        </button>
+        <div class="reminder-actions mobile-action">
+          <button @click="sendReminderWhatsApp(student)" class="action-btn action-whatsapp" type="button">
+            WhatsApp
+          </button>
+          <button @click="sendReminderSMS(student)" class="action-btn action-sms" type="button">
+            SMS
+          </button>
+          <button @click="callStudent(student)" class="action-btn action-call" type="button">
+            Call
+          </button>
+        </div>
       </article>
     </section>
-
-    <ConfirmationModal
-      :show="showReminderModal"
-      title="Send Fee Reminder"
-      :message="`Send payment reminder to ${selectedStudent?.student_name?.toUpperCase()}?`"
-      @whatsapp="sendReminderWhatsApp"
-      @sms="sendReminderSMS"
-      @cancel="closeReminderModal"
-    />
   </main>
 </template>
 
 <script>
 import API from '../api'
-import ConfirmationModal from './ConfirmationModal.vue'
 import { useToast } from 'vue-toast-notification'
 import 'vue-toast-notification/dist/theme-sugar.css'
 
 export default {
-  components: {
-    ConfirmationModal,
-  },
-
   setup() {
     const toast = useToast()
 
@@ -203,8 +205,6 @@ export default {
     return {
       selectedMonth: defaultMonth,
       pendingList: [],
-      showReminderModal: false,
-      selectedStudent: null,
       loading: false,
     }
   },
@@ -230,46 +230,64 @@ export default {
       }
     },
 
-    openReminderModal(student) {
-      this.selectedStudent = student
-      this.showReminderModal = true
-    },
-
-    closeReminderModal() {
-      this.showReminderModal = false
-      this.selectedStudent = null
-    },
-
-    sendReminderWhatsApp() {
-      const message = this.generateReminderMessage()
-      const phone = '91' + this.selectedStudent.phone.replace(/^0+/, '')
+    sendReminderWhatsApp(student) {
+      const message = this.generateReminderMessage(student)
+      const phone = this.getWhatsAppPhone(student.phone)
       const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
       window.open(url, '_blank')
-      this.closeReminderModal()
       this.showSuccess('WhatsApp reminder sent!')
     },
 
-    sendReminderSMS() {
-      const message = this.generateReminderMessage()
-      const phone = this.selectedStudent.phone.replace(/^(\+91|91)/, '')
+    sendReminderSMS(student) {
+      const message = this.generateReminderMessage(student)
+      const phone = this.getLocalPhone(student.phone)
       const url = `sms:${phone}?body=${encodeURIComponent(message)}`
       window.open(url, '_blank')
-      this.closeReminderModal()
       this.showSuccess('SMS reminder sent!')
     },
 
-    generateReminderMessage() {
+    callStudent(student) {
+      const phone = this.getDialPhone(student.phone)
+      window.location.href = `tel:${phone}`
+    },
+
+    generateReminderMessage(student) {
       const libraryName = localStorage.getItem('library_name') || 'Your Library'
-      const monthDate = new Date(this.selectedStudent.month + '-01')
+      const monthDate = new Date(student.month + '-01')
       const monthName = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-      const formattedAmount = this.formatAmount(this.selectedStudent.amount)
+      const formattedAmount = this.formatAmount(student.amount)
 
       return (
-        `Dear ${this.selectedStudent.student_name},\n` +
-        `Your library fee of Rs.${formattedAmount} for ${monthName} was due on ${this.selectedStudent.due_date}.\n` +
+        `Dear ${student.student_name},\n` +
+        `Your library fee of Rs.${formattedAmount} for ${monthName} was due on ${student.due_date}.\n` +
         `Please pay it as soon as possible to avoid disruption.\n\n` +
         `Thanks,\n${libraryName}`
       )
+    },
+
+    getPhoneDigits(phone) {
+      return String(phone || '').replace(/\D/g, '')
+    },
+
+    getLocalPhone(phone) {
+      const digits = this.getPhoneDigits(phone).replace(/^0+/, '')
+      if (digits.length > 10 && digits.startsWith('91')) {
+        return digits.slice(2)
+      }
+      return digits
+    },
+
+    getWhatsAppPhone(phone) {
+      const digits = this.getPhoneDigits(phone).replace(/^0+/, '')
+      if (digits.length > 10 && digits.startsWith('91')) {
+        return digits
+      }
+      return `91${this.getLocalPhone(phone)}`
+    },
+
+    getDialPhone(phone) {
+      const localPhone = this.getLocalPhone(phone)
+      return localPhone ? `+91${localPhone}` : ''
     },
 
     normalizeAmount(amount) {
@@ -435,6 +453,7 @@ export default {
 
 .month-input {
   color-scheme: inherit;
+  width: -webkit-fill-available;
 }
 
 .month-input::-webkit-calendar-picker-indicator {
@@ -596,10 +615,28 @@ export default {
   cursor: pointer;
 }
 
-.action-success {
+.reminder-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.action-whatsapp {
   background: var(--theme-success-soft);
   color: var(--theme-success-text);
   border-color: var(--theme-success-border);
+}
+
+.action-sms {
+  background: var(--theme-info-soft);
+  color: var(--theme-info-text);
+  border-color: var(--theme-info-border);
+}
+
+.action-call {
+  background: var(--theme-brand-soft);
+  color: var(--theme-brand-pill-text);
+  border-color: var(--theme-brand-border);
 }
 
 .loading-card,
@@ -655,6 +692,10 @@ export default {
 .mobile-action {
   width: 100%;
   margin-top: 0.55rem;
+}
+
+.mobile-action .action-btn {
+  flex: 1 1 0;
 }
 
 @keyframes mesh-drift {

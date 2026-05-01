@@ -14,7 +14,7 @@ module.exports = defineConfig({
     })
   },
 
-  // ✅ PWA configuration
+  // PWA configuration
   pwa: {
     name: 'Smart Library App',
     // Align browser/PWA chrome with the dark enterprise app theme.
@@ -32,7 +32,7 @@ module.exports = defineConfig({
       background_color: '#0b1222',
       display: 'standalone',
       scope: './',
-      start_url: './',
+      start_url: './login',
       icons: [
         {
           purpose: 'maskable',
@@ -92,7 +92,7 @@ module.exports = defineConfig({
       importScripts: ['sw-push.js'],
 
       // change this version string on important deployments
-      cacheId: 'smart-library-v3',
+      cacheId: 'smart-library-v4',
 
       runtimeCaching: [
         {

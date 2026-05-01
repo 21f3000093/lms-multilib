@@ -3,32 +3,10 @@
     <div class="mesh-layer" aria-hidden="true"></div>
 
     <section class="login-shell">
-      <article class="intro-card">
-        <p class="kicker">Smart Library App</p>
-        <h1>
-          Welcome back to your
-          <span class="gradient-text">smart workspace</span>
-        </h1>
-        <p>
-          Continue managing your library's students, seat availability, and automated communications with ease.
-        </p>
-        <div class="intro-points">
-          <div class="point-chip">
-            <LayoutDashboard class="point-icon" aria-hidden="true" />
-            Unified Admin Dashboard
-          </div>
-          <div class="point-chip">
-            <Zap class="point-icon" aria-hidden="true" />
-            Automated Workflows
-          </div>
-          <div class="point-chip">
-            <ShieldCheck class="point-icon" aria-hidden="true" />
-            Secure Multi-role Access
-          </div>
-        </div>
-      </article>
-
       <article class="form-card">
+        <div class="form-card-accent" aria-hidden="true"></div>
+        <p class="form-kicker">Smart Library App</p>
+
         <header class="form-head">
           <h2>Admin Login</h2>
           <p>Sign in to continue to your dashboard.</p>
@@ -107,23 +85,38 @@
         </form>
 
         <div class="form-footer-links">
-          <router-link to="/signup">Start Free Trial</router-link>
-          <span>•</span>
-          <router-link to="/pricing-plans">Pricing</router-link>
-          <span>•</span>
-          <router-link to="/about">About</router-link>
+          <p class="form-footer-prompt">New to Smart Library?</p>
+          <div class="form-footer-link-row">
+            <router-link to="/signup">Start Free Trial</router-link>
+            <span>•</span>
+            <router-link to="/pricing-plans">Pricing</router-link>
+            <span>•</span>
+            <router-link to="/about">About</router-link>
+          </div>
+        </div>
+
+        <div class="trust-strip">
+          <ShieldCheck class="trust-icon" />
+          <span>Secure</span>
+          <span class="trust-dot">·</span>
+          <Zap class="trust-icon" />
+          <span>WhatsApp Reminders</span>
+          <span class="trust-dot">·</span>
+          <BadgeCheck class="trust-icon" />
+          <span>Role-based Access</span>
         </div>
       </article>
     </section>
 
     <footer class="page-footer">
-      <p>© 2026 Smart Library App. All rights reserved.</p>
+      <p>© {{ currentYear }} Smart Library App. All rights reserved.</p>
     </footer>
   </main>
 </template>
 
 <script setup>
 import { onMounted, ref } from 'vue'
+import { computed } from 'vue'
 import {
   AlertCircle,
   ArrowRight,
@@ -132,10 +125,9 @@ import {
   LoaderCircle,
   Lock,
   User,
-  // ADD THESE:
-  LayoutDashboard, 
   Zap,
-  ShieldCheck
+  ShieldCheck,
+  BadgeCheck
 } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toast-notification'
@@ -146,6 +138,7 @@ import { homeRouteForRole, storeAdminSession } from '../utils/authSession'
 import GoogleAuthButton from '../components/GoogleAuthButton.vue'
 import TurnstileWidget from '../components/TurnstileWidget.vue'
 
+const currentYear = computed(() => new Date().getFullYear())
 const router = useRouter()
 const toast = useToast()
 
@@ -349,10 +342,12 @@ onMounted(() => {
   position: relative;
   overflow: hidden;
   isolation: isolate;
+  display: flex;
+  flex-direction: column;
   font-family: Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   color: var(--text-primary);
   background: var(--bg);
-  padding: 2rem 1rem 2rem;
+  /* padding: 2rem 1rem 1.5rem;  */
 }
 
 .mesh-layer {
@@ -365,14 +360,17 @@ onMounted(() => {
 }
 
 .login-shell {
-  width: min(1080px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  width: 100%;
   margin: 0 auto;
-  display: grid;
-  /* grid-template-columns: 1fr 1fr; */
-  gap: 1.1rem;
+  padding: 2rem 1rem;
+  box-sizing: border-box;
 }
 
-.intro-card,
 .form-card {
   border: 1px solid var(--surface-border);
   background: var(--surface);
@@ -380,11 +378,24 @@ onMounted(() => {
   -webkit-backdrop-filter: blur(12px);
   border-radius: 20px;
   padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  width: min(460px, 100%);
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
-.kicker {
-  margin: 0;
+.form-card-accent {
+  height: 4px;
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
+  margin: -1.4rem -1.4rem 1.2rem -1.4rem;
+}
+
+.form-kicker {
+  margin: 0 auto 1rem;
   display: inline-flex;
+  align-self: flex-start;
   padding: 0.4rem 0.8rem;
   border-radius: 999px;
   border: 1px solid var(--theme-border);
@@ -393,48 +404,6 @@ onMounted(() => {
   text-transform: uppercase;
   color: var(--theme-text-soft);
   background: var(--theme-surface-soft);
-}
-
-.intro-card h1 {
-  margin: 0.9rem 0 0;
-  font-size: clamp(1.9rem, 4.4vw, 3rem);
-  line-height: 1.05;
-  letter-spacing: -0.03em;
-  text-wrap: balance;
-}
-
-.gradient-text {
-  background: linear-gradient(90deg, var(--brand-a), var(--brand-b));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.intro-card p {
-  margin: 1rem 0 0;
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
-
-.intro-points {
-  margin-top: 1.2rem;
-  display: grid;
-  gap: 0.55rem;
-}
-
-.point {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  color: var(--theme-text-info);
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.point-icon {
-  width: 1rem;
-  height: 1rem;
-  color: var(--theme-brand-pill-text);
 }
 
 .form-head h2 {
@@ -507,6 +476,7 @@ onMounted(() => {
   padding: 0 0.65rem;
   border: 1px solid var(--theme-input-border);
   background: var(--theme-input-bg);
+  min-width: 0;
 }
 
 .input-wrap.error {
@@ -527,6 +497,7 @@ onMounted(() => {
 
 .input-wrap input {
   width: 100%;
+  min-width: 0;
   border: none;
   outline: none;
   background: transparent;
@@ -633,10 +604,22 @@ onMounted(() => {
 
 .form-footer-links {
   margin-top: 0.95rem;
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  color: var(--theme-text-muted);
+}
+
+.form-footer-prompt {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.84rem;
+}
+
+.form-footer-link-row {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  color: var(--theme-text-muted);
 }
 
 .form-footer-links a {
@@ -650,9 +633,33 @@ onMounted(() => {
   color: var(--theme-brand-pill-text);
 }
 
+.trust-strip {
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--theme-border-soft);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem 0.55rem;
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+}
+
+.trust-icon {
+  width: 0.85rem;
+  height: 0.85rem;
+  color: var(--theme-brand-pill-text);
+}
+
+.trust-dot {
+  color: var(--theme-border-strong);
+}
+
 .page-footer {
   width: min(1080px, 100%);
-  margin: 1.2rem auto 0;
+  margin: 0.8rem auto 0;
+  margin-top: auto;
   text-align: center;
   color: var(--theme-text-muted);
   font-size: 0.84rem;
@@ -678,23 +685,25 @@ onMounted(() => {
 
 @media (max-width: 960px) {
   .login-shell {
-    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .form-card {
+    width: min(460px, 100%);
   }
 }
 
 @media (max-width: 767px) {
-  .login-page {
-    padding-top: 2rem;
-    padding-bottom: 1.5rem;
-  }
+  /* .login-page {
+    padding: 1.25rem 0.75rem 1.5rem;
+  } */
 
-  .intro-card,
   .form-card {
     padding: 1.1rem;
   }
 
-  .intro-card h1 {
-    font-size: clamp(1.7rem, 8vw, 2.3rem);
+  .form-card-accent {
+    margin: -1.1rem -1.1rem 1.1rem -1.1rem;
   }
 }
 </style>

@@ -4,37 +4,54 @@
 
     <section class="hero section-shell">
       <div class="hero-copy reveal" data-stagger="0">
-        <p class="kicker">Trusted By 100+ Libraries</p>
-        <h1>
-          The <span class="gradient-text">Operating System</span>
-          for modern study centers
-        </h1>
+        <p class="kicker">Smart Library App</p>
+        <h1>Run your library from one dashboard</h1>
         <p class="hero-subtitle">
-          Smart Library App helps you to manage students, seats, payments, and operations from one enterprise-grade dashboard.
+          Manage admissions, seats, fees, receipts, and WhatsApp reminders without notebooks or spreadsheets.
         </p>
 
         <div class="hero-actions">
-          <a 
-            class="btn btn-solid magnetic" 
-            href="https://wa.me/919024600138?text=Hi%20Shubham!%20I'd%20like%20to%20book%20a%20demo%20for%20the%20Library%20App." 
-            target="_blank" 
-            rel="noopener noreferrer"
-            @mousemove="onMagneticMove" 
+          <router-link
+            class="btn btn-solid magnetic"
+            to="/signup"
+            @mousemove="onMagneticMove"
             @mouseleave="onMagneticLeave"
           >
-            Book a Demo
-          </a>
-          <a class="btn btn-ghost magnetic" href="tel:+919024600138" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
-            Talk to Sales
-          </a>
+            Start Free
+          </router-link>
+          <router-link
+            class="btn btn-ghost magnetic"
+            to="/pricing-plans"
+            @mousemove="onMagneticMove"
+            @mouseleave="onMagneticLeave"
+          >
+            View Pricing
+          </router-link>
+        </div>
+
+        <div class="hero-points">
+          <div v-for="item in heroPoints" :key="item.label" class="point-chip reveal" :data-stagger="item.stagger">
+            <component :is="item.icon" class="point-icon" aria-hidden="true" />
+            {{ item.label }}
+          </div>
         </div>
       </div>
 
       <div class="hero-visual reveal" data-stagger="1">
-        <div class="hero-orb floaty">
-          <div class="orb-core">
-            <BookOpen class="orb-icon" aria-hidden="true" />
-          </div>
+        <div class="hero-device-stage">
+          <img
+            :src="heroScreenshot"
+            alt="Smart Library dashboard showing occupancy, collections, and library performance"
+            class="hero-image"
+          />
+        </div>
+        <div class="hero-float-card hero-float-card-top">
+          <span class="float-value">Live</span>
+          <span class="float-label">seat visibility</span>
+        </div>
+        <div class="hero-float-card hero-float-card-bottom">
+          <span class="float-value">₹</span>
+          <span class="float-label">fees and receipts</span>
         </div>
       </div>
     </section>
@@ -46,10 +63,46 @@
       </article>
     </section>
 
+    <section class="showcase section-shell">
+      <header class="section-header reveal" data-stagger="0">
+        <h2>See Smart Library in action</h2>
+        <p>Switch through the core workflows your team uses every day.</p>
+      </header>
+
+      <div class="showcase-shell glass-card reveal" data-stagger="1">
+        <div class="showcase-tabs" role="tablist" aria-label="App screenshot switcher">
+          <button
+            v-for="tab in showcaseTabs"
+            :key="tab.key"
+            type="button"
+            class="showcase-tab"
+            :class="{ 'is-active': activeShowcaseKey === tab.key }"
+            :aria-selected="activeShowcaseKey === tab.key"
+            @click="activeShowcaseKey = tab.key"
+          >
+            {{ tab.label }}
+          </button>
+        </div>
+
+        <Transition name="showcase-fade" mode="out-in">
+          <article :key="activeShowcase.key" class="showcase-stage">
+            <div class="showcase-frame">
+              <img :src="activeShowcase.src" :alt="activeShowcase.alt" class="showcase-image" />
+            </div>
+            <div class="showcase-copy">
+              <p class="showcase-kicker">{{ activeShowcase.label }}</p>
+              <h3>{{ activeShowcase.title }}</h3>
+              <p>{{ activeShowcase.description }}</p>
+            </div>
+          </article>
+        </Transition>
+      </div>
+    </section>
+
     <section class="comparison section-shell">
       <header class="section-header reveal" data-stagger="0">
-        <h2>The Transition: From Manual to Digital</h2>
-        <p>See how Smart Library App replaces scattered, time-heavy admin work with one connected operating workflow.</p>
+        <h2>Manual work vs Smart Library</h2>
+        <p>Replace scattered records with one visible workflow for seats, students, fees, and reminders.</p>
       </header>
 
       <div class="comparison-grid">
@@ -81,49 +134,121 @@
           </ul>
         </article>
       </div>
-    </section>
 
-    <section class="features section-shell">
-      <header class="section-header reveal" data-stagger="0">
-        <h2>Built for scale, reliability, and predictable operations</h2>
-        <p>Everything your admin team needs to run multi-library operations without workflow chaos.</p>
-      </header>
-
-      <div class="bento-grid">
+      <div class="feature-strip">
         <article
           v-for="feature in features"
           :key="feature.title"
-          class="bento-card reveal"
-          :class="feature.span"
+          class="feature-pill-card reveal"
           :data-stagger="feature.stagger"
         >
-          <div class="icon-wrap">
-            <component :is="feature.icon" class="feature-icon" aria-hidden="true" />
+          <component :is="feature.icon" class="feature-pill-icon" aria-hidden="true" />
+          <div>
+            <h3>{{ feature.title }}</h3>
+            <p>{{ feature.description }}</p>
           </div>
-          <h3>{{ feature.title }}</h3>
-          <p>{{ feature.description }}</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="workflow section-shell">
+      <header class="section-header reveal" data-stagger="0">
+        <h2>Start fast, then run daily work from one place</h2>
+        <p>Four steps from setup to daily operations.</p>
+      </header>
+
+      <div class="workflow-grid">
+        <article v-for="step in workflowSteps" :key="step.title" class="glass-card workflow-card reveal" :data-stagger="step.stagger">
+          <div class="workflow-step">{{ step.step }}</div>
+          <component :is="step.icon" class="workflow-icon" aria-hidden="true" />
+          <h3>{{ step.title }}</h3>
+          <p>{{ step.description }}</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="testimonials section-shell">
+      <header class="section-header reveal" data-stagger="0">
+        <h2>What library teams say after switching</h2>
+        <p>Less paperwork, clearer operations, faster follow-ups.</p>
+      </header>
+
+      <div class="testimonial-grid">
+        <article v-for="item in testimonials" :key="item.name" class="glass-card testimonial-card reveal" :data-stagger="item.stagger">
+          <div class="testimonial-stars" aria-label="5 star rating">
+            <Star v-for="star in 5" :key="star" class="testimonial-star" aria-hidden="true" />
+          </div>
+          <p class="testimonial-quote">“{{ item.quote }}”</p>
+          <div class="testimonial-meta">
+            <strong>{{ item.name }}</strong>
+            <span>{{ item.library }}</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="pricing-teaser section-shell">
+      <header class="section-header reveal" data-stagger="0">
+        <h2>Flexible pricing that scales with your seat count</h2>
+        <p>Start at ₹9 per seat per month with lower effective costs on longer plans.</p>
+      </header>
+
+      <div class="pricing-teaser-grid">
+        <article v-for="item in pricingHighlights" :key="item.title" class="glass-card teaser-card reveal" :data-stagger="item.stagger">
+          <component :is="item.icon" class="teaser-icon" aria-hidden="true" />
+          <p class="teaser-kicker">{{ item.kicker }}</p>
+          <h3>{{ item.title }}</h3>
+          <p>{{ item.description }}</p>
+        </article>
+      </div>
+
+      <div class="pricing-teaser-bar glass-card reveal" data-stagger="4">
+        <div>
+          <p class="pricing-teaser-eyebrow">Included in every plan</p>
+          <h3>No setup fee. Full feature access. Predictable seat-based billing.</h3>
+        </div>
+        <router-link class="btn btn-solid magnetic" to="/pricing-plans" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
+          Explore Full Pricing
+        </router-link>
+      </div>
+    </section>
+
+    <section class="faq section-shell">
+      <header class="section-header reveal" data-stagger="0">
+        <h2>Frequently asked questions</h2>
+        <p>The basics before you create your library account.</p>
+      </header>
+
+      <div class="faq-list">
+        <article v-for="(item, index) in faqs" :key="item.question" class="glass-card faq-card reveal" :data-stagger="index + 1">
+          <button
+            type="button"
+            class="faq-trigger"
+            :aria-expanded="openFaqIndex === index"
+            @click="toggleFaq(index)"
+          >
+            <span>{{ item.question }}</span>
+            <ChevronDown class="faq-icon" :class="{ 'is-open': openFaqIndex === index }" aria-hidden="true" />
+          </button>
+          <Transition name="faq-collapse">
+            <div v-if="openFaqIndex === index" class="faq-answer">
+              <p>{{ item.answer }}</p>
+            </div>
+          </Transition>
         </article>
       </div>
     </section>
 
     <section class="cta section-shell reveal" data-stagger="1">
       <div class="cta-card">
-        <p class="cta-kicker">Ready to scale faster?</p>
-        <h2>Launch a unified workflow for your entire library network.</h2>
-        <p>
-          Replace fragmented processes with one secure platform for admin control, communication, and growth.
-        </p>
+        <p class="cta-kicker">Ready to digitize your library operations?</p>
+        <h2>Ready to make your library truly smart?</h2>
+        <p>Run your study center from your phone or laptop without manual registers.</p>
 
         <div class="cta-actions">
-          <a class="btn btn-solid magnetic" 
-            href="https://wa.me/919024600138?text=Hi%20Shubham!%20I'd%20like%20to%20start%20a%20conversation%20about%20the%20Smart%20Library%20app." 
-            target="_blank" 
-            rel="noopener noreferrer"
-            @mousemove="onMagneticMove" 
-            @mouseleave="onMagneticLeave"
-          >
-            Start Conversation
-          </a>
+          <router-link class="btn btn-solid magnetic" to="/signup" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
+            Create Library Account
+          </router-link>
           <router-link class="btn btn-ghost magnetic" to="/pricing-plans" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
             View Pricing
           </router-link>
@@ -134,27 +259,68 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import {
   ArrowRight,
   Armchair,
   BarChart3,
-  BookOpen,
+  Bell,
   CheckCircle2,
+  ChevronDown,
+  CircleDollarSign,
   CircleX,
   CreditCard,
+  Gift,
+  LayoutDashboard,
   MessageSquare,
+  ReceiptText,
   ShieldCheck,
+  Sparkles,
+  Star,
+  UserPlus,
+  Users,
 } from 'lucide-vue-next'
 
 const pageRoot = ref(null)
-let observer = null
+const activeShowcaseKey = ref('students')
+const openFaqIndex = ref(0)
+
+let revealObserver = null
+const screenshotBase = '/img/screenshots'
+const heroScreenshot = `${screenshotBase}/dashboard.png`
+
+const heroPoints = [
+  { icon: Armchair, label: 'Live seat map', stagger: 2 },
+  { icon: ReceiptText, label: 'Payment receipts', stagger: 3 },
+  { icon: MessageSquare, label: 'WhatsApp reminders', stagger: 4 },
+]
 
 const stats = [
-  { value: '100%', label: 'Platform Uptime', stagger: 1 },
-  { value: '9k+', label: 'Students Managed', stagger: 2 },
-  { value: '50+', label: 'Libraries Enabled', stagger: 3 },
-  { value: '35%', label: 'Faster Admin Ops', stagger: 4 },
+  { value: '50+', label: 'libraries operating digitally', stagger: 1 },
+  { value: '9k+', label: 'student records managed', stagger: 2 },
+  { value: '35%', label: 'faster daily follow-ups', stagger: 3 },
+  { value: '1', label: 'workspace for seats, fees, and reminders', stagger: 4 },
+]
+
+const testimonials = [
+  {
+    name: 'Lokesh Soni',
+    library: 'Soni Library',
+    quote: 'Manual follow-ups ka tension hi khatam ho gaya! Ab seats, collections aur reminders sab ek hi jagah mil jaate hain, toh kaafi time bachta hai.',
+    stagger: 1,
+  },
+  {
+    name: 'Neha Sharma',
+    library: 'Scholars Library',
+    quote: 'Har subah dashboard dekh kar sab clear ho jata hai. Ab koi guessing game nahi chalta ki kaunsi seat khali hai ya kiska payment baki hai.',
+    stagger: 2,
+  },
+  {
+    name: 'Rohit Gupta',
+    library: 'Focus Point Library',
+    quote: 'Receipts aur payment history sambhalna ab bahut simple hai. Students ko turant jawab mil jata hai aur staff ka kaam bhi kaafi asaan ho gaya hai.',
+    stagger: 3,
+  },
 ]
 
 const oldWayPoints = [
@@ -174,40 +340,172 @@ const smartWayPoints = [
 const features = [
   {
     icon: Armchair,
-    title: 'Live Seat Intelligence',
-    description: 'Track seat occupancy by shift in real-time with clear utilization visibility.',
-    span: 'span-2-rows',
+    title: 'Live seats',
+    description: 'See occupancy by shift before assigning a student.',
     stagger: 1,
   },
   {
-    icon: MessageSquare,
-    title: 'Automated Messaging',
-    description: 'Send reminders and important notices with template-driven WhatsApp workflows.',
-    span: 'span-2-cols',
+    icon: Users,
+    title: 'Student profiles',
+    description: 'Keep contact, seat, shift, and payment details connected.',
     stagger: 2,
   },
   {
     icon: CreditCard,
-    title: 'Fee Collection Control',
-    description: 'Centralize monthly payment tracking, due detection, and receipts.',
-    span: '',
+    title: 'Fee records',
+    description: 'Track monthly dues, paid status, and receipts in one view.',
     stagger: 3,
   },
   {
-    icon: BarChart3,
-    title: 'Operator Analytics',
-    description: 'Monitor trends, active students, and growth metrics at a glance.',
-    span: '',
+    icon: MessageSquare,
+    title: 'Reminders',
+    description: 'Send ready-to-use WhatsApp follow-ups for pending fees.',
     stagger: 4,
   },
   {
-    icon: ShieldCheck,
-    title: 'Role-Based Governance',
-    description: 'Separate superadmin and admin responsibilities with safer access boundaries.',
-    span: 'span-2-cols',
+    icon: BarChart3,
+    title: 'Dashboard',
+    description: 'Watch collections, occupancy, and movement trends quickly.',
     stagger: 5,
   },
+  {
+    icon: ShieldCheck,
+    title: 'Secure access',
+    description: 'Keep library operations behind authenticated admin access.',
+    stagger: 6,
+  },
 ]
+
+const showcaseTabs = [
+  {
+    key: 'dashboard',
+    label: 'Dashboard',
+    title: 'Collections and occupancy in one glance',
+    description: 'Daily revenue, full seats, pending fees, and trends stay visible.',
+    alt: 'Smart Library dashboard with occupancy, collection, and student movement metrics',
+    src: `${screenshotBase}/dashboard.png`,
+  },
+  {
+    key: 'students',
+    label: 'Students',
+    title: 'Searchable student records',
+    description: 'Admissions, contact details, seats, and payment history stay connected.',
+    alt: 'Smart Library student list with contact, seat, shift, and fee details',
+    src: `${screenshotBase}/students.png`,
+  },
+  {
+    key: 'seats',
+    label: 'Seats',
+    title: 'Live seat visibility by shift',
+    description: 'See occupied and available seats before assigning anyone.',
+    alt: 'Smart Library seat map showing seat availability by shift',
+    src: `${screenshotBase}/seats.png`,
+  },
+  {
+    key: 'payments',
+    label: 'Payments',
+    title: 'Monthly fees and receipts',
+    description: 'Track paid, pending, and receipt-ready records without scattered books.',
+    alt: 'Smart Library monthly payment list with paid and pending fee records',
+    src: `${screenshotBase}/payments.png`,
+  },
+  {
+    key: 'reminders',
+    label: 'Reminders',
+    title: 'Ready-to-send reminders',
+    description: 'Prepare fee follow-ups fast and keep collections moving.',
+    alt: 'Smart Library WhatsApp reminders workflow for pending fee follow-ups',
+    src: `${screenshotBase}/reminders.png`,
+  },
+]
+
+const activeShowcase = computed(() => showcaseTabs.find((tab) => tab.key === activeShowcaseKey.value) || showcaseTabs[0])
+
+const workflowSteps = [
+  {
+    step: '01',
+    icon: UserPlus,
+    title: 'Create your library account',
+    description: 'Sign up with your email and enter your library details in just 2 minutes.',
+    stagger: 1,
+  },
+  {
+    step: '02',
+    icon: Armchair,
+    title: 'Add students and assign seats',
+    description: 'Register students, map them to seats and shifts, and keep admissions structured from day one.',
+    stagger: 2,
+  },
+  {
+    step: '03',
+    icon: Bell,
+    title: 'Track fees and send reminders',
+    description: 'Keep billing, receipts, and WhatsApp follow-ups in one organized collection workflow.',
+    stagger: 3,
+  },
+  {
+    step: '04',
+    icon: LayoutDashboard,
+    title: 'Monitor operations from one dashboard',
+    description: 'See occupancy, payment health, and key activity signals without switching between tools.',
+    stagger: 4,
+  },
+]
+
+const pricingHighlights = [
+  {
+    icon: CircleDollarSign,
+    kicker: 'Monthly flexibility',
+    title: 'Start at ₹9 per seat per month',
+    description: 'A simple starting point for libraries that want full feature access without setup costs.',
+    stagger: 1,
+  },
+  {
+    icon: Sparkles,
+    kicker: 'Smarter scaling',
+    title: 'Lower your effective monthly cost on longer plans',
+    description: 'Annual and multi-month billing cycles reduce cost per seat as operations become more stable.',
+    stagger: 2,
+  },
+  {
+    icon: Gift,
+    kicker: 'First-purchase advantage',
+    title: 'Unlock bonus months on eligible plans',
+    description: 'Grow with predictable billing and extra value when you commit to longer operating cycles.',
+    stagger: 3,
+  },
+]
+
+const faqs = [
+  {
+    question: 'How is pricing calculated?',
+    answer: 'Pricing is seat-based, so your cost scales with the number of seats you manage. Longer billing cycles reduce the effective monthly cost per seat.',
+  },
+  {
+    question: 'Are there seat limits on the platform?',
+    answer: 'You can start with a small library and scale up. Plans are designed to grow with your seat capacity rather than force a one-size-fits-all limit.',
+  },
+  {
+    question: 'Does the app support WhatsApp reminders?',
+    answer: 'Yes. Smart Library App supports reminder workflows that help admins follow up on pending fees much faster than manual messaging.',
+  },
+  {
+    question: 'How is my library data kept secure?',
+    answer: 'Your data is backed up safely on the cloud. Only you can access your student and payment records.',
+  },
+  {
+    question: 'Is there a trial period before I commit?',
+    answer: 'Yes! You can create an account and try the app completely free to see how it works for your library before choosing a plan.',
+  },
+  // {
+  //   question: 'Can this support multi-branch or growing operations?',
+  //   answer: 'Absolutely. If you own multiple library branches, you can manage all of them from one single main account.',
+  // },
+]
+
+const toggleFaq = (index) => {
+  openFaqIndex.value = openFaqIndex.value === index ? -1 : index
+}
 
 const onMagneticMove = (event) => {
   const element = event.currentTarget
@@ -232,7 +530,7 @@ const onMagneticLeave = (event) => {
 onMounted(() => {
   const targets = pageRoot.value?.querySelectorAll('.reveal') || []
 
-  observer = new IntersectionObserver(
+  revealObserver = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
         if (!entry.isIntersecting) {
@@ -242,7 +540,7 @@ onMounted(() => {
         const stagger = Number(entry.target.dataset.stagger || 0)
         entry.target.style.transitionDelay = `${Math.min(stagger * 80, 420)}ms`
         entry.target.classList.add('is-visible')
-        observer?.unobserve(entry.target)
+        revealObserver?.unobserve(entry.target)
       })
     },
     {
@@ -251,12 +549,12 @@ onMounted(() => {
     }
   )
 
-  targets.forEach((target) => observer?.observe(target))
+  targets.forEach((target) => revealObserver?.observe(target))
 })
 
-onBeforeUnmount(() => {
-  observer?.disconnect()
-  observer = null
+onUnmounted(() => {
+  revealObserver?.disconnect()
+  revealObserver = null
 })
 </script>
 
@@ -277,7 +575,7 @@ onBeforeUnmount(() => {
   padding: 2rem 2rem 4rem;
   color: var(--text-primary);
   background: var(--bg);
-  font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   overflow: hidden;
   isolation: isolate;
 }
@@ -298,14 +596,23 @@ onBeforeUnmount(() => {
 
 .hero {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
-  gap: 2.5rem;
+  grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
+  gap: clamp(1.35rem, 3.5vw, 2.7rem);
   align-items: center;
-  padding-top: 2rem;
+  padding-top: 1.7rem;
+  text-wrap-style: balance;
+}
+
+.hero-copy {
+  max-width: 34rem;
+  text-align: left;
 }
 
 .kicker,
-.cta-kicker {
+.cta-kicker,
+.teaser-kicker,
+.pricing-teaser-eyebrow,
+.showcase-kicker {
   margin: 0;
   display: inline-flex;
   padding: 0.4rem 0.8rem;
@@ -320,30 +627,99 @@ onBeforeUnmount(() => {
 
 .hero h1 {
   margin: 0.9rem 0 0;
-  font-size: clamp(2.4rem, 6vw, 5.2rem);
-  line-height: 1.02;
+  font-size: clamp(2.35rem, 4.35vw, 4.15rem);
+  line-height: 1.04;
   letter-spacing: -0.03em;
   text-wrap: balance;
 }
 
-.gradient-text {
-  background: linear-gradient(90deg, var(--brand-a), var(--brand-b));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+.hero-visual {
+  position: relative;
+  min-width: 0;
+}
+
+.hero-device-stage {
+  position: relative;
+  /* overflow: hidden; */
+  min-height: clamp(18rem, 35vw, 29rem);
+  /* border: 1px solid var(--theme-border-soft); */
+  border-radius: 28px;
+  /* background:
+    radial-gradient(circle at 64% 42%, var(--theme-brand-soft-strong), transparent 38%),
+    radial-gradient(circle at 20% 78%, var(--theme-surface-soft-strong), transparent 36%),
+    linear-gradient(145deg, var(--theme-panel), var(--theme-surface-soft));
+  box-shadow: var(--theme-shadow-elevated); */
+}
+
+.hero-image {
+  position: absolute;
+  width: min(112%, 42rem);
+  max-width: none;
+  right: -12%;
+  top: 50%;
+  transform: translateY(-49%);
+  filter: drop-shadow(0 28px 34px rgba(15, 23, 42, 0.18));
+}
+
+.hero-float-card {
+  position: absolute;
+  display: none;
+  gap: 0.1rem;
+  min-width: 8.8rem;
+  padding: 0.78rem 0.9rem;
+  border: 1px solid var(--theme-border-soft);
+  border-radius: 16px;
+  background: var(--theme-nav-surface-strong);
+  box-shadow: var(--theme-shadow-soft);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.hero-float-card-top {
+  top: 14%;
+  right: -0.35rem;
+}
+
+.hero-float-card-bottom {
+  left: -0.25rem;
+  bottom: 13%;
+}
+
+.float-value {
+  color: var(--theme-text-strong);
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.float-label {
+  color: var(--theme-text-secondary);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .hero-subtitle,
 .section-header p,
-.cta-card p {
+.cta-card p,
+.teaser-card p,
+.workflow-card p,
+.showcase-copy p,
+.faq-answer p,
+.testimonial-quote {
   margin: 1.1rem 0 0;
-  /* max-width: 62ch; */
   color: var(--text-secondary);
   line-height: 1.6;
   text-wrap: balance;
 }
 
-.hero-actions,
+.hero-actions{
+  margin-top: 1.7rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  justify-content: flex-start;
+}
+
 .cta-actions {
   margin-top: 1.7rem;
   display: flex;
@@ -352,46 +728,45 @@ onBeforeUnmount(() => {
   justify-content: center;
 }
 
-.hero-visual {
+.hero-points {
+  margin-top: 1.15rem;
   display: flex;
-  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  justify-content: flex-start;
 }
 
-.hero-orb {
-  /* width: min(360px, 84vw); */
-  aspect-ratio: 1;
-  border-radius: 28px;
-  /* border: 1px solid var(--surface-border); */
-  /* background:
-    linear-gradient(145deg, rgba(148, 163, 184, 0.14), rgba(148, 163, 184, 0.02)),
-    rgba(148, 163, 184, 0.02); */
-  backdrop-filter: blur(12px);
-  display: grid;
-  place-items: center;
-  /* box-shadow: 0 26px 60px rgba(2, 6, 23, 0.45); */
-}
-
-.orb-core {
-  width: 12rem;
-  height: 12rem;
+.point-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem 0.9rem;
   border-radius: 999px;
-  display: grid;
-  place-items: center;
-  background: radial-gradient(circle at 28% 22%, rgba(34, 211, 238, 0.5), rgba(30, 41, 59, 0.08));
-  box-shadow:
-    inset 0 0 30px rgba(226, 232, 240, 0.16),
-    0 20px 40px rgba(34, 211, 238, 0.18);
+  border: 1px solid var(--theme-border-soft);
+  background: var(--theme-panel);
+  color: var(--theme-text-soft);
+  font-size: 0.88rem;
+  font-weight: 600;
 }
 
-.orb-icon {
-  width: 3.4rem;
-  height: 3.4rem;
-  color: var(--theme-text-strong);
-  stroke-width: 1.8;
+.point-icon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--theme-brand-pill-text);
+}
+
+.stats,
+.testimonials,
+.workflow,
+.pricing-teaser,
+.comparison,
+.showcase,
+.faq,
+.cta {
+  margin-top: 3rem;
 }
 
 .stats {
-  margin-top: 2rem;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.9rem;
@@ -399,8 +774,13 @@ onBeforeUnmount(() => {
 
 .glass-card,
 .stat-card,
-.bento-card,
-.cta-card {
+.feature-pill-card,
+.cta-card,
+.workflow-card,
+.teaser-card,
+.showcase-shell,
+.testimonial-card,
+.faq-card {
   border: 1px solid var(--surface-border);
   background: var(--surface);
   backdrop-filter: blur(12px);
@@ -425,8 +805,55 @@ onBeforeUnmount(() => {
   font-size: 0.9rem;
 }
 
-.comparison {
-  margin-top: 3rem;
+.section-header h2,
+.cta-card h2 {
+  margin: 0;
+  font-size: clamp(1.5rem, 3.3vw, 2.4rem);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.testimonial-grid {
+  margin-top: 1.3rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.testimonial-card {
+  border-radius: 18px;
+  padding: 1.2rem;
+}
+
+.testimonial-stars {
+  display: flex;
+  gap: 0.28rem;
+}
+
+.testimonial-star {
+  width: 1rem;
+  height: 1rem;
+  color: var(--theme-warning-text);
+  fill: currentColor;
+}
+
+.testimonial-quote {
+  margin-top: 0.95rem;
+}
+
+.testimonial-meta {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.testimonial-meta strong {
+  font-size: 0.95rem;
+}
+
+.testimonial-meta span {
+  color: var(--theme-text-secondary);
+  font-size: 0.86rem;
 }
 
 .comparison-grid {
@@ -543,97 +970,246 @@ onBeforeUnmount(() => {
   stroke-width: 2.1;
 }
 
-.features {
-  margin-top: 3rem;
-}
-
-.section-header h2,
-.cta-card h2 {
-  margin: 0;
-  font-size: clamp(1.5rem, 3.3vw, 2.4rem);
-  letter-spacing: -0.02em;
-  text-wrap: balance;
-}
-
-.bento-grid {
-  margin-top: 1.3rem;
+.feature-strip {
+  margin-top: 1rem;
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  grid-auto-rows: minmax(150px, auto);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.9rem;
 }
 
-.bento-card {
-  position: relative;
-  overflow: hidden;
+.feature-pill-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.78rem;
   border-radius: 18px;
-  padding: 1.15rem;
-  grid-column: span 4;
-  transition: transform 240ms ease, border-color 240ms ease, box-shadow 240ms ease;
+  padding: 1rem;
+  text-align: left;
 }
 
-.bento-card::before {
-  content: '';
-  position: absolute;
-  inset: -35% auto auto -15%;
-  width: 11rem;
-  height: 11rem;
-  background: radial-gradient(circle, rgba(34, 211, 238, 0.2), transparent 70%);
-  opacity: 0;
-  transition: opacity 260ms ease;
-  pointer-events: none;
+.feature-pill-icon {
+  width: 1.22rem;
+  height: 1.22rem;
+  margin-top: 0.2rem;
+  color: var(--theme-brand-pill-text);
+  flex: 0 0 auto;
 }
 
-.bento-card:hover {
-  transform: translateY(-4px);
-  border-color: var(--theme-brand-border);
-  box-shadow: var(--theme-shadow-soft);
-}
-
-.bento-card:hover::before {
-  opacity: 1;
-}
-
-.bento-card h3 {
+.feature-pill-card h3,
+.workflow-card h3,
+.teaser-card h3,
+.showcase-copy h3,
+.faq-trigger {
   margin: 0.65rem 0 0;
   font-size: 1.15rem;
 }
 
-.bento-card p {
+.feature-pill-card h3 {
+  margin-top: 0;
+}
+
+.feature-pill-card p {
   margin: 0.55rem 0 0;
   color: var(--text-secondary);
   line-height: 1.5;
 }
 
-.icon-wrap {
-  width: 2.7rem;
-  height: 2.7rem;
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
-  background: var(--theme-surface-soft-strong);
-  border: 1px solid var(--theme-border-soft);
-}
-
-.feature-icon {
+.workflow-icon,
+.teaser-icon {
   width: 1.3rem;
   height: 1.3rem;
   color: var(--theme-text-soft);
   stroke-width: 2.1;
 }
 
-.span-2-cols {
-  grid-column: span 8;
+.showcase-shell {
+  margin-top: 1.3rem;
+  border-radius: 22px;
+  padding: 1.1rem;
 }
 
-.span-2-rows {
-  grid-column: span 4;
-  grid-row: span 2;
+.showcase-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
 }
 
-.cta {
-  margin-top: 3rem;
-  margin-bottom: 0.5rem;
+.showcase-tab {
+  padding: 0.72rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--theme-border-soft);
+  background: var(--theme-surface-soft);
+  color: var(--theme-text-primary);
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 180ms ease, background 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.showcase-tab:hover {
+  transform: translateY(-1px);
+  border-color: var(--theme-brand-border);
+}
+
+.showcase-tab.is-active {
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
+  color: var(--theme-brand-on);
+  border-color: transparent;
+  box-shadow: var(--theme-shadow-soft);
+}
+
+.showcase-stage {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1.34fr) minmax(260px, 0.66fr);
+  gap: 1.15rem;
+  align-items: center;
+}
+
+.showcase-copy {
+  /* text-align: left; */
+  align-self: start;
+}
+
+.showcase-copy h3 {
+  margin-top: 0.7rem;
+  font-size: clamp(1.25rem, 2.7vw, 1.8rem);
+  letter-spacing: -0.02em;
+}
+
+.showcase-copy p {
+  margin-top: 0.8rem;
+}
+
+.showcase-frame {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  /* border: 1px solid var(--theme-border-soft);
+  background:
+    radial-gradient(circle at 55% 42%, var(--theme-brand-soft-strong), transparent 40%),
+    linear-gradient(145deg, var(--theme-panel), var(--theme-surface-soft));
+  box-shadow: var(--theme-shadow-soft); */
+  aspect-ratio: 16 / 16;
+}
+
+.showcase-image {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* object-fit: cover; */
+  object-position: center;
+}
+
+.workflow-grid,
+.pricing-teaser-grid {
+  margin-top: 1.3rem;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.workflow-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.pricing-teaser-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.workflow-card,
+.teaser-card {
+  border-radius: 18px;
+  padding: 1.2rem;
+}
+
+.workflow-step {
+  width: fit-content;
+  min-width: 2.55rem;
+  height: 2.55rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--theme-brand-soft);
+  border: 1px solid var(--theme-brand-border);
+  color: var(--theme-brand-pill-text);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.workflow-icon,
+.teaser-icon {
+  margin-top: 1rem;
+}
+
+.workflow-card p,
+.teaser-card p {
+  margin-top: 0.55rem;
+}
+
+.pricing-teaser-bar {
+  margin-top: 1rem;
+  border-radius: 20px;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  box-shadow: var(--theme-shadow-soft);
+}
+
+.pricing-teaser-eyebrow {
+  margin-bottom: 0.65rem;
+}
+
+.pricing-teaser-bar h3 {
+  margin: 0;
+  font-size: clamp(1.15rem, 2.4vw, 1.5rem);
+  letter-spacing: -0.02em;
+}
+
+.faq-list {
+  margin-top: 1.3rem;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.faq-card {
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.faq-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border: 0;
+  background: transparent;
+  color: var(--theme-text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.faq-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--theme-text-secondary);
+  transition: transform 180ms ease;
+}
+
+.faq-icon.is-open {
+  transform: rotate(180deg);
+}
+
+.faq-answer {
+  padding: 0 1.1rem 1rem;
+}
+
+.faq-answer p {
+  margin: 0;
+  text-align: left;
 }
 
 .cta-card {
@@ -688,8 +1264,16 @@ onBeforeUnmount(() => {
   background: var(--theme-surface-soft);
 }
 
-.btn-ghost:hover {
+.btn-subtle {
+  color: var(--theme-text-soft);
+  border-color: transparent;
+  background: transparent;
+}
+
+.btn-ghost:hover,
+.btn-subtle:hover {
   border-color: var(--theme-brand-border);
+  background: var(--theme-surface-soft-strong);
 }
 
 .reveal {
@@ -703,8 +1287,35 @@ onBeforeUnmount(() => {
   transform: translateY(0);
 }
 
-.floaty {
-  animation: float 6s ease-in-out infinite;
+.showcase-fade-enter-active,
+.showcase-fade-leave-active {
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.showcase-fade-enter-from,
+.showcase-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.faq-collapse-enter-active,
+.faq-collapse-leave-active {
+  overflow: hidden;
+  transition: max-height 240ms ease, opacity 220ms ease, transform 220ms ease;
+}
+
+.faq-collapse-enter-from,
+.faq-collapse-leave-to {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.faq-collapse-enter-to,
+.faq-collapse-leave-from {
+  max-height: 220px;
+  opacity: 1;
+  transform: translateY(0);
 }
 
 @keyframes mesh-drift {
@@ -716,26 +1327,38 @@ onBeforeUnmount(() => {
   }
 }
 
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-14px);
-  }
-}
-
-@media (max-width: 1024px) {
+@media (max-width: 1100px) {
   .hero {
     grid-template-columns: 1fr;
   }
 
-  .hero-visual {
-    order: -1;
+  .hero-copy {
+    max-width: 44rem;
+    margin: 0 auto;
+    text-align: center;
   }
 
-  .stats {
+  .hero-actions,
+  .hero-points {
+    justify-content: center;
+  }
+
+  .workflow-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .showcase-stage {
+    grid-template-columns: 1fr;
+  }
+
+  .showcase-copy {
+    max-width: 44rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .stats,
+  .testimonial-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -759,6 +1382,19 @@ onBeforeUnmount(() => {
   .comparison-divider-icon {
     transform: rotate(90deg);
   }
+
+  .pricing-teaser-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .feature-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pricing-teaser-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 @media (max-width: 767px) {
@@ -766,29 +1402,90 @@ onBeforeUnmount(() => {
     padding: 2rem 1rem 5rem;
   }
 
-  .orb-core {
-    width: 9rem;
-    height: 9rem;
+  .section-shell {
+    width: min(100%, calc(100% - 0.5rem));
   }
 
-  .bento-grid {
+  .showcase-shell {
+    padding: 1rem;
+  }
+
+  .hero {
+    max-width: 100%;
+    padding-top: 1rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(2rem, 9vw, 2.75rem);
+    line-height: 1.06;
+  }
+
+  .kicker {
+    max-width: 100%;
+    justify-content: center;
+    text-align: center;
+    white-space: normal;
+  }
+
+  .hero-subtitle {
+    max-width: 32rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hero-float-card {
+    display: none;
+  }
+
+  .hero-device-stage {
+    min-height: 18rem;
+  }
+
+  .hero-image {
+    width: min(100%, 31rem);
+    right: -0%;
+  }
+
+  .workflow-grid,
+  .testimonial-grid,
+  .feature-strip {
     grid-template-columns: 1fr;
-    grid-auto-rows: auto;
+  }
+  
+  .stats{
+    grid-template-columns: 1fr 1fr;
   }
 
-  .bento-card,
-  .span-2-cols,
-  .span-2-rows {
-    grid-column: span 1;
-    grid-row: span 1;
+  .showcase-frame {
+    aspect-ratio: 4 / 4;
   }
 
-  .stats {
-    grid-template-columns: 1fr;
+  .showcase-tabs {
+    flex-direction: column;
+  }
+
+  .showcase-tab {
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .cta-card {
     padding: 1.3rem;
   }
+
+  /* .hero-actions,
+  .cta-actions {
+    align-items: stretch;
+  } */
+
+  .btn {
+    width: min(100%, 18rem);
+  }
 }
+
 </style>

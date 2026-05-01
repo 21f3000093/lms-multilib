@@ -133,6 +133,10 @@
 
               <td>
                 <div class="actions">
+                  <router-link :to="`/students/${student.id}`" class="action-btn profile-btn">
+                    <Eye class="action-icon" aria-hidden="true" />
+                    <span>Profile</span>
+                  </router-link>
                   <button class="action-btn edit-btn" @click="editStudent(student)" type="button">
                     <PenLine class="action-icon" aria-hidden="true" />
                     <span>Edit</span>
@@ -188,6 +192,10 @@
           </span>
 
           <div class="actions">
+            <router-link :to="`/students/${student.id}`" class="action-btn profile-btn">
+              <Eye class="action-icon" aria-hidden="true" />
+              <span>Profile</span>
+            </router-link>
             <button class="action-btn edit-btn" @click="editStudent(student)" type="button">
               <PenLine class="action-icon" aria-hidden="true" />
               <span>Edit</span>
@@ -236,6 +244,7 @@
 
 <script>
 import {
+  Eye,
   Filter,
   MoonStar,
   PenLine,
@@ -254,6 +263,7 @@ import 'vue-toast-notification/dist/theme-sugar.css'
 
 export default {
   components: {
+    Eye,
     Filter,
     MoonStar,
     PenLine,
@@ -782,11 +792,18 @@ export default {
   font-size: 0.76rem;
   font-weight: 700;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .action-icon {
   width: 0.84rem;
   height: 0.84rem;
+}
+
+.profile-btn {
+  background: var(--theme-brand-soft);
+  border-color: var(--theme-brand-border);
+  color: var(--theme-brand-pill-text);
 }
 
 .edit-btn {
@@ -937,9 +954,9 @@ export default {
     width: 100%;
   }
 
-  .filters-row {
+  /* .filters-row {
     grid-template-columns: 1fr;
-  }
+  } */
 
   .modal-overlay {
     padding: 5rem 1rem 0rem 1rem;

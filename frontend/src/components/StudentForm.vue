@@ -805,13 +805,13 @@ export default {
     width: 90%;
   }
 
-  .shift-grid {
+  /* .shift-grid {
     grid-template-columns: 1fr;
-  }
+  } */
 
-  .button-row {
+  /* .button-row {
     grid-template-columns: 1fr;
-  }
+  } */
 
   .input-wrap input,
   .input-wrap select {

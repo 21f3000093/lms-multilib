@@ -34,12 +34,12 @@ import SuperadminSignupQueue from '@/components/SuperadminSignupQueue.vue'
 
 
 const routes = [
+  { path: '/', name: 'HomeLanding', component: AboutView },
   { path: '/login', name: 'AdminLogin', component: AdminLogin, meta: { guestOnly: true } },
   { path: '/signup', name: 'SignupView', component: SignupView, meta: { guestOnly: true } },
   { path: '/signup/status/:publicId', name: 'SignupStatusView', component: SignupStatusView },
   { path: '/forgot-password', name: 'ForgotPasswordView', component: ForgotPasswordView },
   { path: '/reset-password', name: 'ResetPasswordView', component: ResetPasswordView },
-  { path: '/', redirect: '/dashboard',meta: { requiresAuth: true } },
 
   { path: '/about', name: 'AboutView', component: AboutView },
   
@@ -146,6 +146,10 @@ const getHomeRouteByRole = (role) => (role === 'superadmin' ? '/superadmin' : '/
 
 router.beforeEach((to, from, next) => {
   const role = localStorage.getItem('role'); // set this after login (e.g. 'admin' or 'superadmin')
+
+  if (to.path === '/' && role) {
+    return next(getHomeRouteByRole(role));
+  }
 
   if (to.meta.guestOnly && role) {
     return next(getHomeRouteByRole(role));

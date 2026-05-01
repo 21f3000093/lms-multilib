@@ -909,6 +909,7 @@ export default {
 .stat-card {
   border-radius: 14px;
   padding: 0.85rem;
+  /* text-align: left; */
 }
 
 .stat-label {
@@ -933,6 +934,7 @@ export default {
 .dashboard-card {
   border-radius: 16px;
   padding: 1rem;
+  text-align: left;
 }
 
 .card-header {
@@ -940,6 +942,11 @@ export default {
   align-items: center;
   gap: 0.62rem;
   margin-bottom: 0.7rem;
+  text-align: left;
+}
+
+.card-header > div {
+  text-align: left;
 }
 
 .card-header h3 {
@@ -1364,6 +1371,8 @@ export default {
 
 .trend-card {
   grid-column: span 2;
+  display: flex;
+  flex-direction: column;
 }
 
 .trend-header {
@@ -1413,6 +1422,9 @@ export default {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.55rem;
+  align-items: stretch;
+  flex: 1;
+  min-height: 150px;
 }
 
 .trend-column {
@@ -1421,10 +1433,13 @@ export default {
   background: var(--theme-surface-soft);
   padding: 0.45rem 0.45rem 0.5rem;
   text-align: center;
+  display: flex;
+  flex-direction: column;
 }
 
 .trend-bar-track {
-  height: 92px;
+  flex: 1;
+  min-height: 112px;
   border-radius: 8px;
   background: var(--theme-panel-strong);
   border: 1px solid var(--theme-border);

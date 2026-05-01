@@ -807,7 +807,7 @@ export default {
   font-weight: 700;
   cursor: pointer;
   width: auto;
-  min-width: 110px;
+  /* min-width: 110px; */
 }
 
 .action-btn:disabled {
@@ -1058,9 +1058,9 @@ export default {
     padding: 2rem 1rem 5rem 1rem;
   }
 
-  .section-shell {
+  /* .section-shell {
     width: min(1240px, calc(100% - 1rem));
-  }
+  }  */
 
   
   .summary-grid {
