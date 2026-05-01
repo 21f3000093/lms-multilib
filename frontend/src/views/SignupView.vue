@@ -708,8 +708,7 @@ onMounted(async () => {
   flex-wrap: wrap;
 }
 
-.point-chip,
-.section-label {
+.point-chip{
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -719,6 +718,19 @@ onMounted(async () => {
   padding: 0.55rem 0.85rem;
   font-size: 0.9rem;
   color: var(--theme-text-info);
+}
+
+.section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--theme-border-soft);
+  background: var(--theme-panel);
+  padding: 0.55rem 0.85rem;
+  font-size: 1.1rem;
+  color: var(--theme-text-info);
+  justify-self: center;
 }
 
 .point-icon,

@@ -32,7 +32,7 @@ module.exports = defineConfig({
       background_color: '#0b1222',
       display: 'standalone',
       scope: './',
-      start_url: './',
+      start_url: './login',
       icons: [
         {
           purpose: 'maskable',

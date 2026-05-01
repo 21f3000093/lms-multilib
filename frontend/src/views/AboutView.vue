@@ -306,19 +306,19 @@ const testimonials = [
   {
     name: 'Lokesh Soni',
     library: 'Soni Library',
-    quote: 'We cut manual follow-up time dramatically because seats, collections, and reminders now live in one place.',
+    quote: 'Manual follow-ups ka tension hi khatam ho gaya! Ab seats, collections aur reminders sab ek hi jagah mil jaate hain, toh kaafi time bachta hai.',
     stagger: 1,
   },
   {
     name: 'Neha Sharma',
     library: 'Scholars Library',
-    quote: 'The dashboard gives our team clarity every morning. We no longer guess which seats are free or which fees are pending.',
+    quote: 'Har subah dashboard dekh kar sab clear ho jata hai. Ab koi guessing game nahi chalta ki kaunsi seat khali hai ya kiska payment baki hai.',
     stagger: 2,
   },
   {
     name: 'Rohit Gupta',
     library: 'Focus Point Library',
-    quote: 'Receipts and payment history are much easier to manage now. Parents and students get answers faster, and our staff does too.',
+    quote: 'Receipts aur payment history sambhalna ab bahut simple hai. Students ko turant jawab mil jata hai aur staff ka kaam bhi kaafi asaan ho gaya hai.',
     stagger: 3,
   },
 ]
@@ -1452,9 +1452,12 @@ onUnmounted(() => {
   }
 
   .workflow-grid,
-  .stats,
   .testimonial-grid,
   .feature-strip {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats{
     grid-template-columns: 1fr 1fr;
   }
 
