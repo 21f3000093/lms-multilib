@@ -109,64 +109,84 @@
             >
               <div class="card-glow"></div>
 
-              <div class="plan-head">
-                <div>
-                  <h3>{{ plan.name }}</h3>
-                  <p>{{ plan.description || 'Subscription plan' }}</p>
+              <!-- Top bar: icon + badge -->
+              <div class="card-topbar">
+                <div class="card-icon-box">
+                  <component :is="planIcon(plan)" class="card-plan-icon" aria-hidden="true" />
                 </div>
-                <div class="head-tags">
-                  <span v-if="discountPercent(plan) > 0" class="discount-pill">
-                    {{ discountPercent(plan) }}% OFF
+                <div class="card-badges">
+                  <span v-if="discountPercent(plan) > 0" class="badge-popular">
+                    {{ plan.billing_months >= 6 ? 'Most Popular' : 'Good Value' }}
                   </span>
-                  <span v-if="isCurrentPlan(plan)" class="current-pill">Current</span>
+                  <span v-if="isCurrentPlan(plan)" class="badge-current">Current</span>
                 </div>
               </div>
 
-              <div class="plan-price">
-                <p class="price-value">₹{{ formatPaise(plan.price_per_seat_paise) }}</p>
-                <p class="price-note">per seat / month (base rate)</p>
-                <p class="pay-now">Pay now: ₹{{ formatPaise(payableNowPaise(plan)) }}</p>
-                <div v-if="discountPercent(plan) > 0" class="savings-badge">
-                  <span>{{ discountPercent(plan) }}% OFF</span>
-                  <span>Discount on monthly seat rate</span>
+              <!-- Plan identity -->
+              <div class="card-identity">
+                <h3>{{ plan.name }}</h3>
+                <p>{{ plan.description || 'Subscription plan' }}</p>
+              </div>
+
+              <div class="card-divider"></div>
+
+              <!-- Price hero -->
+              <div class="card-price-hero">
+                <div class="price-hero-main">
+                  <span class="price-currency">₹</span>
+                  <span class="price-big">{{ formatPaise(plan.price_per_seat_paise) }}</span>
+                  <span class="price-unit">/seat per month</span>
+                </div>
+                <p class="price-billing-note">
+                  Billed {{ billingCycleLabel(plan) }}
+                </p>
+              </div>
+
+              <!-- Savings banner (only when discount exists) -->
+              <div v-if="discountPercent(plan) > 0" class="savings-banner">
+                <span class="savings-pct">{{ discountPercent(plan) }}% OFF</span>
+                <span class="savings-amt">Save ₹{{ formatPaise(savingsAmountPaise(plan)) }}</span>
+              </div>
+
+              <!-- Feature checklist -->
+              <ul class="card-features">
+                <li>
+                  <CheckCircle2 class="feature-check" aria-hidden="true" />
+                  <span>{{ discountPercent(plan) > 0 ? `Save ${discountPercent(plan)}% vs monthly` : 'Flexible monthly billing' }}</span>
+                </li>
+                <li>
+                  <CheckCircle2 class="feature-check" aria-hidden="true" />
+                  <span>{{ coverageMonths(plan) }} month{{ coverageMonths(plan) > 1 ? 's' : '' }} coverage</span>
+                </li>
+                <li>
+                  <CheckCircle2 class="feature-check" aria-hidden="true" />
+                  <!-- <span>{{ seatsForPlan(plan) }} seats · receipt-ready records</span> -->
+                  <span>₹{{ formatPaise(effectiveMonthlyTotalPaise(plan)) }}/month across {{ coverageMonths(plan) }} months</span>
+                </li>
+              </ul>
+
+              <!-- Total billed row -->
+              <div class="card-total-row">
+                <span>Total billed</span>
+                <strong>₹{{ formatPaise(payableNowPaise(plan)) }}</strong>
+              </div>
+
+              <!-- Bonus box (only when bonus exists) -->
+              <div v-if="bonusMonthsApplied(plan) > 0" class="card-bonus-box">
+                <Gift class="bonus-icon" aria-hidden="true" />
+                <div>
+                  <strong>+{{ bonusMonthsApplied(plan) }} free month{{ bonusMonthsApplied(plan) > 1 ? 's' : '' }}</strong>
+                  <p>For first-time purchase</p>
                 </div>
               </div>
 
-              <div class="plan-metrics">
-                <p>
-                  <span>Billing cycle</span>
-                  <strong>{{ plan.billing_months }} month{{ plan.billing_months > 1 ? 's' : '' }}</strong>
-                </p>
-                <p>
-                  <span>Discount</span>
-                  <strong>{{ discountPercent(plan) }}%</strong>
-                </p>
-                <p>
-                  <span>Seats billed</span>
-                  <strong>{{ seatsForPlan(plan) }}</strong>
-                </p>
-                <p>
-                  <span>Bonus applied</span>
-                  <strong>{{ bonusMonthsApplied(plan) }}</strong>
-                </p>
-                <p>
-                  <span>Coverage</span>
-                  <strong>{{ coverageMonths(plan) }} months</strong>
-                </p>
-                <p>
-                  <span>Effective monthly</span>
-                  <strong>₹{{ formatPaise(effectiveMonthlyTotalPaise(plan)) }}</strong>
-                </p>
-                <p>
-                  <span>Effective per seat</span>
-                  <strong>₹{{ formatPaise(effectiveMonthlyPerSeatPaise(plan)) }}</strong>
-                </p>
-                <p>
-                  <span>Estimated period</span>
-                  <strong>{{ periodWindowText(plan) }}</strong>
-                </p>
-              </div>
+              <!-- Effective rate footer -->
+              <!-- <p class="card-effective-rate" :title="periodWindowText(plan)">
+                Effective: ₹{{ formatPaise(effectiveMonthlyTotalPaise(plan)) }}/mo
+                across {{ coverageMonths(plan) }} months
+              </p> -->
 
+              <!-- CTA button -->
               <button
                 type="button"
                 class="btn btn-solid full"
@@ -186,7 +206,7 @@
                         ? 'Verifying payment...'
                         : isPlanFocused(index)
                           ? checkoutLabel(plan)
-                          : 'Tap to focus'
+                          : 'Select Plan'
                   }}
                 </span>
               </button>
@@ -258,7 +278,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { AlertTriangle, CheckCircle2, LoaderCircle } from 'lucide-vue-next'
+import { AlertTriangle, BarChart3, Calendar, CheckCircle2, Gift, LoaderCircle, Sparkles, Zap } from 'lucide-vue-next'
 // --- SWIPER IMPORTS ---
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Pagination, Navigation } from 'swiper/modules'
@@ -725,20 +745,64 @@ function effectiveMonthlyTotalPaise(plan) {
   return payableNowPaise(plan) / coverage
 }
 
-function effectiveMonthlyPerSeatPaise(plan) {
-  const seats = Math.max(1, seatsForPlan(plan))
-  return effectiveMonthlyTotalPaise(plan) / seats
+
+
+// function periodWindowText(plan) {
+//   const quote = getPlanQuote(plan)
+//   const start = formatDate(quote?.expected_period_start || quoteContext.value?.expected_start_date)
+//   const end = formatDate(quote?.expected_period_end)
+
+//   if (start === '—' && end === '—') return '—'
+//   if (end === '—') return start
+//   if (start === '—') return `Ends ${end}`
+//   return `${start} to ${end}`
+// }
+
+const planIconComponents = {
+  BarChart3,
+  Sparkles,
+  Zap,
+  Calendar,
 }
 
-function periodWindowText(plan) {
-  const quote = getPlanQuote(plan)
-  const start = formatDate(quote?.expected_period_start || quoteContext.value?.expected_start_date)
-  const end = formatDate(quote?.expected_period_end)
+function planIcon(plan) {
+  const months = Number(plan?.billing_months || 1)
+  if (months >= 12) return planIconComponents.BarChart3
+  if (months >= 6) return planIconComponents.Sparkles
+  if (months >= 3) return planIconComponents.Zap
+  return planIconComponents.Calendar
+}
 
-  if (start === '—' && end === '—') return '—'
-  if (end === '—') return start
-  if (start === '—') return `Ends ${end}`
-  return `${start} to ${end}`
+function billingCycleLabel(plan) {
+  const months = Number(plan?.billing_months || 1)
+  if (months === 1) return 'monthly'
+  if (months === 3) return 'quarterly'
+  if (months === 6) return 'half-yearly'
+  if (months === 12) return 'annually'
+  return `every ${months} months`
+}
+
+function getBaseRatePerSeatPaise() {
+  // The 1-month, 0% discount plan is the true price baseline (₹9 = 900 paise)
+  const basePlan = plans.value.find(
+    (p) => Number(p.billing_months) === 1 && Number(p.discount_percent || 0) === 0
+  )
+  if (basePlan) return Number(basePlan.price_per_seat_paise || 0)
+
+  // Fallback: shortest billing cycle available
+  const sorted = [...plans.value].sort(
+    (a, b) => Number(a.billing_months) - Number(b.billing_months)
+  )
+  return sorted.length ? Number(sorted[0].price_per_seat_paise || 0) : 0
+}
+
+function savingsAmountPaise(plan) {
+  const seats = Math.max(1, seatsForPlan(plan))
+  const months = Number(plan?.billing_months || 1)
+  const baseRatePaise = getBaseRatePerSeatPaise()          // e.g. 900 (₹9)
+  const discountedRatePaise = Number(plan?.price_per_seat_paise || 0) // e.g. 855 (₹8.55)
+  // (900 - 855) × 100 seats × 3 months = ₹135 saved
+  return Math.max(0, (baseRatePaise - discountedRatePaise) * seats * months)
 }
 
 function ensureRazorpayScript() {
@@ -937,6 +1001,7 @@ onBeforeUnmount(() => {
   color: var(--text-secondary);
   line-height: 1.6;
   max-width: 60ch;
+  text-align: left;
 }
 
 .btn {
@@ -1108,6 +1173,12 @@ onBeforeUnmount(() => {
   /* padding: 1rem; */
 }
 
+.plans-header,
+.history-header {
+  text-align: left;
+  padding: 1rem 1rem 0;
+}
+
 .plans-header h2 {
   margin: 0;
   font-size: 1.2rem;
@@ -1176,6 +1247,14 @@ onBeforeUnmount(() => {
   font-size: 0.86rem;
 }
 
+.history-table tbody tr {
+  transition: background 160ms ease;
+}
+
+.history-table tbody tr:hover {
+  background: var(--theme-panel-soft);
+}
+
 .history-table tbody tr:last-child td {
   border-bottom: none;
 }
@@ -1228,28 +1307,6 @@ onBeforeUnmount(() => {
   justify-content: center;
 }
 
-/* 
-.plans-grid {
-  margin-top: 0.9rem;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
-} */
-
-/* .plan-card {
-  border-radius: 16px;
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  background: rgba(15, 23, 42, 0.45);
-  padding: 0.95rem;
-  display: grid;
-  gap: 0.8rem;
-}
-
-.plan-card.current {
-  border-color: rgba(14, 165, 233, 0.62);
-  box-shadow: 0 0 0 1px rgba(14, 165, 233, 0.2) inset;
-} */
-
 /* --- SWIPER CAROUSEL STYLES --- */
 .pricing-carousel-wrapper {
   width: 100vw;
@@ -1287,23 +1344,238 @@ onBeforeUnmount(() => {
 }
 
 /* --- UPGRADED PLAN CARD STYLES --- */
+.card-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.card-icon-box {
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 12px;
+  background: var(--theme-surface-soft-strong);
+  border: 1px solid var(--theme-border-soft);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.card-plan-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+  color: var(--theme-brand-pill-text);
+}
+
+.card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
+.badge-popular {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
+  color: var(--theme-brand-on);
+}
+
+.badge-current {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--theme-brand-pill-text);
+  background: var(--theme-brand-soft-strong);
+  border: 1px solid var(--theme-brand-border);
+}
+
+.card-identity h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.card-identity p {
+  margin: 0.35rem 0 0;
+  color: var(--theme-text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.card-divider {
+  height: 1px;
+  background: var(--theme-border-soft);
+  margin: 0.1rem 0;
+}
+
+.card-price-hero {
+  text-align: center;
+}
+
+.price-hero-main {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.15rem;
+}
+
+.price-currency {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--theme-text-secondary);
+  align-self: flex-start;
+  margin-top: 0.35rem;
+}
+
+.price-big {
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--theme-text-primary);
+}
+
+.price-unit {
+  font-size: 0.88rem;
+  color: var(--theme-text-secondary);
+  align-self: flex-end;
+  margin-bottom: 0.3rem;
+}
+
+.price-billing-note {
+  margin: 0.4rem 0 0;
+  color: var(--theme-text-secondary);
+  font-size: 0.84rem;
+}
+
+.savings-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0.85rem;
+  border-radius: 12px;
+  background: var(--theme-success-soft);
+  border: 1px solid var(--theme-success-border);
+}
+
+.savings-pct {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--theme-success-text);
+  letter-spacing: 0.04em;
+}
+
+.savings-amt {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--theme-success-text);
+}
+
+.card-features {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.card-features li {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.9rem;
+  color: var(--theme-text-soft);
+}
+
+.feature-check {
+  width: 1rem;
+  height: 1rem;
+  color: var(--theme-success-text);
+  flex-shrink: 0;
+}
+
+.card-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7rem 0.85rem;
+  border-radius: 12px;
+  background: var(--theme-panel-soft);
+  border: 1px solid var(--theme-border-soft);
+  font-size: 0.95rem;
+  color: var(--theme-text-soft);
+}
+
+.card-total-row strong {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--theme-text-primary);
+  letter-spacing: -0.02em;
+}
+
+.card-bonus-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
+  background: var(--theme-brand-soft);
+  border: 1px solid var(--theme-brand-border);
+}
+
+.bonus-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  color: var(--theme-brand-pill-text);
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.card-bonus-box strong {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--theme-brand-pill-text);
+}
+
+.card-bonus-box p {
+  margin: 0.2rem 0 0;
+  font-size: 0.82rem;
+  color: var(--theme-text-secondary);
+}
+
+.card-effective-rate {
+  margin: 0;
+  text-align: center;
+  font-size: 0.84rem;
+  color: var(--theme-text-secondary);
+}
+
 .plan-card {
   position: relative;
   overflow: hidden;
-  border-radius: 18px;
+  border-radius: 20px;
   border: 1px solid var(--theme-border);
   background: var(--theme-panel-strong);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   padding: 1.25rem;
   display: grid;
-  gap: 1rem;
+  gap: 0.9rem;
   cursor: pointer;
   transition: transform 240ms ease, box-shadow 240ms ease, border-color 240ms ease;
-}
-
-.plan-card.is-focused {
-  cursor: default;
 }
 
 .plan-card .card-glow {
@@ -1311,7 +1583,7 @@ onBeforeUnmount(() => {
   inset: -40% auto auto -20%;
   width: 13rem;
   height: 13rem;
-  background: radial-gradient(circle, rgba(34, 211, 238, 0.2), transparent 70%);
+  background: radial-gradient(circle, var(--theme-brand-soft-strong), transparent 70%);
   opacity: 0;
   transition: opacity 260ms ease;
   pointer-events: none;
@@ -1333,9 +1605,35 @@ onBeforeUnmount(() => {
   z-index: 1;
 }
 
+.plan-card.is-focused {
+  cursor: default;
+  border-color: var(--theme-brand-a);
+  box-shadow: 0 0 0 2px var(--theme-brand-ring), var(--theme-shadow-soft);
+  background: radial-gradient(circle at 20% 0%, var(--theme-brand-soft-strong), transparent 55%), var(--theme-panel-strong);
+}
+
+.plan-card.is-focused::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
+  border-radius: 20px 20px 0 0;
+  z-index: 2;
+}
+
+.plan-card.is-focused .card-glow {
+  opacity: 0.85;
+}
+
+.plan-card:not(.is-focused) .btn-solid {
+  opacity: 0.72;
+}
+
 .plan-card.current {
   border-color: var(--theme-brand-border);
-  box-shadow: 0 0 0 1px var(--theme-brand-ring) inset;
 }
 
 /* --- SWIPER PAGINATION & NAVIGATION --- */
@@ -1378,128 +1676,6 @@ onBeforeUnmount(() => {
 :deep(.swiper-button-prev svg) {
   width: 20%;
   stroke-width: 2.5;
-}
-
-.plan-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.6rem;
-}
-
-.plan-head h3 {
-  margin: 0;
-  font-size: 1.02rem;
-}
-
-.plan-head p {
-  margin: 0.34rem 0 0;
-  color: var(--theme-text-secondary);
-  font-size: 0.9rem;
-  line-height: 1.45;
-}
-
-.head-tags {
-  display: inline-flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 0.4rem;
-}
-
-.discount-pill {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  padding: 0.22rem 0.55rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--theme-warning-text);
-  background: var(--theme-warning-soft);
-  border: 1px solid var(--theme-warning-border);
-}
-
-.current-pill {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  padding: 0.22rem 0.55rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--theme-brand-pill-text);
-  background: var(--theme-brand-soft-strong);
-}
-
-.plan-price {
-  display: grid;
-  gap: 0.15rem;
-}
-
-.price-value {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.price-note {
-  margin: 0;
-  color: var(--theme-text-secondary);
-  font-size: 0.85rem;
-}
-
-.pay-now {
-  margin: 0.2rem 0 0;
-  color: var(--theme-text-info);
-  font-size: 0.88rem;
-  font-weight: 600;
-}
-
-.savings-badge {
-  margin-top: 0.5rem;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.14rem;
-  border-radius: 12px;
-  padding: 0.4rem 0.55rem;
-  border: 1px solid var(--theme-warning-border);
-  background: var(--theme-warning-soft);
-}
-
-.savings-badge span:first-child {
-  font-size: 0.76rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--theme-warning-text);
-}
-
-.savings-badge span:last-child {
-  font-size: 0.74rem;
-  color: var(--theme-warning-text);
-}
-
-.plan-metrics {
-  display: grid;
-  gap: 0.42rem;
-}
-
-.plan-metrics p {
-  margin: 0;
-  display: flex;
-  justify-content: space-between;
-  gap: 0.8rem;
-  color: var(--theme-text-soft);
-  font-size: 0.9rem;
-}
-
-.plan-metrics p span {
-  color: var(--theme-text-secondary);
-  text-align: left;
-}
-
-.plan-metrics p strong {
-  /* color: #67e8f9; */
-  text-align: end;
 }
 
 .btn-solid {
@@ -1572,5 +1748,13 @@ onBeforeUnmount(() => {
 
   :deep(.swiper-button-prev) { left: 1rem; }
   :deep(.swiper-button-next) { right: 1rem; }
+
+  :deep(.swiper-button-prev),
+  :deep(.swiper-button-next) {
+    top: auto;
+    bottom: 19.5rem;
+    width: 50px;
+    height: 50px;
+  }
 }
 </style>
