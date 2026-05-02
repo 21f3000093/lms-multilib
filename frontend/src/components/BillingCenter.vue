@@ -186,7 +186,7 @@
                         ? 'Verifying payment...'
                         : isPlanFocused(index)
                           ? checkoutLabel(plan)
-                          : 'Tap to focus'
+                          : 'Select Plan'
                   }}
                 </span>
               </button>
@@ -937,6 +937,7 @@ onBeforeUnmount(() => {
   color: var(--text-secondary);
   line-height: 1.6;
   max-width: 60ch;
+  text-align: left;
 }
 
 .btn {
@@ -1108,6 +1109,12 @@ onBeforeUnmount(() => {
   /* padding: 1rem; */
 }
 
+.plans-header,
+.history-header {
+  text-align: left;
+  padding: 1rem 1rem 0;
+}
+
 .plans-header h2 {
   margin: 0;
   font-size: 1.2rem;
@@ -1174,6 +1181,14 @@ onBeforeUnmount(() => {
 .history-table tbody td {
   color: var(--theme-text-info);
   font-size: 0.86rem;
+}
+
+.history-table tbody tr {
+  transition: background 160ms ease;
+}
+
+.history-table tbody tr:hover {
+  background: var(--theme-panel-soft);
 }
 
 .history-table tbody tr:last-child td {
@@ -1303,7 +1318,22 @@ onBeforeUnmount(() => {
 }
 
 .plan-card.is-focused {
+  border-color: var(--theme-brand-a);
+  box-shadow: 0 0 0 2px var(--theme-brand-ring), var(--theme-shadow-soft);
+  background: radial-gradient(circle at 20% 0%, var(--theme-brand-soft-strong), transparent 50%), var(--theme-panel-strong);
   cursor: default;
+}
+
+.plan-card.is-focused::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
+  border-radius: 18px 18px 0 0;
+  z-index: 2;
 }
 
 .plan-card .card-glow {
@@ -1328,6 +1358,10 @@ onBeforeUnmount(() => {
   opacity: 1;
 }
 
+.plan-card.is-focused .card-glow {
+  opacity: 0.85;
+}
+
 .plan-card > * {
   position: relative;
   z-index: 1;
@@ -1336,6 +1370,13 @@ onBeforeUnmount(() => {
 .plan-card.current {
   border-color: var(--theme-brand-border);
   box-shadow: 0 0 0 1px var(--theme-brand-ring) inset;
+}
+
+.plan-card.is-focused:hover,
+.plan-card.current.is-focused {
+  border-color: var(--theme-brand-a);
+  box-shadow: 0 0 0 2px var(--theme-brand-ring), var(--theme-shadow-soft);
+  background: radial-gradient(circle at 20% 0%, var(--theme-brand-soft-strong), transparent 50%), var(--theme-panel-strong);
 }
 
 /* --- SWIPER PAGINATION & NAVIGATION --- */
@@ -1385,6 +1426,9 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   align-items: flex-start;
   gap: 0.6rem;
+  border-bottom: 1px solid var(--theme-border-soft);
+  padding-bottom: 0.85rem;
+  margin-bottom: 0.85rem;
 }
 
 .plan-head h3 {
@@ -1432,6 +1476,9 @@ onBeforeUnmount(() => {
 .plan-price {
   display: grid;
   gap: 0.15rem;
+  border-bottom: 1px solid var(--theme-border-soft);
+  padding-bottom: 0.85rem;
+  margin-bottom: 0.85rem;
 }
 
 .price-value {
@@ -1457,24 +1504,26 @@ onBeforeUnmount(() => {
 .savings-badge {
   margin-top: 0.5rem;
   display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.14rem;
+  flex-direction: row;
+  align-items: center;
+  justify-self: start;
+  gap: 0.5rem;
   border-radius: 12px;
-  padding: 0.4rem 0.55rem;
+  padding: 0.28rem 0.6rem;
   border: 1px solid var(--theme-warning-border);
   background: var(--theme-warning-soft);
 }
 
 .savings-badge span:first-child {
-  font-size: 0.76rem;
-  font-weight: 700;
+  font-size: 0.74rem;
+  font-weight: 800;
   letter-spacing: 0.04em;
   color: var(--theme-warning-text);
 }
 
 .savings-badge span:last-child {
   font-size: 0.74rem;
+  opacity: 0.8;
   color: var(--theme-warning-text);
 }
 
@@ -1498,8 +1547,18 @@ onBeforeUnmount(() => {
 }
 
 .plan-metrics p strong {
-  /* color: #67e8f9; */
+  color: var(--theme-text-primary);
   text-align: end;
+}
+
+.plan-metrics p:nth-last-child(-n+3) {
+  border-top: 1px solid var(--theme-border-soft);
+  padding-top: 0.42rem;
+  margin-top: 0.2rem;
+}
+
+.plan-card:not(.is-focused) .btn-solid {
+  opacity: 0.72;
 }
 
 .btn-solid {
@@ -1572,5 +1631,13 @@ onBeforeUnmount(() => {
 
   :deep(.swiper-button-prev) { left: 1rem; }
   :deep(.swiper-button-next) { right: 1rem; }
+
+  :deep(.swiper-button-prev),
+  :deep(.swiper-button-next) {
+    top: auto;
+    bottom: 0.5rem;
+    width: 36px;
+    height: 36px;
+  }
 }
 </style>
