@@ -495,13 +495,13 @@ export default {
 }
 
 .shift-status.is-filled {
-  background: var(--theme-success-soft);
-  color: var(--theme-success-text);
+  background: var(--theme-success-soft-seat);
+  color: var(--theme-success-text-seat);
 }
 
 .shift-status.is-empty {
-  background: var(--theme-danger-soft);
-  color: var(--theme-danger-text);
+  background: var(--theme-danger-soft-seat);
+  color: var(--theme-danger-text-seat);
 }
 
 @keyframes mesh-drift {
