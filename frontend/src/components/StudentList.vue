@@ -670,6 +670,7 @@ export default {
   gap: 0.5rem;
   text-decoration: none;
   color: inherit;
+  text-align: left;
 }
 
 .avatar {
@@ -699,6 +700,7 @@ export default {
 
 .mono {
   font-family: Monaco, Menlo, monospace;
+  margin:auto;
 }
 
 .muted {
@@ -782,7 +784,7 @@ export default {
 }
 
 .action-btn {
-  min-height: 34px;
+  /* min-height: 34px;  */
   border-radius: 10px;
   border: 1px solid transparent;
   padding: 0.35rem 0.55rem;
