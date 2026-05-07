@@ -46,6 +46,12 @@ module.exports = defineConfig({
       
       start_url: '/',
 
+      categories: ['business', 'productivity', 'education'],
+
+      lang: 'en',
+
+      dir: 'ltr',
+
       screenshots: [
         {
           src: '/img/screenshots/dashboard.png',
