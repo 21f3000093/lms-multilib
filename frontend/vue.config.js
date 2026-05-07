@@ -18,21 +18,67 @@ module.exports = defineConfig({
   pwa: {
     name: 'Smart Library App',
     // Align browser/PWA chrome with the dark enterprise app theme.
-    themeColor: '#0f172a',
-    msTileColor: '#0f172a',
+    themeColor: '#ffffff',
+    msTileColor: '#ffffff',
 
     // optional: manifest path
     manifestPath: 'manifest.json',
 
     // manifest.json fields
     manifestOptions: {
+      id: '/',
+
       name: 'Smart Library App',
+      
       short_name: 'Smart Library',
-      theme_color: '#0f172a',
-      background_color: '#0b1222',
+
+      description: 'Smart Library is a multi-library management platform for seat management, fee tracking, reminders, attendance, and analytics.',
+      
+      theme_color: '#ffffff',
+
+      background_color: '#ffffff',
+
       display: 'standalone',
-      scope: './',
-      start_url: './login',
+
+      orientation: 'portrait',
+      
+      scope: '/',
+      
+      start_url: '/',
+
+      screenshots: [
+        {
+          src: '/img/screenshots/dashboard.png',
+          sizes: '1080x1920',
+          type: 'image/png',
+          form_factor: 'narrow'
+        },
+        {
+          src: '/img/screenshots/students.png',
+          sizes: '1080x1920',
+          type: 'image/png',
+          form_factor: 'narrow'
+        },
+        {
+          src: '/img/screenshots/seats.png',
+          sizes: '1080x1920',
+          type: 'image/png',
+          form_factor: 'narrow'
+        },
+        {
+          src: '/img/screenshots/payments.png',
+          sizes: '1080x1920',
+          type: 'image/png',
+          form_factor: 'narrow'
+        },
+        {
+          src: '/img/screenshots/reminders.png',
+          sizes: '1080x1920',
+          type: 'image/png',
+          form_factor: 'narrow'
+        }
+      ],
+      
       icons: [
         {
           purpose: 'maskable',
@@ -97,7 +143,7 @@ module.exports = defineConfig({
       runtimeCaching: [
         {
           // 🚫 Never cache API calls to Railway backend
-          urlPattern: /^https:\/\/lms-multilib-production\.up\.railway\.app\/.*/,
+          urlPattern: /^https:\/\/api\.smartlibraryapp\.in\/.*/,
           handler: 'NetworkOnly'
         },
         {
