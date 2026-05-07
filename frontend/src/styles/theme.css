@@ -39,7 +39,7 @@
   --theme-brand-on: #06111f;
   --theme-success-soft: rgba(16, 185, 129, 0.18);
   --theme-success-text: #a7f3d0;
-  --theme-success-soft-seat: rgb(16, 185, 129);
+  --theme-success-soft-seat: #2ba55b;
   --theme-success-text-seat: #ffffff;
   --theme-success-border: rgba(16, 185, 129, 0.35);
   --theme-success-solid: #10b981;
@@ -108,7 +108,7 @@
   --theme-brand-on: #f8fafc;
   --theme-success-soft: rgba(34, 197, 94, 0.12);
   --theme-success-text: #166534;
-  --theme-success-soft-seat: rgb(34, 197, 94);
+  --theme-success-soft-seat: #2ba55b;
   --theme-success-text-seat: #ffffff;
   --theme-success-border: rgba(21, 128, 61, 0.22);
   --theme-success-solid: #16a34a;

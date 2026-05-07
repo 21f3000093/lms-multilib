@@ -15,55 +15,68 @@
 
     <section class="section-shell glass-card filters-card">
       <div class="filter-head">
-        <h2>Filters</h2>
+        <h2>
+          <Filter class="head-icon" aria-hidden="true" />
+          <span>Filters</span>
+        </h2>
       </div>
 
       <div class="filter-grid">
         <div class="shift-group">
-          <p class="group-label">Select Shifts</p>
+          <p class="group-label">
+            <SlidersHorizontal class="group-icon" aria-hidden="true" />
+            <span>Select Shifts</span>
+          </p>
           <div class="shift-pills">
             <label class="shift-pill" :class="{ active: selectedShifts.includes('1') }">
               <input type="checkbox" value="1" v-model="selectedShifts" />
-              Shift 1
+              <Sunrise class="pill-icon" aria-hidden="true" />
+              <span>Shift 1</span>
             </label>
             <label class="shift-pill" :class="{ active: selectedShifts.includes('2') }">
               <input type="checkbox" value="2" v-model="selectedShifts" />
-              Shift 2
+              <Sun class="pill-icon" aria-hidden="true" />
+              <span>Shift 2</span>
             </label>
             <label class="shift-pill" :class="{ active: selectedShifts.includes('3') }">
               <input type="checkbox" value="3" v-model="selectedShifts" />
-              Shift 3
+              <MoonStar class="pill-icon" aria-hidden="true" />
+              <span>Shift 3</span>
             </label>
           </div>
         </div>
 
         <label class="empty-only" :class="{ active: onlyEmpty }">
           <input type="checkbox" v-model="onlyEmpty" />
-          Show only empty seats
+          <Armchair class="pill-icon" aria-hidden="true" />
+          <span>Show only empty seats</span>
         </label>
 
         <button @click="fetchSeats" :disabled="selectedShifts.length === 0" class="btn btn-solid" type="button">
-          {{ loading ? 'Loading...' : 'Apply Filters' }}
+          <LoaderCircle v-if="loading" class="btn-icon spin" aria-hidden="true" />
+          <SlidersHorizontal v-else class="btn-icon" aria-hidden="true" />
+          <span>{{ loading ? 'Loading...' : 'Apply Filters' }}</span>
         </button>
       </div>
     </section>
 
     <section class="section-shell legend-row">
       <span class="legend-pill">
-        <span class="dot dot-empty"></span>
+        <Circle class="legend-icon icon-empty" aria-hidden="true" />
         Available
       </span>
       <span class="legend-pill">
-        <span class="dot dot-filled"></span>
+        <CircleCheck class="legend-icon icon-filled" aria-hidden="true" />
         Occupied
       </span>
       <span class="legend-pill">
+        <LayoutGrid class="legend-icon" aria-hidden="true" />
         {{ filteredSeats.length }} seats
       </span>
     </section>
 
     <section v-if="loading" class="section-shell glass-card loading-card">
-      <div class="loader"></div>
+      <LoaderCircle class="loader-icon spin" aria-hidden="true" />
       <p>Loading seats...</p>
     </section>
 
@@ -72,11 +85,19 @@
         v-for="seat in filteredSeats"
         :key="seat.seat_number"
         class="glass-card seat-card"
+        role="button"
+        tabindex="0"
+        :aria-label="`Open details for seat ${seat.seat_number}`"
         @click="openSeatDetails(seat.seat_number)"
+        @keyup.enter.prevent="openSeatDetails(seat.seat_number)"
+        @keyup.space.prevent="openSeatDetails(seat.seat_number)"
       >
         <div class="seat-top">
-          <p class="seat-title">Seat {{ seat.seat_number }}</p>
-          <!-- <p class="seat-subtitle">Tap for details</p> -->
+          <div class="seat-title-wrap">
+            <Armchair class="seat-icon" aria-hidden="true" />
+            <p class="seat-title">Seat {{ seat.seat_number }}</p>
+          </div>
+          <ChevronRight class="seat-go-icon" aria-hidden="true" />
         </div>
 
         <div class="seat-shifts">
@@ -86,13 +107,16 @@
             class="shift-status"
             :class="status ? 'is-filled' : 'is-empty'"
           >
-            S{{ orderedSelectedShifts[index] || index + 1 }}
+            <CheckCircle2 v-if="status" class="status-icon" aria-hidden="true" />
+            <Circle v-else class="status-icon" aria-hidden="true" />
+            <span>S{{ orderedSelectedShifts[index] || index + 1 }}</span>
           </span>
         </div>
       </article>
     </section>
 
     <section v-else class="section-shell glass-card empty-state">
+      <SearchX class="empty-icon" aria-hidden="true" />
       <h3>No Seats Found</h3>
       <p v-if="selectedShifts.length === 0">Please select at least one shift.</p>
       <p v-else-if="onlyEmpty">No empty seats available for selected filters.</p>
@@ -111,12 +135,40 @@
 <script>
 import API from '../api'
 import SeatDetailsModal from './SeatDetailsModal.vue'
+import {
+  Armchair,
+  CheckCircle2,
+  ChevronRight,
+  Circle,
+  CircleCheck,
+  Filter,
+  LayoutGrid,
+  LoaderCircle,
+  MoonStar,
+  SearchX,
+  SlidersHorizontal,
+  Sun,
+  Sunrise,
+} from 'lucide-vue-next'
 import { useToast } from 'vue-toast-notification'
 import 'vue-toast-notification/dist/theme-sugar.css'
 
 export default {
   components: {
+    Armchair,
+    CheckCircle2,
+    ChevronRight,
+    Circle,
+    CircleCheck,
+    Filter,
+    LayoutGrid,
+    LoaderCircle,
+    MoonStar,
+    SearchX,
     SeatDetailsModal,
+    SlidersHorizontal,
+    Sun,
+    Sunrise,
   },
 
   setup() {
@@ -308,6 +360,15 @@ export default {
 .filter-head h2 {
   margin: 0;
   font-size: 1.05rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.head-icon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--theme-brand-pill-text);
 }
 
 .filter-grid {
@@ -321,16 +382,25 @@ export default {
   color: var(--theme-text-soft);
   font-size: 0.8rem;
   font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.group-icon {
+  width: 0.92rem;
+  height: 0.92rem;
+  color: var(--theme-text-soft);
 }
 
 .shift-pills {
   margin-top: 0.4rem;
-  display: flex;
-  /* flex-wrap: wrap; */
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.45rem;
 }
 
-.shift-pill{
+.shift-pill {
   border: 1px solid var(--theme-input-border);
   border-radius: 12px;
   background: var(--theme-input-bg);
@@ -343,7 +413,9 @@ export default {
   gap: 0.3rem;
   font-weight: 700;
   cursor: pointer;
-  width: 30%;
+  /* width: 100%; */
+  transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease, transform 180ms ease;
+  position: relative;
 }
 
 .empty-only {
@@ -359,6 +431,31 @@ export default {
   gap: 0.3rem;
   font-weight: 700;
   cursor: pointer;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease, transform 180ms ease;
+  position: relative;
+}
+
+.pill-icon {
+  width: 0.92rem;
+  height: 0.92rem;
+  color: var(--theme-brand-pill-text);
+  flex-shrink: 0;
+}
+
+.shift-pill:hover,
+.empty-only:hover {
+  border-color: var(--theme-brand-border);
+}
+
+.shift-pill:focus-within,
+.empty-only:focus-within {
+  border-color: var(--theme-brand-border);
+  box-shadow: 0 0 0 3px var(--theme-brand-ring);
+}
+
+.shift-pill:active,
+.empty-only:active {
+  transform: translateY(1px);
 }
 
 .shift-pill.active,
@@ -370,7 +467,11 @@ export default {
 
 .shift-pill input,
 .empty-only input {
-  display: none;
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
 }
 
 .btn {
@@ -383,11 +484,18 @@ export default {
   justify-content: center;
   font-weight: 700;
   cursor: pointer;
+  gap: 0.4rem;
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease, opacity 180ms ease;
 }
 
 .btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--theme-brand-ring), var(--theme-shadow-elevated);
 }
 
 .btn-solid {
@@ -396,12 +504,22 @@ export default {
   color: var(--theme-brand-on);
 }
 
+.btn-solid:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.btn-icon {
+  width: 0.98rem;
+  height: 0.98rem;
+  flex-shrink: 0;
+}
+
 .legend-row {
   margin-top: 0.75rem;
   display: flex;
   flex-wrap: wrap;
   gap: 0.45rem;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .legend-pill {
@@ -417,18 +535,18 @@ export default {
   gap: 0.35rem;
 }
 
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+.legend-icon {
+  width: 0.86rem;
+  height: 0.86rem;
+  color: var(--theme-text-soft);
 }
 
-.dot-empty {
-  background: var(--theme-danger-solid);
+.legend-icon.icon-empty {
+  color: var(--theme-danger-text-seat);
 }
 
-.dot-filled {
-  background: var(--theme-success-solid);
+.legend-icon.icon-filled {
+  color: var(--theme-success-text-seat);
 }
 
 .loading-card,
@@ -439,13 +557,10 @@ export default {
   gap: 0.35rem;
 }
 
-.loader {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 3px solid var(--theme-border-strong);
-  border-top-color: var(--theme-brand-a);
-  animation: spin 1s linear infinite;
+.loader-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--theme-brand-a);
 }
 
 .seat-grid {
@@ -459,12 +574,51 @@ export default {
   border-radius: 14px;
   padding: 0.72rem;
   cursor: pointer;
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.seat-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.seat-title-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.seat-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  color: var(--theme-brand-pill-text);
+  flex-shrink: 0;
+}
+
+.seat-go-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  color: var(--theme-text-secondary);
+  transition: transform 180ms ease, color 180ms ease;
 }
 
 .seat-card:hover {
   transform: translateY(-2px);
   border-color: var(--theme-brand-border);
+  box-shadow: var(--theme-shadow-soft);
+}
+
+.seat-card:hover .seat-go-icon {
+  transform: translateX(2px);
+  color: var(--theme-brand-pill-text);
+}
+
+.seat-card:focus-visible {
+  outline: none;
+  border-color: var(--theme-brand-border);
+  box-shadow: 0 0 0 3px var(--theme-brand-ring), var(--theme-shadow-soft);
 }
 
 .seat-title {
@@ -492,6 +646,15 @@ export default {
   padding: 0.2rem 0.45rem;
   font-size: 0.72rem;
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.status-icon {
+  width: 0.78rem;
+  height: 0.78rem;
+  flex-shrink: 0;
 }
 
 .shift-status.is-filled {
@@ -502,6 +665,24 @@ export default {
 .shift-status.is-empty {
   background: var(--theme-danger-soft-seat);
   color: var(--theme-danger-text-seat);
+}
+
+.shift-status.is-empty .status-icon {
+  color: var(--theme-danger-text-seat);
+}
+
+.shift-status.is-filled .status-icon {
+  color: var(--theme-success-text-seat);
+}
+
+.empty-icon {
+  width: 1.65rem;
+  height: 1.65rem;
+  color: var(--theme-text-secondary);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
 }
 
 @keyframes mesh-drift {
@@ -532,12 +713,24 @@ export default {
     grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   }
 
+  .legend-row {
+    justify-content: center;
+  }
+
   .shift-pill {
-    padding: 0rem;
+    padding: 0.35rem 0.4rem;
   }
 }
 
 @media (max-width: 500px) {
+  /* .shift-pills {
+    grid-template-columns: 1fr;
+  } */
+
+  .empty-only {
+    justify-content: center;
+  }
+
   .seat-grid {
     grid-template-columns: 1fr 1fr 1fr;
   }
@@ -552,6 +745,11 @@ export default {
 
    .seat-title {
     font-size: 0.8rem;
+   }
+
+   .seat-go-icon {
+    width: 0.82rem;
+    height: 0.82rem;
    }
 }
 </style>
