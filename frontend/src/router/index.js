@@ -21,6 +21,7 @@ import ChangePassword from '@/components/ChangePassword.vue'
 import MonthlyExpenses from '@/components/MonthlyExpenses.vue'
 import PricingPlans from '@/components/PricingPlans.vue'
 import AboutView from '@/views/AboutView.vue'
+import PrivacyPolicyView from '@/views/PrivacyPolicyView.vue'
 import ReceiptPage from '@/components/ReceiptPage.vue'
 import NotificationCenter from '@/components/NotificationCenter.vue'
 import SuperadminNotifications from '@/components/SuperadminNotifications.vue'
@@ -42,6 +43,7 @@ const routes = [
   { path: '/reset-password', name: 'ResetPasswordView', component: ResetPasswordView },
 
   { path: '/about', name: 'AboutView', component: AboutView },
+  { path: '/privacy-policy', name: 'PrivacyPolicyView', component: PrivacyPolicyView, meta: { requiresAuth: false } },
   
   { path: '/dashboard', name: 'AdminDashboard', component: AdminDashboard , meta: { requiresAuth: true } },
 

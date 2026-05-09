@@ -92,6 +92,8 @@
             <router-link to="/pricing-plans">Pricing</router-link>
             <span>•</span>
             <router-link to="/about">About</router-link>
+            <span>•</span>
+            <router-link to="/privacy-policy">Privacy Policy</router-link>
           </div>
         </div>
 

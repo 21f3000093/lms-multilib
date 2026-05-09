@@ -255,6 +255,16 @@
         </div>
       </div>
     </section>
+
+    <footer class="about-footer section-shell reveal" data-stagger="2">
+      <p class="about-footer-copy">© {{ currentYear }} Smart Library App</p>
+      <nav class="about-footer-links" aria-label="About page footer links">
+        <router-link to="/about">About</router-link>
+        <router-link to="/pricing-plans">Pricing</router-link>
+        <router-link to="/privacy-policy">Privacy Policy</router-link>
+        <router-link to="/login">Login</router-link>
+      </nav>
+    </footer>
   </main>
 </template>
 
@@ -284,6 +294,7 @@ import {
 const pageRoot = ref(null)
 const activeShowcaseKey = ref('students')
 const openFaqIndex = ref(0)
+const currentYear = computed(() => new Date().getFullYear())
 
 let revealObserver = null
 const screenshotBase = '/img/screenshots'
@@ -764,6 +775,40 @@ onUnmounted(() => {
 .faq,
 .cta {
   margin-top: 3rem;
+}
+
+.about-footer {
+  margin-top: 1.2rem;
+  padding: 0.4rem 0 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.about-footer-copy {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.86rem;
+}
+
+.about-footer-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.78rem;
+  flex-wrap: wrap;
+}
+
+.about-footer-links a {
+  color: var(--theme-text-soft);
+  text-decoration: none;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.about-footer-links a:hover {
+  color: var(--theme-brand-pill-text);
 }
 
 .stats {
@@ -1485,6 +1530,15 @@ onUnmounted(() => {
 
   .btn {
     width: min(100%, 18rem);
+  }
+
+  .about-footer {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .about-footer-links {
+    justify-content: center;
   }
 }
 
