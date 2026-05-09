@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "in.smartlibraryapp.www.twa",
+        "sha256_cert_fingerprints": ["45:3A:28:24:C8:B3:D8:13:C1:04:18:A1:6E:ED:27:A7:7F:B6:00:B9:B9:55:E7:C8:65:2E:8F:FF:AA:93:9A:32"]
+      }
+    }]
