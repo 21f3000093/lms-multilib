@@ -2,21 +2,6 @@
   <main class="privacy-page">
     <div class="mesh-layer" aria-hidden="true"></div>
 
-    <!-- Top nav bar -->
-    <nav class="top-nav" aria-label="Site navigation">
-      <div class="top-nav-inner">
-        <div class="top-nav-brand">
-          <BookOpen class="brand-icon" aria-hidden="true" />
-          <span>Smart Library App</span>
-        </div>
-        <div class="top-nav-links">
-          <router-link class="nav-link" to="/">Home</router-link>
-          <router-link class="nav-link" to="/pricing-plans">Pricing</router-link>
-          <router-link class="btn btn-solid" to="/login">Go to App</router-link>
-        </div>
-      </div>
-    </nav>
-
     <!-- Hero -->
     <section class="section-shell hero">
       <div class="hero-meta">
@@ -29,12 +14,16 @@
         This Privacy Policy explains how Smart Library App collects, uses, secures, and processes
         information when you use our multi-library management platform.
       </p>
+      <div class="hero-nav">
+        <router-link class="btn btn-ghost" to="/">← Back to Home</router-link>
+        <router-link class="btn btn-ghost" to="/login">Go to Login</router-link>
+      </div>
     </section>
 
-    <!-- Two-column layout: sidebar ToC + content -->
+    <!-- Two-column layout -->
     <div class="section-shell content-layout">
 
-      <!-- Sticky sidebar table of contents -->
+      <!-- Sticky sidebar ToC -->
       <aside class="toc-sidebar" aria-label="Table of contents">
         <p class="toc-heading">On this page</p>
         <nav>
@@ -50,12 +39,23 @@
                 <span>{{ section.title }}</span>
               </a>
             </li>
+            <li>
+              <a
+                href="#contact"
+                class="toc-link"
+                :class="{ 'is-active': activeSection === 'contact' }"
+                @click.prevent="scrollToSection('contact')"
+              >
+                <span class="toc-num">{{ sections.length + 1 }}</span>
+                <span>Contact Information</span>
+              </a>
+            </li>
           </ol>
         </nav>
 
         <div class="toc-contact-box">
           <ShieldCheck class="toc-contact-icon" aria-hidden="true" />
-          <p>Questions about this policy?</p>
+          <p>Privacy questions?</p>
           <a href="mailto:support@smartlibraryapp.in" class="toc-contact-link">
             support@smartlibraryapp.in
           </a>
@@ -63,7 +63,7 @@
       </aside>
 
       <!-- Policy content -->
-      <article class="policy-content" aria-label="Smart Library App privacy policy">
+      <article class="policy-content" aria-label="Privacy policy content">
 
         <section
           v-for="section in sections"
@@ -74,15 +74,14 @@
         >
           <div class="section-num-badge">{{ section.num }}</div>
           <h2 :id="`${section.id}-heading`">{{ section.title }}</h2>
-
           <div class="section-body" v-html="section.body"></div>
         </section>
 
-        <!-- Contact footer inside content -->
-        <section id="contact" class="policy-section contact-section" aria-labelledby="contact-heading">
+        <!-- Contact -->
+        <section id="contact" class="policy-section" aria-labelledby="contact-heading">
           <div class="section-num-badge">{{ sections.length + 1 }}</div>
           <h2 id="contact-heading">Contact Information</h2>
-          <p>For privacy-related questions or requests, reach out to us directly:</p>
+          <p class="section-intro">For privacy-related questions or requests, reach out to us directly:</p>
           <div class="contact-grid">
             <a href="mailto:support@smartlibraryapp.in" class="contact-card">
               <Mail class="contact-card-icon" aria-hidden="true" />
@@ -118,28 +117,42 @@
         <div class="footer-links">
           <router-link to="/">Home</router-link>
           <router-link to="/pricing-plans">Pricing</router-link>
-          <router-link to="/login">Login</router-link>
+          <router-link to="/about">About</router-link>
         </div>
       </div>
     </footer>
 
-    <!-- Mobile ToC toggle -->
+    <!-- Mobile floating ToC button -->
     <button
       type="button"
       class="mobile-toc-btn"
-      :class="{ 'is-open': mobileTocOpen }"
       @click="mobileTocOpen = !mobileTocOpen"
+      :aria-expanded="mobileTocOpen"
       aria-label="Toggle table of contents"
     >
       <List class="mobile-toc-icon" aria-hidden="true" />
       <span>Contents</span>
-      <ChevronUp class="mobile-toc-chevron" :class="{ 'is-open': mobileTocOpen }" aria-hidden="true" />
+      <ChevronDown
+        class="mobile-toc-chevron"
+        :class="{ 'is-open': mobileTocOpen }"
+        aria-hidden="true"
+      />
     </button>
 
     <!-- Mobile ToC drawer -->
     <Transition name="mobile-toc">
-      <div v-if="mobileTocOpen" class="mobile-toc-drawer" role="dialog" aria-label="Table of contents">
-        <p class="toc-heading">On this page</p>
+      <div v-if="mobileTocOpen" class="mobile-toc-drawer">
+        <div class="mobile-toc-header">
+          <p class="toc-heading">On this page</p>
+          <button
+            type="button"
+            class="mobile-toc-close"
+            @click="mobileTocOpen = false"
+            aria-label="Close table of contents"
+          >
+            <X class="close-icon" aria-hidden="true" />
+          </button>
+        </div>
         <ol class="toc-list">
           <li v-for="section in sections" :key="section.id">
             <a
@@ -156,6 +169,7 @@
             <a
               href="#contact"
               class="toc-link"
+              :class="{ 'is-active': activeSection === 'contact' }"
               @click.prevent="scrollToSection('contact'); mobileTocOpen = false"
             >
               <span class="toc-num">{{ sections.length + 1 }}</span>
@@ -165,12 +179,23 @@
         </ol>
       </div>
     </Transition>
+
+    <!-- Backdrop -->
+    <Transition name="backdrop">
+      <div
+        v-if="mobileTocOpen"
+        class="mobile-toc-backdrop"
+        @click="mobileTocOpen = false"
+        aria-hidden="true"
+      ></div>
+    </Transition>
+
   </main>
 </template>
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { BookOpen, ChevronUp, Globe, List, Mail, Server, ShieldCheck } from 'lucide-vue-next'
+import { ChevronDown, Globe, List, Mail, Server, ShieldCheck, X } from 'lucide-vue-next'
 
 const currentYear = computed(() => new Date().getFullYear())
 const activeSection = ref('')
@@ -204,7 +229,7 @@ const sections = [
         <li>Improve platform reliability, fraud prevention, and product performance.</li>
         <li>Provide support, troubleshooting, and service communications.</li>
       </ul>
-      <p class="callout">We do not sell personal data.</p>
+      <div class="callout">We do not sell personal data.</div>
     `,
   },
   {
@@ -297,7 +322,7 @@ const sections = [
 function scrollToSection(id) {
   const el = document.getElementById(id)
   if (!el) return
-  const offset = 80
+  const offset = 72
   const top = el.getBoundingClientRect().top + window.scrollY - offset
   window.scrollTo({ top, behavior: 'smooth' })
 }
@@ -306,21 +331,14 @@ let scrollObserver = null
 
 onMounted(() => {
   const targets = document.querySelectorAll('.policy-section')
-
   scrollObserver = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          activeSection.value = entry.target.id
-        }
+        if (entry.isIntersecting) activeSection.value = entry.target.id
       })
     },
-    {
-      rootMargin: '-20% 0px -60% 0px',
-      threshold: 0,
-    }
+    { rootMargin: '-15% 0px -65% 0px', threshold: 0 }
   )
-
   targets.forEach((t) => scrollObserver?.observe(t))
 })
 
@@ -336,7 +354,6 @@ onBeforeUnmount(() => {
   --surface-border: var(--theme-surface-border);
   --text-primary: var(--theme-text-primary);
   --text-secondary: var(--theme-text-secondary);
-
   min-height: 100vh;
   position: relative;
   color: var(--text-primary);
@@ -355,134 +372,54 @@ onBeforeUnmount(() => {
 }
 
 .section-shell {
-  width: min(1200px, calc(100% - 3rem));
+  width: min(1160px, calc(100% - 3rem));
   margin: 0 auto;
-}
-
-/* ── Top Nav ── */
-.top-nav {
-  position: sticky;
-  top: 0;
-  z-index: 200;
-  border-bottom: 1px solid var(--theme-border-soft);
-  background: var(--theme-nav-surface-strong, var(--theme-surface));
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-.top-nav-inner {
-  width: min(1200px, calc(100% - 3rem));
-  margin: 0 auto;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.top-nav-brand {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: var(--theme-text-primary);
-  text-decoration: none;
-}
-
-.brand-icon {
-  width: 1.1rem;
-  height: 1.1rem;
-  color: var(--theme-brand-a);
-}
-
-.top-nav-links {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.nav-link {
-  color: var(--theme-text-secondary);
-  text-decoration: none;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: color 150ms ease;
-}
-
-.nav-link:hover {
-  color: var(--theme-text-primary);
-}
-
-/* ── Buttons ── */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 36px;
-  padding: 0.45rem 1rem;
-  border-radius: 10px;
-  border: 1px solid transparent;
-  font-weight: 600;
-  font-size: 0.88rem;
-  text-decoration: none;
-  cursor: pointer;
-  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
-}
-
-.btn-solid {
-  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
-  color: var(--theme-brand-on);
-  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.18);
-}
-
-.btn-solid:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.26);
 }
 
 /* ── Hero ── */
 .hero {
-  padding: 3rem 0 2rem;
+  padding: 2.5rem 0 2rem;
+  display: grid;
+  gap: 0.85rem;
+  text-align: left;
 }
 
 .hero-meta {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
-  margin-bottom: 1rem;
+  gap: 0.5rem;
 }
 
 .kicker {
   display: inline-flex;
-  padding: 0.3rem 0.7rem;
+  padding: 0.28rem 0.65rem;
   border-radius: 999px;
   border: 1px solid var(--theme-border);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--theme-text-soft);
   background: var(--theme-surface-soft);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .kicker-divider {
   color: var(--theme-text-muted);
-  font-size: 0.9rem;
 }
 
 .last-updated {
   color: var(--theme-text-muted);
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   font-weight: 500;
 }
 
 .hero h1 {
-  margin: 0 0 0.9rem;
-  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3.2rem);
   line-height: 1.04;
   letter-spacing: -0.03em;
   color: var(--theme-text-strong, var(--text-primary));
+  text-align: left;
 }
 
 .hero-subtitle {
@@ -490,36 +427,70 @@ onBeforeUnmount(() => {
   color: var(--text-secondary);
   line-height: 1.7;
   max-width: 64ch;
-  font-size: 1.02rem;
+  font-size: 0.97rem;
+  text-align: left;
+}
+
+.hero-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.3rem;
+}
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0.44rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-weight: 600;
+  font-size: 0.86rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease;
+  white-space: nowrap;
+}
+
+.btn-ghost {
+  border-color: var(--theme-border-strong);
+  background: var(--theme-panel-soft);
+  color: var(--theme-text-primary);
+}
+
+.btn-ghost:hover {
+  border-color: var(--theme-brand-border);
+  background: var(--theme-surface-soft);
 }
 
 /* ── Two-column layout ── */
 .content-layout {
   display: grid;
-  grid-template-columns: 240px 1fr;
-  gap: 2.5rem;
+  grid-template-columns: 220px 1fr;
+  gap: 2.8rem;
   align-items: start;
   padding-bottom: 4rem;
 }
 
-/* ── Sidebar ToC ── */
+/* ── Sidebar ── */
 .toc-sidebar {
   position: sticky;
-  top: 72px;
-  max-height: calc(100vh - 88px);
+  top: 68px;
+  max-height: calc(100vh - 84px);
   overflow-y: auto;
   scrollbar-width: none;
   padding-bottom: 1rem;
 }
 
-.toc-sidebar::-webkit-scrollbar {
-  display: none;
-}
+.toc-sidebar::-webkit-scrollbar { display: none; }
 
 .toc-heading {
-  margin: 0 0 0.75rem;
-  font-size: 0.72rem;
-  font-weight: 700;
+  margin: 0 0 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--theme-text-muted);
@@ -530,22 +501,22 @@ onBeforeUnmount(() => {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 0.15rem;
+  gap: 0.06rem;
 }
 
 .toc-link {
   display: flex;
   align-items: baseline;
-  gap: 0.55rem;
-  padding: 0.42rem 0.65rem;
+  gap: 0.5rem;
+  padding: 0.36rem 0.58rem;
   border-radius: 8px;
   text-decoration: none;
   color: var(--theme-text-secondary);
-  font-size: 0.84rem;
+  font-size: 0.81rem;
   font-weight: 500;
   line-height: 1.4;
-  transition: background 140ms ease, color 140ms ease;
   border-left: 2px solid transparent;
+  transition: background 130ms ease, color 130ms ease, border-color 130ms ease;
 }
 
 .toc-link:hover {
@@ -557,16 +528,17 @@ onBeforeUnmount(() => {
   background: var(--theme-brand-soft);
   color: var(--theme-brand-pill-text);
   border-left-color: var(--theme-brand-a);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .toc-num {
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   font-weight: 700;
   color: var(--theme-text-muted);
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
-  min-width: 1.6rem;
+  min-width: 1.45rem;
+  letter-spacing: 0.04em;
 }
 
 .toc-link.is-active .toc-num {
@@ -574,160 +546,159 @@ onBeforeUnmount(() => {
 }
 
 .toc-contact-box {
-  margin-top: 1.5rem;
-  padding: 0.85rem;
+  margin-top: 1.4rem;
+  padding: 0.8rem;
   border-radius: 12px;
   border: 1px solid var(--theme-brand-border);
   background: var(--theme-brand-soft);
   display: grid;
-  gap: 0.35rem;
+  gap: 0.28rem;
 }
 
 .toc-contact-icon {
-  width: 1rem;
-  height: 1rem;
+  width: 0.95rem;
+  height: 0.95rem;
   color: var(--theme-brand-pill-text);
 }
 
 .toc-contact-box p {
   margin: 0;
-  font-size: 0.82rem;
+  font-size: 0.79rem;
   color: var(--theme-text-soft);
-  line-height: 1.4;
 }
 
 .toc-contact-link {
-  font-size: 0.82rem;
+  font-size: 0.79rem;
   font-weight: 600;
   color: var(--theme-brand-pill-text);
   text-decoration: none;
   word-break: break-all;
 }
 
-.toc-contact-link:hover {
-  text-decoration: underline;
-}
+.toc-contact-link:hover { text-decoration: underline; }
 
-/* ── Policy sections ── */
+/* ── Policy content ── */
 .policy-content {
+  min-width: 0;
   display: grid;
   gap: 0;
-  min-width: 0;
 }
 
 .policy-section {
-  padding: 2rem 0;
+  padding: 1.85rem 0;
   border-bottom: 1px solid var(--theme-border-soft);
   scroll-margin-top: 72px;
+  text-align: left;
 }
 
 .policy-section:last-child {
   border-bottom: none;
+  padding-bottom: 0;
 }
 
 .section-num-badge {
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.72rem;
+  padding: 0.16rem 0.46rem;
+  border-radius: 6px;
+  font-size: 0.67rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   color: var(--theme-brand-pill-text);
   background: var(--theme-brand-soft);
   border: 1px solid var(--theme-brand-border);
-  border-radius: 6px;
-  padding: 0.18rem 0.5rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.6rem;
 }
 
 .policy-section h2 {
-  margin: 0 0 1rem;
-  font-size: 1.25rem;
+  margin: 0 0 0.95rem;
+  font-size: 1.15rem;
   font-weight: 700;
   letter-spacing: -0.015em;
-  color: var(--theme-text-strong, var(--text-primary));
   line-height: 1.3;
+  color: var(--theme-text-strong, var(--text-primary));
+  text-align: left;
 }
 
-/* Rich text inside v-html */
+/* v-html rich text — must use :deep() */
 .section-body :deep(p) {
-  margin: 0 0 0.85rem;
+  margin: 0 0 0.75rem;
   color: var(--theme-text-soft);
   line-height: 1.75;
-  font-size: 0.95rem;
+  font-size: 0.93rem;
+  text-align: left;
 }
 
-.section-body :deep(p:last-child) {
-  margin-bottom: 0;
-}
+.section-body :deep(p:last-child) { margin-bottom: 0; }
 
 .section-body :deep(ul) {
-  margin: 0 0 0.85rem;
+  margin: 0.2rem 0 0.75rem;
   padding: 0;
   list-style: none;
   display: grid;
-  gap: 0.5rem;
+  gap: 0.45rem;
 }
 
 .section-body :deep(li) {
   display: flex;
   align-items: flex-start;
-  gap: 0.65rem;
+  gap: 0.58rem;
   color: var(--theme-text-soft);
   line-height: 1.65;
-  font-size: 0.95rem;
-  padding-left: 0;
+  font-size: 0.92rem;
+  text-align: left;
 }
 
 .section-body :deep(li)::before {
   content: '';
   display: block;
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: var(--theme-brand-a);
-  margin-top: 0.55rem;
+  margin-top: 0.56rem;
   flex-shrink: 0;
 }
 
 .section-body :deep(.callout) {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.85rem;
-  padding: 0.65rem 1rem;
+  gap: 0.45rem;
+  margin-top: 0.7rem;
+  padding: 0.52rem 0.88rem;
   border-radius: 10px;
   border: 1px solid var(--theme-success-border);
   background: var(--theme-success-soft);
   color: var(--theme-success-text);
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-weight: 700;
+  font-size: 0.87rem;
+  text-align: left;
 }
 
-/* ── Contact section ── */
-.contact-section > p {
-  margin: 0 0 1.2rem;
+/* Contact section */
+.section-intro {
+  margin: 0 0 1rem;
   color: var(--theme-text-soft);
   line-height: 1.7;
-  font-size: 0.95rem;
+  font-size: 0.93rem;
+  text-align: left;
 }
 
 .contact-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.8rem;
+  gap: 0.72rem;
 }
 
 .contact-card {
   display: flex;
   align-items: flex-start;
-  gap: 0.7rem;
-  padding: 0.9rem;
+  gap: 0.6rem;
+  padding: 0.85rem;
   border-radius: 12px;
   border: 1px solid var(--theme-border-soft);
   background: var(--theme-panel-soft);
   text-decoration: none;
-  transition: border-color 160ms ease, background 160ms ease;
+  transition: border-color 150ms ease, background 150ms ease;
 }
 
 a.contact-card:hover {
@@ -736,32 +707,33 @@ a.contact-card:hover {
 }
 
 .contact-card-icon {
-  width: 1.1rem;
-  height: 1.1rem;
+  width: 1rem;
+  height: 1rem;
   color: var(--theme-brand-pill-text);
-  margin-top: 0.1rem;
   flex-shrink: 0;
+  margin-top: 0.1rem;
 }
 
 .contact-card strong {
   display: block;
-  font-size: 0.82rem;
+  font-size: 0.79rem;
   font-weight: 700;
   color: var(--theme-text-primary);
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.18rem;
 }
 
 .contact-card span {
-  font-size: 0.82rem;
+  font-size: 0.79rem;
   color: var(--theme-text-secondary);
   word-break: break-all;
+  line-height: 1.4;
 }
 
 /* ── Footer ── */
 .page-footer {
   border-top: 1px solid var(--theme-border-soft);
   background: var(--theme-surface-soft);
-  padding: 1.25rem 0;
+  padding: 1.1rem 0;
 }
 
 .footer-inner {
@@ -774,73 +746,69 @@ a.contact-card:hover {
 
 .page-footer p {
   margin: 0;
-  font-size: 0.84rem;
+  font-size: 0.81rem;
   color: var(--theme-text-muted);
 }
 
 .footer-links {
   display: flex;
-  gap: 1.25rem;
+  gap: 1.2rem;
 }
 
 .footer-links a {
-  font-size: 0.84rem;
+  font-size: 0.81rem;
   color: var(--theme-text-secondary);
   text-decoration: none;
   font-weight: 500;
-  transition: color 140ms ease;
+  transition: color 130ms ease;
 }
 
-.footer-links a:hover {
-  color: var(--theme-brand-pill-text);
-}
+.footer-links a:hover { color: var(--theme-brand-pill-text); }
 
-/* ── Mobile ToC button ── */
+/* ── Mobile floating ToC button ── */
 .mobile-toc-btn {
   display: none;
   position: fixed;
-  bottom: 5rem;
+  bottom: 5.5rem;
   right: 1rem;
-  z-index: 300;
+  z-index: 400;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.62rem 0.9rem;
+  gap: 0.4rem;
+  padding: 0.55rem 0.88rem;
   border-radius: 999px;
   border: 1px solid var(--theme-border-strong);
   background: var(--theme-surface);
   color: var(--theme-text-primary);
-  font-size: 0.84rem;
-  font-weight: 600;
+  font-size: 0.82rem;
+  font-weight: 700;
   cursor: pointer;
-  box-shadow: var(--theme-shadow-elevated);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .mobile-toc-icon {
-  width: 1rem;
-  height: 1rem;
+  width: 0.95rem;
+  height: 0.95rem;
 }
 
 .mobile-toc-chevron {
-  width: 0.9rem;
-  height: 0.9rem;
-  transition: transform 220ms ease;
+  width: 0.85rem;
+  height: 0.85rem;
+  transition: transform 200ms ease;
 }
 
-.mobile-toc-chevron.is-open {
-  transform: rotate(180deg);
-}
+.mobile-toc-chevron.is-open { transform: rotate(180deg); }
 
 /* ── Mobile ToC drawer ── */
 .mobile-toc-drawer {
   display: none;
   position: fixed;
-  bottom: 9rem;
+  bottom: 9.5rem;
   right: 1rem;
-  z-index: 290;
-  width: min(320px, calc(100vw - 2rem));
-  max-height: 55vh;
+  z-index: 390;
+  width: min(300px, calc(100vw - 2rem));
+  max-height: 52vh;
   overflow-y: auto;
   border-radius: 16px;
   border: 1px solid var(--theme-border-strong);
@@ -848,70 +816,107 @@ a.contact-card:hover {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   padding: 1rem;
-  box-shadow: var(--theme-shadow-elevated);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
 }
 
-/* Transitions */
+.mobile-toc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.mobile-toc-close {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--theme-border-soft);
+  background: var(--theme-surface-soft);
+  color: var(--theme-text-secondary);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.close-icon {
+  width: 0.82rem;
+  height: 0.82rem;
+}
+
+.mobile-toc-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 380;
+  background: rgba(0, 0, 0, 0.26);
+  backdrop-filter: blur(2px);
+}
+
+/* ── Transitions ── */
 .mobile-toc-enter-active,
 .mobile-toc-leave-active {
-  transition: opacity 200ms ease, transform 200ms ease;
+  transition: opacity 180ms ease, transform 180ms ease;
 }
 
 .mobile-toc-enter-from,
 .mobile-toc-leave-to {
   opacity: 0;
-  transform: translateY(10px);
+  transform: translateY(8px) scale(0.97);
 }
+
+.backdrop-enter-active,
+.backdrop-leave-active { transition: opacity 180ms ease; }
+
+.backdrop-enter-from,
+.backdrop-leave-to { opacity: 0; }
 
 /* ── Keyframes ── */
 @keyframes mesh-drift {
-  0% { transform: translate3d(0, 0, 0) scale(1); }
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
   100% { transform: translate3d(-1.5%, 1.2%, 0) scale(1.04); }
 }
 
 /* ── Responsive ── */
 @media (max-width: 1024px) {
   .content-layout {
-    grid-template-columns: 200px 1fr;
-    gap: 1.8rem;
+    grid-template-columns: 192px 1fr;
+    gap: 2rem;
   }
 }
 
 @media (max-width: 767px) {
   .section-shell {
-    width: min(100%, calc(100% - 1.5rem));
-  }
-
-  .top-nav-inner {
     width: calc(100% - 1.5rem);
   }
 
-  .top-nav-links .nav-link {
-    display: none;
-  }
-
   .hero {
-    padding: 1.75rem 0 1.25rem;
+    padding: 1.5rem 0 1.2rem;
   }
 
   .hero h1 {
-    font-size: clamp(1.9rem, 8vw, 2.6rem);
+    font-size: clamp(1.8rem, 7vw, 2.4rem);
   }
 
   .hero-subtitle {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
   }
 
-  /* Hide sidebar on mobile — use floating button instead */
+  .hero-nav .btn {
+    flex: 1;
+  }
+
+  /* Single column on mobile — sidebar hidden */
   .content-layout {
     grid-template-columns: 1fr;
     gap: 0;
+    padding-bottom: 2rem;
   }
 
   .toc-sidebar {
     display: none;
   }
 
+  /* Show floating button + drawer */
   .mobile-toc-btn {
     display: flex;
   }
@@ -920,26 +925,33 @@ a.contact-card:hover {
     display: block;
   }
 
+  .mobile-toc-backdrop {
+    display: block;
+  }
+
   .policy-section {
-    padding: 1.5rem 0;
+    padding: 1.35rem 0;
+    scroll-margin-top: 60px;
   }
 
   .policy-section h2 {
-    font-size: 1.1rem;
+    font-size: 1.04rem;
   }
 
   .contact-grid {
     grid-template-columns: 1fr;
+    gap: 0.6rem;
   }
 
   .footer-inner {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.65rem;
+    gap: 0.6rem;
   }
 
   .page-footer {
-    padding-bottom: 6rem;
+    /* clear bottom nav */
+    padding-bottom: 5.5rem;
   }
 }
 </style>
