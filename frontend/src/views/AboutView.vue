@@ -249,9 +249,9 @@
           <router-link class="btn btn-solid magnetic" to="/signup" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
             Create Library Account
           </router-link>
-          <router-link class="btn btn-ghost magnetic" to="/pricing-plans" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
+          <!-- <router-link class="btn btn-ghost magnetic" to="/pricing-plans" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
             View Pricing
-          </router-link>
+          </router-link> -->
         </div>
       </div>
     </section>

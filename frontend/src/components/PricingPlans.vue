@@ -211,12 +211,12 @@
           <router-link class="btn btn-solid magnetic" to="/signup" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
             Create Library Account
           </router-link>
-          <a class="btn btn-solid magnetic" href="mailto:shubham.libraryapp@gmail.com" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
+          <!-- <a class="btn btn-solid magnetic" href="mailto:shubham.libraryapp@gmail.com" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
             Contact Sales
           </a>
           <a class="btn btn-ghost magnetic" href="tel:+919024600138" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
             Schedule Call
-          </a>
+          </a> -->
         </div>
       </div>
     </section>
@@ -560,6 +560,11 @@ onBeforeUnmount(() => {
   grid-template-columns: 1.2fr 0.8fr;
   gap: 2.4rem;
   align-items: center;
+}
+
+.hero-copy {
+    max-width: 34rem;
+    text-align: left;
 }
 
 .kicker,
@@ -1289,6 +1294,12 @@ onBeforeUnmount(() => {
 
   .hero-visual {
     order: -1;
+  }
+
+  .hero-copy {
+    max-width: 44rem;
+    margin: 0 auto;
+    text-align: center;
   }
 
   .calculator-summary {
