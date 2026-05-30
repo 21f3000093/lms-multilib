@@ -621,3 +621,9 @@ class SuperadminSubscriptionPatchRequest(BaseModel):
 class SuperadminSubscriptionPatchOut(BaseModel):
     message: str
     subscription: SubscriptionOut
+
+
+class SuperadminSubscriptionBulkGraceClearOut(BaseModel):
+    message: str
+    updated_count: int
+    expired_count: int

@@ -58,6 +58,12 @@ Push notifications:
 - `PUSH_VAPID_PRIVATE_KEY`
 - `PUSH_VAPID_SUBJECT`
 
+Subscriptions:
+
+- `SUBSCRIPTION_TRIAL_DAYS`: number of free trial days for new libraries. Set to `0` to disable trials.
+- `SUBSCRIPTION_GRACE_DAYS`: number of post-expiry grace days. Set to `0` to expire immediately after `valid_until`.
+- `SUBSCRIPTION_ENFORCEMENT_MODE`: use `enforce` to block expired libraries, or `monitor` to log only.
+
 ## App Structure
 
 - `main.py`: app bootstrap, middleware, startup bootstrap, main feature endpoints.

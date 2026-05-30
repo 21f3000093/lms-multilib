@@ -23,23 +23,23 @@ def get_db():
         db.close()
 
 
-def _read_positive_int_env(name: str, default: int) -> int:
+def _read_non_negative_int_env(name: str, default: int) -> int:
     raw_value = (os.getenv(name) or "").strip()
     if not raw_value:
         return default
     try:
         parsed = int(raw_value)
-        return parsed if parsed > 0 else default
+        return parsed if parsed >= 0 else default
     except ValueError:
         return default
 
 
 def get_subscription_trial_days() -> int:
-    return _read_positive_int_env("SUBSCRIPTION_TRIAL_DAYS", 14)
+    return _read_non_negative_int_env("SUBSCRIPTION_TRIAL_DAYS", 14)
 
 
 def get_subscription_grace_days() -> int:
-    return _read_positive_int_env("SUBSCRIPTION_GRACE_DAYS", 3)
+    return _read_non_negative_int_env("SUBSCRIPTION_GRACE_DAYS", 0)
 
 
 def get_subscription_enforcement_mode() -> str:
@@ -148,22 +148,44 @@ def evaluate_subscription_access(subscription: models.Subscription) -> tuple[boo
                 effective_status = "active"
                 allowed = True
                 reason = "active"
-            else:
-                computed_grace_until = subscription.valid_until + timedelta(days=grace_days)
-                if subscription.grace_until != computed_grace_until:
-                    subscription.grace_until = computed_grace_until
+                if subscription.grace_until is not None:
+                    subscription.grace_until = None
                     changed = True
+            else:
+                if grace_days > 0:
+                    computed_grace_until = subscription.valid_until + timedelta(days=grace_days)
+                    if subscription.grace_until != computed_grace_until:
+                        subscription.grace_until = computed_grace_until
+                        changed = True
 
-                if now_utc <= computed_grace_until:
-                    effective_status = "grace"
-                    allowed = True
-                    reason = "grace"
+                    if now_utc <= computed_grace_until:
+                        effective_status = "grace"
+                        allowed = True
+                        reason = "grace"
+                    else:
+                        effective_status = "expired"
+                        allowed = False
+                        reason = "expired"
                 else:
+                    if subscription.grace_until is not None:
+                        subscription.grace_until = None
+                        changed = True
                     effective_status = "expired"
                     allowed = False
                     reason = "expired"
         else:
-            if effective_status in {"active", "trialing", "grace"}:
+            if effective_status == "grace":
+                if grace_days > 0 and subscription.grace_until and now_utc <= subscription.grace_until:
+                    allowed = True
+                    reason = "grace"
+                else:
+                    if subscription.grace_until is not None:
+                        subscription.grace_until = None
+                        changed = True
+                    effective_status = "expired"
+                    allowed = False
+                    reason = "expired"
+            elif effective_status in {"active", "trialing"}:
                 allowed = True
                 reason = effective_status
             else:

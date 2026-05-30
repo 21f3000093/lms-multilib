@@ -10,12 +10,17 @@
           <span class="gradient-text">Management</span>
         </h1>
         <p class="hero-subtitle">
-          Activate, deactivate, grant trials, and change plans for each library.
+          Activate, deactivate, grant trials, change plans, and correct validity for each library.
         </p>
       </div>
-      <button class="btn btn-ghost" type="button" :disabled="loading" @click="loadAll">
-        {{ loading ? 'Refreshing...' : 'Refresh' }}
-      </button>
+      <div class="hero-actions">
+        <button class="btn btn-ghost" type="button" :disabled="loading || busyBulk" @click="loadAll">
+          {{ loading ? 'Refreshing...' : 'Refresh' }}
+        </button>
+        <button class="btn btn-danger" type="button" :disabled="loading || busyBulk" @click="clearGraceForAll">
+          {{ busyBulk ? 'Clearing...' : 'Clear Existing Grace' }}
+        </button>
+      </div>
     </section>
 
     <section class="section-shell" v-if="message">
@@ -25,7 +30,7 @@
     <section class="section-shell panel glass-card">
       <header class="panel-head">
         <h2>Libraries</h2>
-        <p>Minimal controls for subscription lifecycle management.</p>
+        <p>Manual controls for plan, validity, status, trials, and grace cleanup.</p>
       </header>
 
       <div v-if="loading" class="state">Loading subscriptions...</div>
@@ -40,6 +45,7 @@
               <th>Status</th>
               <th>Plan</th>
               <th>Valid Until</th>
+              <th>Grace Until</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -61,16 +67,44 @@
                 {{ formatDate(row.subscription?.valid_until) }}
               </td>
               <td>
+                {{ formatDate(row.subscription?.grace_until) }}
+              </td>
+              <td>
                 <div class="actions">
-                  <select v-model="row.selectedPlanId" class="field">
-                    <option :value="null">Select Plan</option>
-                    <option v-for="plan in plans" :key="plan.id" :value="plan.id">
-                      {{ plan.name }}
-                    </option>
-                  </select>
-                  <button class="btn btn-ghost tiny" :disabled="busyLibraryId === row.library.id" @click="updatePlan(row)">
-                    Plan
-                  </button>
+                  <div class="action-group">
+                    <select v-model="row.selectedPlanId" class="field">
+                      <option :value="null">Select Plan</option>
+                      <option v-for="plan in plans" :key="plan.id" :value="plan.id">
+                        {{ plan.name }}
+                      </option>
+                    </select>
+                    <button class="btn btn-ghost tiny" :disabled="busyLibraryId === row.library.id" @click="updatePlan(row)">
+                      Update Plan
+                    </button>
+                  </div>
+
+                  <div class="action-group">
+                    <input
+                      v-model="row.manualValidUntil"
+                      class="field date-field"
+                      type="date"
+                      :aria-label="`Set valid until date for ${row.library.name}`"
+                    />
+                    <button class="btn btn-ghost tiny" :disabled="busyLibraryId === row.library.id" @click="updateValidity(row)">
+                      Set Validity
+                    </button>
+                  </div>
+
+                  <div class="action-group">
+                    <select v-model="row.selectedStatus" class="field" :aria-label="`Set status for ${row.library.name}`">
+                      <option v-for="status in statusOptions" :key="status" :value="status">
+                        {{ status }}
+                      </option>
+                    </select>
+                    <button class="btn btn-ghost tiny" :disabled="busyLibraryId === row.library.id" @click="updateStatus(row)">
+                      Set Status
+                    </button>
+                  </div>
 
                   <button class="btn btn-solid tiny" :disabled="busyLibraryId === row.library.id" @click="activate(row)">
                     Activate
@@ -80,6 +114,9 @@
                   </button>
                   <button class="btn btn-ghost tiny" :disabled="busyLibraryId === row.library.id" @click="grantTrial(row)">
                     Trial 14d
+                  </button>
+                  <button class="btn btn-danger tiny" :disabled="busyLibraryId === row.library.id" @click="expireNow(row)">
+                    Expire Now
                   </button>
                 </div>
               </td>
@@ -102,12 +139,38 @@ const error = ref('')
 const message = ref('')
 const bannerType = ref('success')
 const busyLibraryId = ref(null)
+const busyBulk = ref(false)
+const statusOptions = ['active', 'inactive', 'expired', 'trialing', 'grace', 'canceled']
 
 function formatDate(value) {
   if (!value) return '—'
   const dt = new Date(value)
   if (Number.isNaN(dt.getTime())) return '—'
   return dt.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: '2-digit' })
+}
+
+function formatDateInput(value) {
+  if (!value) return ''
+  const dt = new Date(value)
+  if (Number.isNaN(dt.getTime())) return ''
+  const year = dt.getFullYear()
+  const month = String(dt.getMonth() + 1).padStart(2, '0')
+  const day = String(dt.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function formatLocalDateTimeInput(date = new Date()) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  const seconds = String(date.getSeconds()).padStart(2, '0')
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`
+}
+
+function validUntilPayload(dateValue) {
+  return `${dateValue}T23:59:59`
 }
 
 function statusClass(status) {
@@ -145,6 +208,8 @@ async function loadAll() {
     rows.value = (Array.isArray(subsRes.data) ? subsRes.data : []).map((row) => ({
       ...row,
       selectedPlanId: row.subscription?.plan_id || null,
+      selectedStatus: row.subscription?.status || 'inactive',
+      manualValidUntil: formatDateInput(row.subscription?.valid_until),
     }))
   } catch (err) {
     error.value = extractError(err, 'Failed to load subscriptions')
@@ -194,6 +259,49 @@ async function updatePlan(row) {
   )
 }
 
+async function updateValidity(row) {
+  if (!row.manualValidUntil) {
+    setBanner('error', 'Please choose a valid-until date first')
+    return
+  }
+  await patchSubscription(
+    row.library.id,
+    {
+      valid_until: validUntilPayload(row.manualValidUntil),
+      status: 'active',
+      clear_trial: true,
+    },
+    `Validity updated for ${row.library.name}`
+  )
+}
+
+async function updateStatus(row) {
+  if (!row.selectedStatus) {
+    setBanner('error', 'Please select a status first')
+    return
+  }
+  await patchSubscription(
+    row.library.id,
+    {
+      status: row.selectedStatus,
+      clear_trial: ['active', 'inactive', 'expired', 'canceled'].includes(row.selectedStatus),
+    },
+    `Status updated for ${row.library.name}`
+  )
+}
+
+async function expireNow(row) {
+  await patchSubscription(
+    row.library.id,
+    {
+      status: 'expired',
+      valid_until: formatLocalDateTimeInput(),
+      clear_trial: true,
+    },
+    `Expired ${row.library.name}`
+  )
+}
+
 async function grantTrial(row) {
   busyLibraryId.value = row.library.id
   try {
@@ -204,6 +312,23 @@ async function grantTrial(row) {
     setBanner('error', extractError(err, 'Failed to grant trial'))
   } finally {
     busyLibraryId.value = null
+  }
+}
+
+async function clearGraceForAll() {
+  busyBulk.value = true
+  try {
+    const res = await API.post('/superadmin/subscriptions/clear-grace')
+    const updated = Number(res.data?.updated_count || 0)
+    const expired = Number(res.data?.expired_count || 0)
+    setBanner('success', `${res.data?.message || 'Cleared grace state'}; ${expired} expired`)
+    if (updated > 0) {
+      await loadAll()
+    }
+  } catch (err) {
+    setBanner('error', extractError(err, 'Failed to clear grace state'))
+  } finally {
+    busyBulk.value = false
   }
 }
 
@@ -244,6 +369,13 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: flex-end;
   gap: 1rem;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.55rem;
 }
 
 .kicker {
@@ -361,7 +493,13 @@ th {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-  min-width: 250px;
+  min-width: 540px;
+}
+
+.action-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .field {
@@ -370,6 +508,10 @@ th {
   background: var(--theme-input-bg);
   color: var(--theme-text-primary);
   padding: 0.4rem 0.45rem;
+}
+
+.date-field {
+  min-width: 9.4rem;
 }
 
 .btn {
@@ -452,6 +594,15 @@ th {
   .hero {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .hero-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .actions {
+    min-width: 420px;
   }
 }
 </style>
