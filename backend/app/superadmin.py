@@ -15,6 +15,7 @@ from app.auth_security import (
     send_signup_approval_email,
     send_signup_rejection_email,
     utcnow,
+    validate_admin_username,
 )
 from app.dependencies import (
     ensure_subscription_for_library,
@@ -107,7 +108,9 @@ def list_admins(db: Session = Depends(get_db), admin = Depends(get_current_admin
 def create_admin(admin_data: schemas.AdminCreate, db: Session = Depends(get_db), admin = Depends(get_current_admin)):
     _require_superadmin(admin)
 
-    if crud.get_admin_by_username(db, admin_data.username.strip()):
+    username = validate_admin_username(admin_data.username)
+
+    if crud.get_admin_by_username(db, username):
         raise HTTPException(status_code=409, detail="Admin username already exists")
 
     cleaned_email = admin_data.email.strip().lower() if isinstance(admin_data.email, str) else None
@@ -122,7 +125,7 @@ def create_admin(admin_data: schemas.AdminCreate, db: Session = Depends(get_db),
     try:
         new_admin = crud.create_admin_account(
             db,
-            username=admin_data.username,
+            username=username,
             password=admin_data.password,
             role="admin",
             library_id=admin_data.library_id,

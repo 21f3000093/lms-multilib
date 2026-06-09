@@ -53,6 +53,7 @@ from app.auth_security import (
     send_signup_verification_email,
     suggest_username_from_google,
     utcnow,
+    validate_admin_username,
     verify_google_credential,
 )
 from app.dependencies import (
@@ -328,15 +329,13 @@ def signup(
     db: Session = Depends(get_db),
 ):
     library_name = normalize_username(data.library_name)
-    admin_username = normalize_username(data.admin_username)
+    admin_username = validate_admin_username(data.admin_username)
     admin_email = normalize_email(data.admin_email)
     contact_phone = normalize_phone(data.contact_phone)
     address = normalize_username(data.address or "") or None
 
     if not library_name:
         raise HTTPException(status_code=400, detail="Library name is required")
-    if not admin_username:
-        raise HTTPException(status_code=400, detail="Username is required")
     if not admin_email:
         raise HTTPException(status_code=400, detail="Email is required")
     if not contact_phone:
@@ -564,7 +563,7 @@ def resubmit_signup_request(
         raise HTTPException(status_code=400, detail="Only rejected signup requests can be resubmitted")
 
     library_name = normalize_username(payload.library_name)
-    admin_username = normalize_username(payload.admin_username)
+    admin_username = validate_admin_username(payload.admin_username)
     admin_email = normalize_email(payload.admin_email)
     contact_phone = normalize_phone(payload.contact_phone)
     address = normalize_username(payload.address or "") or None
@@ -782,14 +781,12 @@ def complete_google_signup(
     Authorize: AuthJWT = Depends(),
 ):
     library_name = normalize_username(payload.library_name)
-    admin_username = normalize_username(payload.admin_username)
+    admin_username = validate_admin_username(payload.admin_username)
     contact_phone = normalize_phone(payload.contact_phone)
     address = normalize_username(payload.address or "") or None
 
     if not library_name:
         raise HTTPException(status_code=400, detail="Library name is required")
-    if not admin_username:
-        raise HTTPException(status_code=400, detail="Username is required")
     if not contact_phone:
         raise HTTPException(status_code=400, detail="Contact phone is required")
 
