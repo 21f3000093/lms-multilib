@@ -2,6 +2,7 @@ import hashlib
 import json
 import logging
 import os
+import re
 import secrets
 from datetime import datetime, timedelta, timezone
 
@@ -29,6 +30,8 @@ SIGNUP_RESUBMIT = "signup_resubmit"
 RESET_LINK = "reset_link"
 RESET_OTP = "reset_otp"
 GOOGLE_ONBOARDING = "google_onboarding"
+ADMIN_USERNAME_PATTERN = re.compile(r"^[A-Za-z0-9]{3,32}$")
+ADMIN_USERNAME_REQUIREMENT = "Username must be 3-32 letters and numbers only. Spaces and special characters are not allowed."
 
 PENDING_EMAIL_VERIFICATION = "pending_email_verification"
 PENDING_APPROVAL = "pending_approval"
@@ -123,6 +126,15 @@ def utcnow() -> datetime:
 
 def normalize_username(value: str) -> str:
     return " ".join((value or "").strip().split())
+
+
+def validate_admin_username(value: str) -> str:
+    username = (value or "").strip()
+    if not username:
+        raise HTTPException(status_code=400, detail="Username is required")
+    if not ADMIN_USERNAME_PATTERN.fullmatch(username):
+        raise HTTPException(status_code=400, detail=ADMIN_USERNAME_REQUIREMENT)
+    return username
 
 
 def normalize_email(value: str) -> str:
@@ -537,11 +549,10 @@ def verify_google_credential(raw_credential: str) -> dict[str, str]:
 
 def suggest_username_from_google(*, email: str, name: str | None = None) -> str:
     base_source = (name or "").strip() or email.split("@", 1)[0]
-    cleaned = "".join(ch.lower() if ch.isalnum() else "_" for ch in base_source)
-    while "__" in cleaned:
-        cleaned = cleaned.replace("__", "_")
-    cleaned = cleaned.strip("_")
-    return cleaned or "library_admin"
+    cleaned = "".join(ch.lower() for ch in base_source if ch.isalnum())
+    if len(cleaned) < 3:
+        cleaned = f"{cleaned}admin"
+    return cleaned[:32] or "libraryadmin"
 
 
 def evaluate_signup_review_reason(

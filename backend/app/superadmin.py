@@ -15,6 +15,7 @@ from app.auth_security import (
     send_signup_approval_email,
     send_signup_rejection_email,
     utcnow,
+    validate_admin_username,
 )
 from app.dependencies import (
     ensure_subscription_for_library,
@@ -107,7 +108,9 @@ def list_admins(db: Session = Depends(get_db), admin = Depends(get_current_admin
 def create_admin(admin_data: schemas.AdminCreate, db: Session = Depends(get_db), admin = Depends(get_current_admin)):
     _require_superadmin(admin)
 
-    if crud.get_admin_by_username(db, admin_data.username.strip()):
+    username = validate_admin_username(admin_data.username)
+
+    if crud.get_admin_by_username(db, username):
         raise HTTPException(status_code=409, detail="Admin username already exists")
 
     cleaned_email = admin_data.email.strip().lower() if isinstance(admin_data.email, str) else None
@@ -122,7 +125,7 @@ def create_admin(admin_data: schemas.AdminCreate, db: Session = Depends(get_db),
     try:
         new_admin = crud.create_admin_account(
             db,
-            username=admin_data.username,
+            username=username,
             password=admin_data.password,
             role="admin",
             library_id=admin_data.library_id,
@@ -427,6 +430,57 @@ def list_subscriptions(
 
 
 @superadmin_router.post(
+    "/subscriptions/clear-grace",
+    response_model=schemas.SuperadminSubscriptionBulkGraceClearOut,
+)
+def clear_subscription_grace(
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin),
+):
+    _require_superadmin(admin)
+
+    now_utc = datetime.utcnow()
+    subscriptions = (
+        db.query(models.Subscription)
+        .filter(
+            (models.Subscription.grace_until.isnot(None))
+            | (func.lower(models.Subscription.status) == "grace")
+        )
+        .all()
+    )
+
+    updated_count = 0
+    expired_count = 0
+    for subscription in subscriptions:
+        changed = False
+        normalized_status = (subscription.status or "").strip().lower() # type: ignore
+
+        if subscription.grace_until is not None: # type: ignore
+            subscription.grace_until = None # type: ignore
+            changed = True
+
+        if normalized_status == "grace":
+            if subscription.valid_until and subscription.valid_until >= now_utc: # type: ignore
+                subscription.status = "active" # type: ignore
+            else:
+                subscription.status = "expired" # type: ignore
+                expired_count += 1
+            changed = True
+
+        if changed:
+            updated_count += 1
+
+    if updated_count:
+        db.commit()
+
+    return {
+        "message": f"Cleared grace state for {updated_count} subscription(s)",
+        "updated_count": updated_count,
+        "expired_count": expired_count,
+    }
+
+
+@superadmin_router.post(
     "/subscriptions/{library_id}/grant-trial",
     response_model=schemas.SubscriptionGrantTrialOut,
 )
@@ -692,7 +746,10 @@ def patch_subscription(
 
         if normalized_status == "grace":
             grace_days = get_subscription_grace_days()
-            if subscription.valid_until: # type: ignore
+            if grace_days <= 0:
+                subscription.status = "expired" # type: ignore
+                subscription.grace_until = None # type: ignore
+            elif subscription.valid_until: # type: ignore
                 subscription.grace_until = subscription.valid_until + timedelta(days=grace_days) # type: ignore
             else:
                 subscription.grace_until = now_utc + timedelta(days=grace_days) # type: ignore
@@ -700,6 +757,7 @@ def patch_subscription(
         if normalized_status in {"inactive", "expired", "canceled"}:
             subscription.is_trial = False # type: ignore
             subscription.trial_valid_until = None # type: ignore
+            subscription.grace_until = None # type: ignore
 
     db.commit()
     db.refresh(subscription)

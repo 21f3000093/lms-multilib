@@ -80,7 +80,7 @@
               </div>
 
               <div>
-                <label class="input-label" for="max-seats">Max Seats</label>
+                <label class="input-label" for="max-seats">No. of Seats</label>
                 <div class="input-wrap" :class="{ error: error && !form.max_seats }">
                   <Armchair class="input-icon" aria-hidden="true" />
                   <input id="max-seats" v-model.number="form.max_seats" type="number" min="1" max="200" placeholder="e.g. 50" required />
@@ -116,10 +116,25 @@
             <div class="field-grid two-col">
               <div>
                 <label class="input-label" for="admin-username">Username</label>
-                <div class="input-wrap" :class="{ error: error && !form.admin_username }">
+                <div class="input-wrap" :class="{ error: error && !isAdminUsernameValid }">
                   <User class="input-icon" aria-hidden="true" />
-                  <input id="admin-username" v-model="form.admin_username" type="text" autocomplete="username" placeholder="Choose a username" required @blur="normalizeUsername" />
+                  <input
+                    id="admin-username"
+                    v-model="form.admin_username"
+                    type="text"
+                    autocomplete="username"
+                    autocapitalize="none"
+                    spellcheck="false"
+                    inputmode="text"
+                    maxlength="32"
+                    pattern="[A-Za-z0-9]{3,32}"
+                    placeholder="e.g. yourname123"
+                    required
+                    @input="sanitizeUsername"
+                    @blur="normalizeUsername"
+                  />
                 </div>
+                <p class="input-help">3-32 letters and numbers only. No spaces or special characters.</p>
               </div>
 
               <div>
@@ -250,10 +265,12 @@ const router = useRouter()
 const route = useRoute()
 const toast = useToast()
 const GOOGLE_ONBOARDING_KEY = 'google_signup_onboarding'
+const USERNAME_PATTERN = /^[A-Za-z0-9]{3,32}$/
+const USERNAME_REQUIREMENT = 'Username must be 3-32 letters and numbers only. Spaces and special characters are not allowed.'
 
 const form = reactive({
   library_name: '',
-  max_seats: 25,
+  max_seats: 1,
   contact_phone: '',
   address: '',
   admin_username: '',
@@ -278,6 +295,7 @@ const isResubmitMode = computed(() => Boolean(route.query.resubmit_token && rout
 const isGoogleOnboarding = computed(() => Boolean(googleOnboarding.value?.onboarding_token))
 const isGoogleSignupLike = computed(() => isGoogleOnboarding.value || signupMethod.value === 'google')
 const showPasswordFields = computed(() => signupMethod.value === 'password' && !isGoogleOnboarding.value)
+const isAdminUsernameValid = computed(() => USERNAME_PATTERN.test(form.admin_username))
 
 const heroLead = computed(() => {
   if (isGoogleOnboarding.value) return 'Almost there! Finish your'
@@ -346,8 +364,12 @@ const normalizePhone = () => {
 const normalizeAddress = () => {
   form.address = form.address.trim().replace(/\s+/g, ' ')
 }
+const sanitizeUsernameValue = (value) => (value || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 32)
+const sanitizeUsername = () => {
+  form.admin_username = sanitizeUsernameValue(form.admin_username)
+}
 const normalizeUsername = () => {
-  form.admin_username = form.admin_username.trim().replace(/\s+/g, ' ')
+  form.admin_username = sanitizeUsernameValue(form.admin_username.trim())
 }
 const normalizeEmail = () => {
   if (isGoogleSignupLike.value) {
@@ -505,6 +527,11 @@ const submitForm = async () => {
   if (!form.library_name || !form.contact_phone || !form.admin_username || !form.admin_email) {
     error.value = 'Please complete all required fields'
     showError('Please fill in all required fields')
+    return
+  }
+  if (!isAdminUsernameValid.value) {
+    error.value = USERNAME_REQUIREMENT
+    showError(USERNAME_REQUIREMENT)
     return
   }
   if (showPasswordFields.value && (!form.password || !form.confirm_password)) {
@@ -794,6 +821,13 @@ onMounted(async () => {
   background: transparent;
   color: var(--text-primary);
   font-size: 0.96rem;
+}
+
+.input-help {
+  margin: 0.35rem 0 0;
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
 }
 
 .toggle-btn,
