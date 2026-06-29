@@ -699,7 +699,7 @@ export default {
 
 .profile-photo-picker {
   flex: 0 0 auto;
-  width: min(330px, 100%);
+  /* width: min(330px, 100%);  */
 }
 
 .student-name {
@@ -1128,6 +1128,11 @@ export default {
 @media (max-width: 767px) {
   .student-detail-page {
     padding: 2rem 1rem 5rem 1rem;
+  }
+  
+  .profile-head {
+    flex-direction: column;
+    align-items: center;
   }
 
   /* .section-shell {
