@@ -177,7 +177,6 @@ default_origins = [
     "http://localhost:8080",
     "https://www.smartlibraryapp.in",
     "https://app.smartlibraryapp.in",
-    "https://lms-git-ios-shubham-nagars-projects-0c121e37.vercel.app",
 ]
 
 # CORS config
@@ -198,9 +197,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 @app.on_event("startup")
 def startup_create_admin():
     db: Session = SessionLocal()
-    
-    # crud.init_library(db, name="Library", address="Address", contact_email="email", contact_phone="9090909090", max_seats=20)
-        
+
     superadmin_username = os.getenv("SUPERADMIN_USERNAME")
     superadmin_password = os.getenv("SUPERADMIN_PASSWORD")
     
@@ -209,13 +206,9 @@ def startup_create_admin():
 
     existing_admin = crud.get_admin_by_username(db, superadmin_username) # type: ignore
     if not existing_admin:
-        print("Creating default admin user...")
-        crud.init_library(db, name="SuperAdmin Library", address="Address", contact_email="shubhamnagar68819@gmail.com", contact_phone="9024600138", max_seats=10)
-    
+        print("Creating configured superadmin user...")
         hashed_password1 = pwd_context.hash(superadmin_password) # type: ignore
-        hashed_password2 = pwd_context.hash("password") # type: ignore
         crud.create_admin(db, username=superadmin_username, password=hashed_password1, role="superadmin") # type: ignore
-        crud.create_admin(db, username="shubham", password=hashed_password2, role="admin", library_id=1) # type: ignore
     db.close()
 
 

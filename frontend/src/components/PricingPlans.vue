@@ -211,12 +211,6 @@
           <router-link class="btn btn-solid magnetic" to="/signup" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
             Create Library Account
           </router-link>
-          <!-- <a class="btn btn-solid magnetic" href="mailto:shubham.libraryapp@gmail.com" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
-            Contact Sales
-          </a>
-          <a class="btn btn-ghost magnetic" href="tel:+919024600138" @mousemove="onMagneticMove" @mouseleave="onMagneticLeave">
-            Schedule Call
-          </a> -->
         </div>
       </div>
     </section>

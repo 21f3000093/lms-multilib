@@ -1,72 +1,57 @@
-# Smart Library App (LMS MultiLib)
+# Smart Library App
 
-Multi-tenant library management platform with role-based access for library admins and superadmin.
+Smart Library App is a multi-tenant SaaS/PWA for study libraries and reading rooms. It helps library owners manage student admissions, seat allocation by shift, monthly fee records, reminders, receipts, expenses, analytics, subscriptions, and platform-level superadmin workflows.
 
-## What This App Does
+The repository contains a Vue 3 frontend and a FastAPI backend backed by PostgreSQL.
 
-- Manages student registration and seat assignment by shift.
-- Generates and tracks monthly payments.
-- Tracks monthly expenses.
-- Supports WhatsApp reminder workflows for pending fees.
-- Supports in-app notification center and web push notifications.
-- Supports public receipt links for paid payments.
-- Supports superadmin management of libraries and admin accounts.
+## Highlights
+
+- Multi-library tenancy with backend-enforced `library_id` isolation.
+- Admin and superadmin roles with HttpOnly JWT cookie authentication.
+- Student registration, searchable student list, student profile, and left-student tracking.
+- Seat map with shift-wise occupancy for morning, afternoon, and evening shifts.
+- Monthly fee generation, paid/unpaid toggles, bulk advance-month records, CSV export, and public receipt links.
+- WhatsApp, SMS, and call reminder workflows using device/browser deep links.
+- Dashboard analytics for occupancy, collections, student movement, and quick insights.
+- SaaS subscription billing with Razorpay checkout and superadmin plan/subscription management.
+- In-app notification center and optional web push notifications.
+- PWA support with Workbox service worker caching for static app assets.
 
 ## Tech Stack
 
-- Backend: FastAPI, SQLAlchemy, Alembic, PostgreSQL, cookie-based JWT auth.
-- Frontend: Vue 3, Vue Router, Axios, Vue CLI PWA plugin.
-- Infrastructure: Railway (backend/database), Vercel (frontend).
+| Layer | Technology |
+| --- | --- |
+| Frontend | Vue 3, Vue Router, Axios, Vue CLI PWA plugin, Lucide icons |
+| Backend | FastAPI, SQLAlchemy, Alembic, Pydantic, `fastapi-jwt-auth` |
+| Database | PostgreSQL |
+| Billing | Razorpay checkout and webhooks |
+| Email/Auth helpers | Resend email, Google OAuth, Cloudflare Turnstile |
+| Notifications | In-app DB notifications, optional Web Push/VAPID |
+| Deployment targets | Vercel/static host for frontend, Railway/FastAPI host for backend |
 
-## Architecture At a Glance
-
-```text
-Browser (Vue PWA)
-  -> Axios (withCredentials cookies)
-  -> FastAPI (role + tenant checks)
-  -> PostgreSQL (multi-tenant data by library_id)
-
-Superadmin Notifications
-  -> In-app notifications persisted in DB
-  -> Optional Web Push broadcast to subscribed admin devices
-
-Receipt Sharing
-  -> Short signed token URL
-  -> Public receipt page (read-only)
-```
-
-## Repository Structure
+## Repository Layout
 
 ```text
 backend/
-  app/
-    auth.py               # auth endpoints (login/logout/change-password)
-    crud.py               # core business logic
-    dependencies.py       # DB session + authenticated admin resolver
-    models.py             # SQLAlchemy models
-    notifications.py      # notification center + push subscription APIs
-    schemas.py            # Pydantic contracts
-    seats.py              # seat map APIs
-    superadmin.py         # superadmin-only APIs
-    whatsapp_reminder.py  # pending fee reminders
-  alembic/                # migration environment + revisions
-  main.py                 # app creation + primary feature routes
+  app/                 FastAPI feature modules, models, schemas, auth, billing
+  alembic/             Database migrations
+  main.py              App bootstrap and primary route registration
 
 frontend/
-  public/
-    sw-push.js            # push event + notification click handlers
+  public/              PWA assets, icons, screenshots, service-worker helper
   src/
-    api.js                # axios client + global error handling
-    router/index.js       # route definitions + role guard
-    utils/pushNotifications.js
-    components/           # feature modules
-    views/                # route-level pages
-  vue.config.js           # PWA/workbox config
+    components/        Feature modules and admin/superadmin screens
+    views/             Public/auth route-level views
+    router/            Vue Router route map and guards
+    styles/            Theme tokens
+    utils/             Auth/session, theme, push helpers
+
+docs/                  Architecture, setup, deployment, security, roadmap docs
 ```
 
-## Local Development Quick Start
+## Quick Start
 
-### 1) Backend
+### Backend
 
 ```bash
 cd backend
@@ -78,116 +63,53 @@ alembic upgrade head
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-API docs:
+FastAPI docs:
+
 - Swagger: `http://localhost:8000/docs`
 - ReDoc: `http://localhost:8000/redoc`
 
-### 2) Frontend
+### Frontend
 
 ```bash
 cd frontend
 npm install
+cp .env.example .env.local
 npm run serve
 ```
 
-Default dev URL: `http://localhost:8080`
+Default frontend URL: `http://localhost:8080`
 
 ## Configuration
 
-Primary backend environment variables (see `backend/.env.example`):
+Backend configuration is documented in [backend/.env.example](backend/.env.example). Frontend configuration is documented in [frontend/.env.example](frontend/.env.example).
 
-- `DATABASE_URL`: PostgreSQL connection string.
-- `JWT_SECRET_KEY`: JWT signing secret (required).
-- `SUPERADMIN_USERNAME`: startup bootstrap username.
-- `SUPERADMIN_PASSWORD`: startup bootstrap password.
-- `ALLOWED_ORIGINS`: comma-separated allowed origins (note: CORS list is currently hardcoded in `backend/main.py`).
-- `RECEIPT_SHARE_SECRET`: signing secret for public receipt links.
-- `RECEIPT_SHARE_EXPIRES_HOURS`: receipt token expiry.
-- `PUBLIC_RECEIPT_BASE_URL`: base URL used for share-link generation.
-- `PUSH_VAPID_PUBLIC_KEY`: web push public key.
-- `PUSH_VAPID_PRIVATE_KEY`: web push private key.
-- `PUSH_VAPID_SUBJECT`: VAPID subject, usually `mailto:...`.
+Important production settings:
 
-## Auth and Multi-Tenancy Model
+- `JWT_SECRET_KEY` must be a strong random secret.
+- `ALLOWED_ORIGINS` must include only trusted frontend origins.
+- `AUTHJWT_COOKIE_DOMAIN`, `AUTHJWT_COOKIE_SAMESITE`, and HTTPS settings must match your deployment.
+- `SUBSCRIPTION_ENFORCEMENT_MODE=enforce` is required to block expired subscriptions.
+- Do not commit real `.env` files, database dumps, private keys, or production credentials.
 
-- Auth uses HttpOnly JWT cookies (`fastapi-jwt-auth`).
-- Frontend stores role metadata in `localStorage` for UX route checks.
-- Backend is the source of truth for authorization.
-- Most resource access is scoped by `admin.library_id` to isolate tenants.
-- Roles:
-  - `admin`: manages one library.
-  - `superadmin`: platform-wide management + broadcast messaging.
+## Documentation
 
-## Core Feature Flows
+- [Development Guide](docs/development.md)
+- [Architecture](docs/architecture.md)
+- [Deployment Guide](docs/deployment.md)
+- [Security Audit Notes](docs/security-audit.md)
+- [Open Source Readiness Checklist](docs/open-source-checklist.md)
+- [Student Photo Feature Plan](docs/student-photo-feature-plan.md)
+- [Contributing Guide](CONTRIBUTING.md)
+- [Security Policy](SECURITY.md)
 
-### Student and Seat Management
+## Current Open-Source Status
 
-- Create/update student with shift selection.
-- Validate seat occupancy per shift.
-- Mark student as left (`left_at` tracked, seat assignments cleared).
+This project is close to being publishable, but do not announce it publicly until the items in [Open Source Readiness Checklist](docs/open-source-checklist.md) are complete. The most important blockers are dependency audit remediation, Python dependency audit setup, removal/rotation of any credentials that may have existed outside tracked files, and a final review of public branding/contact details.
 
-### Monthly Billing
+## Security
 
-- Generate monthly payment records.
-- Toggle paid/unpaid status.
-- Bulk add payments per student for multiple months.
-- Export CSV by month.
+Please do not open public issues for suspected vulnerabilities. Follow [SECURITY.md](SECURITY.md).
 
-### Notifications
+## License
 
-- Superadmin sends notifications to all admins, a specific library, or specific admins.
-- Admins view inbox and mark read.
-- Push subscriptions are linked to admin user/device.
-- Push notifications can deep-link into app routes.
-
-### Receipt Sharing
-
-- Paid payment can generate signed public receipt link.
-- Public endpoint validates token and returns read-only receipt payload.
-
-## API Overview
-
-This repository now has detailed backend API documentation in `backend/README.md` and frontend route/flow documentation in `frontend/README.md`.
-
-## Database and Migrations
-
-- Migration tool: Alembic.
-- Current migrations include notifications, payment billing windows, `students.left_at`, and push subscriptions.
-- Always apply schema changes with migration scripts:
-
-```bash
-cd backend
-alembic upgrade head
-```
-
-## Deployment Notes (Railway + Vercel)
-
-- Backend deploy target: Railway.
-- Frontend deploy target: Vercel.
-- Ensure `API baseURL` in `frontend/src/api.js` points to production backend before build/deploy.
-- Ensure cookie/CORS/domain settings are aligned with production domains.
-- For push notifications, configure VAPID env vars in backend environment.
-
-## Documentation Strategy (Recommended)
-
-Yes, use Docs-as-Code.
-
-Recommended setup:
-
-- Keep architecture/runbooks/versioning in Git with code.
-- Treat docs changes as part of feature PRs.
-- Add a `docs/` folder for long-form docs:
-  - `docs/architecture.md`
-  - `docs/api-contracts.md`
-  - `docs/deployment.md`
-  - `docs/runbook.md`
-  - `docs/security.md`
-- Enforce a PR checklist item: "Docs updated?" for any behavior/API/schema change.
-- Add changelog entries for user-facing updates.
-
-## Contribution Guidelines
-
-- Prefer Alembic migrations over ad-hoc schema updates.
-- Enforce tenant checks in backend for all data reads/writes.
-- Keep auth enforcement server-side.
-- Add tests for authorization boundaries and data integrity paths.
+Apache License 2.0. See [LICENSE](LICENSE).

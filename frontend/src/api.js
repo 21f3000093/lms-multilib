@@ -59,9 +59,7 @@ const showWarningToast = (message, timeout = 3000) => {
 };
 
 const API = axios.create({
-  // baseURL: 'https://lms-multilib-production-1470.up.railway.app',
-  // baseURL: "https://api.smartlibraryapp.in",
-  baseURL: 'http://localhost:8000',
+  baseURL: process.env.VUE_APP_API_BASE_URL || 'http://localhost:8000',
   withCredentials: true,  // 🔒 Send secure HttpOnly cookie with every request
 });
 
