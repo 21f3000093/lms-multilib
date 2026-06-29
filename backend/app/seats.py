@@ -64,16 +64,19 @@ def get_seat_details(
     for shift_num in [1, 2, 3]:
         student_id = getattr(seat, f"shift{shift_num}_student_id")
         student_name = "-"
+        photo_url = None
         
         if student_id:
             student = db.query(Student).filter(Student.id == student_id).first()
             if student:
                 student_name = student.name
+                photo_url = student.photo_url
         
         shift_details.append({
             "shift": shift_num,
             "shift_name": ["Morning", "Afternoon", "Evening"][shift_num - 1],
             "student_name": student_name,
+            "photo_url": photo_url,
             "is_occupied": bool(student_id)
         })
     

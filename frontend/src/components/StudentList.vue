@@ -87,7 +87,7 @@
             <tr v-for="student in filteredStudents" :key="student.id" class="student-row">
               <td>
                 <router-link :to="`/students/${student.id}`" class="student-link">
-                  <span class="avatar">{{ student.name.charAt(0).toUpperCase() }}</span>
+                  <StudentAvatar :student="student" :size="40" />
                   <div>
                     <p class="name">{{ student.name }}</p>
                     <!-- <p class="id-text">ID: {{ student.id }}</p> -->
@@ -162,7 +162,7 @@
       <article v-for="student in filteredStudents" :key="student.id" class="glass-card mobile-card">
         <header class="card-head">
           <router-link :to="`/students/${student.id}`" class="student-link">
-            <span class="avatar">{{ student.name.charAt(0).toUpperCase() }}</span>
+            <StudentAvatar :student="student" :size="40" />
             <div>
               <p class="name">{{ student.name }}</p>
               <p class="mono">{{ student.contact }}</p>
@@ -258,6 +258,7 @@ import {
 } from 'lucide-vue-next'
 import API from '../api'
 import StudentForm from './StudentForm.vue'
+import StudentAvatar from './StudentAvatar.vue'
 import { useToast } from 'vue-toast-notification'
 import 'vue-toast-notification/dist/theme-sugar.css'
 
@@ -268,6 +269,7 @@ export default {
     MoonStar,
     PenLine,
     Search,
+    StudentAvatar,
     StudentForm,
     Sun,
     Sunrise,

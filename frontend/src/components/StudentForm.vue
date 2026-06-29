@@ -52,6 +52,17 @@
           </div>
         </section>
 
+        <StudentPhotoPicker
+          ref="photoPicker"
+          :photo-url="student.photo_url"
+          :student-name="student.name"
+          :uploading="photoUploading"
+          :disabled="loading"
+          @selected="handlePhotoSelected"
+          @removed="handlePhotoRemoved"
+          @error="showError"
+        />
+
         <section class="form-section">
           <h2>Shift Selection</h2>
 
@@ -173,6 +184,8 @@ import API from '../api'
 import { useToast } from 'vue-toast-notification'
 import 'vue-toast-notification/dist/theme-sugar.css'
 import ConfirmationModal from './ConfirmationModal.vue'
+import StudentPhotoPicker from './StudentPhotoPicker.vue'
+import { deleteStudentPhoto, uploadStudentPhoto } from '../utils/studentPhotos'
 
 export default {
   props: {
@@ -189,6 +202,7 @@ export default {
     Phone,
     Sun,
     Sunrise,
+    StudentPhotoPicker,
     User,
   },
 
@@ -236,10 +250,15 @@ export default {
         custom_fees: null,
         paid: false,
         date_of_joining: null,
+        photo_url: null,
         library_id: localStorage.getItem('library_id'),
       },
       availableSeats: [],
       loading: false,
+      photoUploading: false,
+      pendingPhotoFile: null,
+      photoRemoved: false,
+      previousPhotoUrl: null,
       contactError: '',
       feeError: '',
       showWelcomeModal: false,
@@ -282,7 +301,12 @@ export default {
 
   mounted() {
     if (this.isEdit) {
-      this.student = { ...this.existingStudent }
+      this.student = {
+        ...this.student,
+        ...this.existingStudent,
+        photo_url: this.existingStudent?.photo_url || null,
+      }
+      this.previousPhotoUrl = this.student.photo_url || null
     }
     this.fetchAvailableSeats()
   },
@@ -357,6 +381,35 @@ export default {
       }
     },
 
+    handlePhotoSelected(file) {
+      this.pendingPhotoFile = file
+      this.photoRemoved = false
+    },
+
+    handlePhotoRemoved() {
+      this.pendingPhotoFile = null
+      this.student.photo_url = null
+      this.photoRemoved = Boolean(this.previousPhotoUrl)
+    },
+
+    buildStudentPayload(extra = {}) {
+      return {
+        ...this.student,
+        ...extra,
+        library_id: localStorage.getItem('library_id'),
+      }
+    },
+
+    async uploadPendingPhoto(studentId) {
+      if (!this.pendingPhotoFile) return null
+      this.photoUploading = true
+      try {
+        return await uploadStudentPhoto(this.pendingPhotoFile, studentId)
+      } finally {
+        this.photoUploading = false
+      }
+    },
+
     async submitForm() {
       if (this.loading || !this.formValid) return
 
@@ -372,25 +425,73 @@ export default {
 
       this.student.name = this.capitalizeName(this.student.name)
       this.loading = true
+      let uploadedPhotoUrl = null
 
       try {
         if (this.isEdit) {
-          await API.put(`/students/${this.student.id}`, this.student)
+          const payload = this.buildStudentPayload()
+          if (this.pendingPhotoFile) {
+            uploadedPhotoUrl = await this.uploadPendingPhoto(this.student.id)
+            payload.photo_url = uploadedPhotoUrl
+          } else if (this.photoRemoved) {
+            payload.photo_url = null
+          }
+
+          const response = await API.put(`/students/${this.student.id}`, payload)
+          this.student = { ...this.student, ...response.data }
+          this.previousPhotoUrl = this.student.photo_url || null
+          this.pendingPhotoFile = null
+          this.photoRemoved = false
+          this.$refs.photoPicker?.commitPreview()
           this.showSuccess('Student updated successfully!')
           this.$emit('close')
         } else {
-          const response = await API.post('/students/', this.student)
-          this.newStudentData = response.data
+          const response = await API.post('/students/', this.buildStudentPayload({ photo_url: null }))
+          let savedStudent = response.data
+          let photoUploadFailed = false
 
-          this.showSuccess('Student registered successfully!')
+          if (this.pendingPhotoFile) {
+            try {
+              uploadedPhotoUrl = await this.uploadPendingPhoto(savedStudent.id)
+              const photoResponse = await API.put(
+                `/students/${savedStudent.id}`,
+                {
+                  ...savedStudent,
+                  photo_url: uploadedPhotoUrl,
+                  library_id: localStorage.getItem('library_id'),
+                }
+              )
+              savedStudent = photoResponse.data
+              this.$refs.photoPicker?.commitPreview()
+            } catch (photoError) {
+              photoUploadFailed = true
+              if (uploadedPhotoUrl) {
+                await deleteStudentPhoto(uploadedPhotoUrl).catch(() => {})
+              }
+              this.$refs.photoPicker?.restorePrevious()
+              this.showError('Student registered, but photo upload failed: ' + (photoError.response?.data?.detail || photoError.message))
+            }
+          }
+
+          this.newStudentData = savedStudent
+
+          this.showSuccess(photoUploadFailed ? 'Student registered. Photo can be added from the profile.' : 'Student registered successfully!')
           this.resetForm()
         }
 
         this.$emit('updated')
       } catch (err) {
+        if (uploadedPhotoUrl) {
+          await deleteStudentPhoto(uploadedPhotoUrl).catch(() => {})
+        }
+        if (this.isEdit) {
+          this.student.photo_url = this.previousPhotoUrl
+          this.$refs.photoPicker?.restorePrevious()
+        }
         this.showError('Error: ' + (err.response?.data?.detail || err.message))
       } finally {
         this.loading = false
+        this.photoUploading = false
       }
     },
 
@@ -405,8 +506,13 @@ export default {
         custom_fees: null,
         paid: false,
         date_of_joining: null,
+        photo_url: null,
         library_id: localStorage.getItem('library_id'),
       }
+      this.pendingPhotoFile = null
+      this.photoRemoved = false
+      this.previousPhotoUrl = null
+      this.$refs.photoPicker?.restorePrevious()
       this.feeError = ''
     },
 

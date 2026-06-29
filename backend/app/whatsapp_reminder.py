@@ -55,6 +55,7 @@ def get_pending_reminders(
             results.append({
                 "student_name": payment.student.name,
                 "student_id": payment.student.id,
+                "photo_url": payment.student.photo_url,
                 "phone": payment.student.contact,
                 "amount": payment.amount,
                 "month": payment.month,

@@ -21,7 +21,15 @@
           >
             <div class="shift-info">
               <p class="shift-label">{{ shift.shift_name }} (Shift {{ shift.shift }})</p>
-              <p class="student-name">{{ shift.student_name || 'No student assigned' }}</p>
+              <div class="student-line">
+                <StudentAvatar
+                  v-if="shift.is_occupied"
+                  :name="shift.student_name"
+                  :photo-url="shift.photo_url"
+                  :size="34"
+                />
+                <p class="student-name">{{ shift.student_name || 'No student assigned' }}</p>
+              </div>
             </div>
             <span class="status-pill" :class="shift.is_occupied ? 'status-occupied' : 'status-empty'">
               {{ shift.is_occupied ? 'Occupied' : 'Available' }}
@@ -42,7 +50,12 @@
 </template>
 
 <script>
+import StudentAvatar from './StudentAvatar.vue'
+
 export default {
+  components: {
+    StudentAvatar,
+  },
   props: {
     show: Boolean,
     seatData: Object,
@@ -148,6 +161,14 @@ export default {
   min-width: 0;
 }
 
+.student-line {
+  margin-top: 0.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
 .shift-label,
 .student-name {
   margin: 0;
@@ -160,7 +181,6 @@ export default {
 }
 
 .student-name {
-  margin-top: 0.2rem;
   font-size: 0.9rem;
   font-weight: 700;
   text-transform: uppercase;

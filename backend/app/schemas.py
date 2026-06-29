@@ -14,6 +14,7 @@ class StudentCreate(BaseModel):
     custom_fees: int = Field(..., ge=1)
     total_fee: Optional[int] = None
     status: Optional[str] = "active"
+    photo_url: Optional[str] = Field(default=None, max_length=500)
     library_id: int  # ✅ NEW
 
 class SeatOut(BaseModel):

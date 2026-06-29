@@ -20,7 +20,17 @@
     <template v-else>
       <section v-if="student" class="section-shell glass-card profile-card">
         <div class="profile-head">
-          <span class="avatar">{{ student.name.charAt(0).toUpperCase() }}</span>
+          <StudentPhotoPicker
+            ref="profilePhotoPicker"
+            class="profile-photo-picker"
+            :size="120"
+            :photo-url="student.photo_url"
+            :student-name="student.name"
+            :uploading="photoUploading"
+            @selected="handleProfilePhotoSelected"
+            @removed="handleProfilePhotoRemoved"
+            @error="showError"
+          />
           <div>
             <h2 class="student-name">{{ student.name }}</h2>
             <div class="meta-row">
@@ -276,8 +286,14 @@
 import API from '../api'
 import { useToast } from 'vue-toast-notification'
 import 'vue-toast-notification/dist/theme-sugar.css'
+import StudentPhotoPicker from './StudentPhotoPicker.vue'
+import { deleteStudentPhoto, uploadStudentPhoto } from '../utils/studentPhotos'
 
 export default {
+  components: {
+    StudentPhotoPicker,
+  },
+
   setup() {
     const toast = useToast()
 
@@ -317,6 +333,7 @@ export default {
       student: null,
       payments: [],
       loading: false,
+      photoUploading: false,
       showBulkPaymentModal: false,
       submittingBulk: false,
       togglingPaymentIds: {},
@@ -368,6 +385,68 @@ export default {
   },
 
   methods: {
+    buildStudentPayload(extra = {}) {
+      return {
+        ...this.student,
+        ...extra,
+        library_id: localStorage.getItem('library_id'),
+      }
+    },
+
+    async handleProfilePhotoSelected(file) {
+      if (!this.student?.id || this.photoUploading) return
+
+      const previousPhotoUrl = this.student.photo_url || null
+      let uploadedPhotoUrl = null
+      this.photoUploading = true
+
+      try {
+        uploadedPhotoUrl = await uploadStudentPhoto(file, this.student.id)
+        const res = await API.put(
+          `/students/${this.student.id}`,
+          this.buildStudentPayload({ photo_url: uploadedPhotoUrl })
+        )
+        this.student = res.data
+        this.$refs.profilePhotoPicker?.commitPreview()
+        this.showSuccess('Profile photo updated')
+      } catch (err) {
+        if (uploadedPhotoUrl) {
+          await deleteStudentPhoto(uploadedPhotoUrl).catch(() => {})
+        }
+        this.student.photo_url = previousPhotoUrl
+        this.$refs.profilePhotoPicker?.restorePrevious()
+        this.showError(err.response?.data?.detail || 'Failed to update profile photo')
+      } finally {
+        this.photoUploading = false
+      }
+    },
+
+    async handleProfilePhotoRemoved() {
+      if (!this.student?.id || this.photoUploading) return
+
+      const previousPhotoUrl = this.student.photo_url || null
+      if (!previousPhotoUrl) return
+
+      this.student.photo_url = null
+      this.photoUploading = true
+
+      try {
+        const res = await API.put(
+          `/students/${this.student.id}`,
+          this.buildStudentPayload({ photo_url: null })
+        )
+        this.student = res.data
+        this.$refs.profilePhotoPicker?.commitPreview()
+        this.showSuccess('Profile photo removed')
+      } catch (err) {
+        this.student.photo_url = previousPhotoUrl
+        this.$refs.profilePhotoPicker?.restorePrevious()
+        this.showError(err.response?.data?.detail || 'Failed to remove profile photo')
+      } finally {
+        this.photoUploading = false
+      }
+    },
+
     async fetchStudent(id) {
       try {
         const res = await API.get(`/students/${id}`)
@@ -614,20 +693,13 @@ export default {
 .profile-head {
   display: flex;
   align-items: flex-start;
-  gap: 0.65rem;
+  gap: 1rem;
   justify-content: center;
 }
 
-.avatar {
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  display: inline-grid;
-  place-items: center;
-  font-weight: 800;
-  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
-  color: var(--theme-brand-on);
-  flex-shrink: 0;
+.profile-photo-picker {
+  flex: 0 0 auto;
+  width: min(330px, 100%);
 }
 
 .student-name {

@@ -96,7 +96,7 @@
             <tr v-for="payment in filteredPayments" :key="payment.id">
               <td>
                 <router-link :to="`/students/${payment.student.id}`" class="student-link">
-                  <span class="avatar">{{ payment.student.name.charAt(0).toUpperCase() }}</span>
+                  <StudentAvatar :student="payment.student" :size="40" />
                   <span class="student-name">{{ payment.student.name }}</span>
                 </router-link>
               </td>
@@ -163,7 +163,7 @@
       >
         <header class="card-head">
           <router-link :to="`/students/${payment.student.id}`" class="student-link">
-            <span class="avatar">{{ payment.student.name.charAt(0).toUpperCase() }}</span>
+            <StudentAvatar :student="payment.student" :size="40" />
             <div>
               <p class="student-name">{{ payment.student.name }}</p>
               <p class="muted">Seat: {{ payment.student.seat?.seat_number || 'Not assigned' }}</p>
@@ -232,10 +232,12 @@ import API from '../api'
 import { useToast } from 'vue-toast-notification'
 import 'vue-toast-notification/dist/theme-sugar.css'
 import ConfirmationModal from './ConfirmationModal.vue'
+import StudentAvatar from './StudentAvatar.vue'
 
 export default {
   components: {
     ConfirmationModal,
+    StudentAvatar,
   },
 
   setup() {

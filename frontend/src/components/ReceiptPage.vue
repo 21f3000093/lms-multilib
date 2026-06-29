@@ -69,6 +69,10 @@
 
           <section class="section-box">
             <h3 class="section-title">Student Details</h3>
+            <div class="receipt-student-head">
+              <StudentAvatar :student="payment.student" :size="48" />
+              <span class="receipt-student-name">{{ payment.student.name }}</span>
+            </div>
             <div class="detail-grid">
               <div class="detail-row">
                 <span class="detail-label">Name:</span>
@@ -140,8 +144,13 @@
 import API from '../api'
 import { useToast } from 'vue-toast-notification'
 import html2pdf from 'html2pdf.js'
+import StudentAvatar from './StudentAvatar.vue'
 
 export default {
+  components: {
+    StudentAvatar,
+  },
+
   setup() {
     const toast = useToast()
     return {
@@ -628,6 +637,22 @@ export default {
   font-size: 16px;
   font-weight: 700;
   color: #374151;
+}
+
+.receipt-student-head {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.receipt-student-name {
+  color: #111827;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
 .detail-grid {

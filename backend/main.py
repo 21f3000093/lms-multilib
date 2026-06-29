@@ -3,7 +3,8 @@ from fastapi import FastAPI, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
-from app import models, schemas, crud, auth, seats, superadmin, whatsapp_reminder, notifications, billing
+from app import models, schemas, crud, auth, seats, superadmin, whatsapp_reminder, notifications, billing, upload
+from app.services.storage import delete_student_photo
 from fastapi_jwt_auth import AuthJWT
 from app.database import engine, SessionLocal
 from pydantic import BaseSettings , BaseModel
@@ -14,6 +15,7 @@ from jwt import ExpiredSignatureError, InvalidTokenError
 import base64
 import hashlib
 import hmac
+import logging
 import struct
 
 # ✅ Dependency to get current admin and database
@@ -24,6 +26,8 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 
 # models.Base.metadata.create_all(bind=engine)
@@ -160,6 +164,7 @@ app.include_router(superadmin.superadmin_router)
 app.include_router(whatsapp_reminder.router)
 app.include_router(notifications.router)
 app.include_router(billing.router)
+app.include_router(upload.router)
 
 def _parse_allowed_origins(raw_origins: str | None) -> list[str]:
     if not raw_origins:
@@ -303,6 +308,11 @@ def delete_student(
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
 
+    if student.photo_url:
+        try:
+            delete_student_photo(student.photo_url)
+        except Exception:
+            logger.exception("Failed to delete student photo during student deletion")
     db.delete(student)
     db.commit()
     return {"detail": "Deleted"}

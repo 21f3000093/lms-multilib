@@ -65,7 +65,7 @@
             <tr v-for="student in pendingList" :key="student.phone">
               <td>
                 <router-link :to="`/students/${student.student_id}`" class="student-link">
-                  <span class="avatar">{{ student.student_name.charAt(0).toUpperCase() }}</span>
+                  <StudentAvatar :student="student" :name="student.student_name" :photo-url="student.photo_url" :size="40" />
                   <span class="student-name">{{ student.student_name }}</span>
                 </router-link>
               </td>
@@ -109,7 +109,7 @@
       >
         <header class="card-head">
           <router-link :to="`/students/${student.student_id}`" class="student-link">
-            <span class="avatar">{{ student.student_name.charAt(0).toUpperCase() }}</span>
+            <StudentAvatar :student="student" :name="student.student_name" :photo-url="student.photo_url" :size="40" />
             <div>
               <p class="student-name">{{ student.student_name }}</p>
               <p class="mono muted">{{ student.phone }}</p>
@@ -151,8 +151,13 @@
 import API from '../api'
 import { useToast } from 'vue-toast-notification'
 import 'vue-toast-notification/dist/theme-sugar.css'
+import StudentAvatar from './StudentAvatar.vue'
 
 export default {
+  components: {
+    StudentAvatar,
+  },
+
   setup() {
     const toast = useToast()
 

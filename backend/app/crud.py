@@ -11,6 +11,12 @@ from fastapi.responses import StreamingResponse
 import time
 import calendar
 import secrets
+import logging
+
+from app.services.storage import delete_student_photo
+
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -75,6 +81,7 @@ def create_student(db: Session, student: schemas.StudentCreate):
         shift3=student.shift3,
         # paid=student.paid,
         custom_fees=student.custom_fees,
+        photo_url=student.photo_url,
         # total_fee=total_fee,
         seat_id=student.seat_id,  # link seat
         date_of_joining=student.date_of_joining or date.today(),
@@ -192,6 +199,8 @@ def update_student(db: Session, student_id: int, updated_data: schemas.StudentCr
         if s.shift3_student_id == student.id: # type: ignore
             s.shift3_student_id = None # type: ignore
 
+    previous_photo_url = student.photo_url
+
     # Never trust client-provided tenant ID.
     for field, value in updated_data.dict(exclude={"library_id"}).items():
         setattr(student, field, value)
@@ -208,6 +217,12 @@ def update_student(db: Session, student_id: int, updated_data: schemas.StudentCr
 
     db.commit()
     db.refresh(student)
+
+    if previous_photo_url and previous_photo_url != student.photo_url:
+        try:
+            delete_student_photo(previous_photo_url)
+        except Exception:
+            logger.exception("Failed to delete replaced student photo")
     
     return student
 
@@ -811,6 +826,7 @@ def get_monthly_payments(db: Session, month: str, library_id: int):
             models.Student.name.label('student_name'),
             models.Student.date_of_joining,
             models.Student.contact,
+            models.Student.photo_url,
             models.Seat.seat_number,
             models.Student.id.label('student_id')
         )
@@ -845,6 +861,7 @@ def get_monthly_payments(db: Session, month: str, library_id: int):
                 "name": row.student_name,
                 "id": row.student_id,
                 "contact": row.contact if row.contact else None,
+                "photo_url": row.photo_url,
                 "date_of_joining": row.date_of_joining.isoformat() if row.date_of_joining else None,
                 "seat": {
                     "seat_number": row.seat_number

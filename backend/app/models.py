@@ -244,6 +244,7 @@ class Student(Base):
     total_fee = Column(Integer)
     paid = Column(Boolean, default=False)
     custom_fees = Column(Integer, nullable=True)
+    photo_url = Column(String(500), nullable=True)
     date_of_joining = Column(Date, default=date.today,index=True)
     status = Column(String, default="active",index=True)
     left_at = Column(DateTime, nullable=True, index=True)

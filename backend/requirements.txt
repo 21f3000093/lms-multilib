@@ -2,6 +2,7 @@ alembic==1.16.4
 annotated-types==0.7.0
 anyio==4.9.0
 bcrypt==3.2.2
+boto3==1.35.99
 certifi==2025.8.3
 cffi==2.0.0
 charset-normalizer==3.4.2
@@ -23,6 +24,7 @@ pydantic==1.10.13
 pydantic_core==2.33.2
 PyJWT==1.7.1
 pywebpush==2.0.3
+python-multipart==0.0.20
 python-dotenv==1.1.0
 razorpay==1.4.2
 setuptools>=69,<81
