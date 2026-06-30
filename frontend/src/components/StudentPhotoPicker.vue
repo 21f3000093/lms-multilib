@@ -2,11 +2,16 @@
   <section class="photo-section">
     <header class="photo-header">
       <h2>Student Photo</h2>
-      <span v-if="uploading" class="uploading-chip">
-        <LoaderCircle class="chip-spinner" aria-hidden="true" />
-        Uploading
+      <span v-if="showProgress" class="uploading-chip" :class="{ failed: uploadFailed }">
+        <LoaderCircle v-if="uploading && !uploadFailed" class="chip-spinner" aria-hidden="true" />
+        <span>{{ activeStatus }}</span>
+        <strong>{{ activeProgress }}%</strong>
       </span>
     </header>
+
+    <div v-if="showProgress" class="progress-track" :class="{ failed: uploadFailed }">
+      <span class="progress-fill" :style="{ width: activeProgress + '%' }"></span>
+    </div>
 
     <div class="photo-content">
       <div class="photo-preview-wrap" :style="previewStyle">
@@ -22,7 +27,8 @@
         <button
           class="change-overlay"
           type="button"
-          :disabled="disabled || uploading"
+          :disabled="isBusy"
+          aria-label="Change student photo"
           @click="openFileDialog"
         >
           Change Photo
@@ -30,15 +36,26 @@
       </div>
 
       <div class="photo-actions">
-        <button type="button" class="photo-btn" :disabled="disabled || uploading || cameraActive" @click="startCamera">
+        <button type="button" class="photo-btn" :disabled="isBusy || cameraActive" aria-label="Take photo" @click="startCamera">
           <Camera class="photo-btn-icon" aria-hidden="true" />
           <span>Take Photo</span>
         </button>
-        <button type="button" class="photo-btn" :disabled="disabled || uploading" @click="openFileDialog">
+        <button type="button" class="photo-btn" :disabled="isBusy" aria-label="Upload photo" @click="openFileDialog">
           <ImagePlus class="photo-btn-icon" aria-hidden="true" />
           <span>Upload Photo</span>
         </button>
-        <button type="button" class="photo-btn danger" :disabled="disabled || uploading || !hasPhoto" @click="removePhoto">
+        <button
+          v-if="uploadFailed && preparedPhotoFile"
+          type="button"
+          class="photo-btn warning"
+          :disabled="disabled || uploading"
+          aria-label="Retry photo upload"
+          @click="retryPreparedPhoto"
+        >
+          <RefreshCw class="photo-btn-icon" aria-hidden="true" />
+          <span>Retry</span>
+        </button>
+        <button type="button" class="photo-btn danger" :disabled="isBusy || !hasPhoto" aria-label="Remove photo" @click="removePhoto">
           <Trash2 class="photo-btn-icon" aria-hidden="true" />
           <span>Remove Photo</span>
         </button>
@@ -46,13 +63,33 @@
     </div>
 
     <div v-if="cameraActive" class="camera-panel">
-      <video ref="cameraVideo" class="camera-video" autoplay playsinline muted></video>
+      <div class="camera-card">
+        <video ref="cameraVideo" class="camera-video" autoplay playsinline muted></video>
+        <div v-if="countdownValue" class="countdown-badge" aria-live="assertive">{{ countdownValue }}</div>
+        <div v-if="cameraFlash" class="camera-flash" aria-hidden="true"></div>
+      </div>
+
       <div class="camera-actions">
-        <button type="button" class="photo-btn solid" @click="capturePhoto">
+        <button type="button" class="photo-btn solid" :disabled="capturePending" aria-label="Capture photo" @click="capturePhoto">
           <Aperture class="photo-btn-icon" aria-hidden="true" />
-          <span>Capture</span>
+          <span>{{ capturePending ? 'Capturing...' : 'Capture' }}</span>
         </button>
-        <button type="button" class="photo-btn" @click="stopCamera">
+        <button type="button" class="photo-btn" :disabled="capturePending" aria-label="Switch camera" @click="switchCamera">
+          <RefreshCw class="photo-btn-icon" aria-hidden="true" />
+          <span>{{ cameraFacingMode === 'user' ? 'Rear Camera' : 'Front Camera' }}</span>
+        </button>
+        <button
+          type="button"
+          class="photo-btn"
+          :class="{ active: countdownEnabled }"
+          :disabled="capturePending"
+          aria-label="Toggle camera countdown"
+          @click="toggleCountdown"
+        >
+          <Timer class="photo-btn-icon" aria-hidden="true" />
+          <span>Timer {{ countdownEnabled ? 'On' : 'Off' }}</span>
+        </button>
+        <button type="button" class="photo-btn" :disabled="capturePending" aria-label="Cancel camera" @click="stopCamera">
           <X class="photo-btn-icon" aria-hidden="true" />
           <span>Cancel</span>
         </button>
@@ -66,15 +103,28 @@
       class="sr-only"
       @change="handleFileInput"
     />
+
+    <StudentPhotoCropper
+      v-if="cropperOpen"
+      :show="cropperOpen"
+      :source-url="cropSourceUrl"
+      :source-name="cropSourceName"
+      @save="handleCropSave"
+      @cancel="cancelCrop"
+      @error="handleCropError"
+    />
   </section>
 </template>
 
 <script>
+import { defineAsyncComponent } from 'vue'
 import {
   Aperture,
   Camera,
   ImagePlus,
   LoaderCircle,
+  RefreshCw,
+  Timer,
   Trash2,
   X,
 } from 'lucide-vue-next'
@@ -82,7 +132,12 @@ import {
   compressStudentPhoto,
   createPreviewUrl,
   revokePreviewUrl,
+  validateStudentPhotoFile,
 } from '../utils/studentPhotos'
+import { canvasToBlob } from '../utils/studentPhotoCrop'
+
+const CAMERA_FACING_STORAGE_KEY = 'student_photo_camera_facing'
+const CAMERA_TIMER_STORAGE_KEY = 'student_photo_camera_timer'
 
 export default {
   name: 'StudentPhotoPicker',
@@ -91,6 +146,9 @@ export default {
     Camera,
     ImagePlus,
     LoaderCircle,
+    RefreshCw,
+    StudentPhotoCropper: defineAsyncComponent(() => import('./StudentPhotoCropper.vue')),
+    Timer,
     Trash2,
     X,
   },
@@ -116,13 +174,25 @@ export default {
       default: 124,
     },
   },
-  emits: ['selected', 'removed', 'error'],
+  emits: ['selected', 'removed', 'error', 'retry'],
   data() {
     return {
       localPreviewUrl: '',
+      cropSourceUrl: '',
+      cropSourceName: 'student-photo',
+      cropperOpen: false,
+      preparedPhotoFile: null,
       imageFailed: false,
       cameraStream: null,
       cameraActive: false,
+      cameraFacingMode: localStorage.getItem(CAMERA_FACING_STORAGE_KEY) || 'user',
+      countdownEnabled: localStorage.getItem(CAMERA_TIMER_STORAGE_KEY) === 'true',
+      countdownValue: null,
+      capturePending: false,
+      cameraFlash: false,
+      progressStatus: '',
+      progressValue: 0,
+      uploadFailed: false,
     }
   },
   computed: {
@@ -141,6 +211,22 @@ export default {
         '--photo-font-size': `${Math.max(28, Math.round(this.size * 0.38))}px`,
       }
     },
+    isBusy() {
+      return this.disabled || this.uploading || this.cropperOpen
+    },
+    activeStatus() {
+      if (this.uploadFailed) return 'Upload failed. Retry available.'
+      if (this.uploading) return 'Uploading to cloud...'
+      return this.progressStatus
+    },
+    activeProgress() {
+      if (this.uploadFailed) return 100
+      if (this.uploading) return Math.max(this.progressValue, 85)
+      return this.progressValue
+    },
+    showProgress() {
+      return Boolean(this.activeStatus)
+    },
   },
   watch: {
     photoUrl() {
@@ -150,10 +236,11 @@ export default {
   beforeUnmount() {
     this.stopCamera()
     this.clearLocalPreview()
+    this.clearCropSource()
   },
   methods: {
     openFileDialog() {
-      if (this.disabled || this.uploading) return
+      if (this.isBusy) return
       this.$refs.fileInput?.click()
     },
 
@@ -161,22 +248,61 @@ export default {
       const [file] = event.target.files || []
       event.target.value = ''
       if (!file) return
-      await this.processFile(file)
+      await this.openCropperForFile(file)
     },
 
-    async processFile(file) {
+    async openCropperForFile(file) {
       try {
+        validateStudentPhotoFile(file)
+        this.clearCropSource()
+        this.progressStatus = 'Preparing image...'
+        this.progressValue = 18
+        this.cropSourceName = file.name || 'student-photo.webp'
+        this.cropSourceUrl = createPreviewUrl(file)
+        this.cropperOpen = true
+      } catch (error) {
+        this.resetProgress()
+        this.$emit('error', error?.message || 'This image cannot be used.')
+      }
+    },
+
+    async handleCropSave(croppedFile) {
+      this.cropperOpen = false
+      this.clearCropSource()
+      await this.processCroppedFile(croppedFile)
+    },
+
+    cancelCrop() {
+      this.cropperOpen = false
+      this.clearCropSource()
+      this.resetProgress()
+    },
+
+    handleCropError(message) {
+      this.$emit('error', message || 'Could not crop the photo.')
+    },
+
+    async processCroppedFile(file) {
+      try {
+        this.progressStatus = 'Compressing image...'
+        this.progressValue = 54
         const compressedFile = await compressStudentPhoto(file)
+        this.preparedPhotoFile = compressedFile
         this.setLocalPreview(compressedFile)
+        this.progressStatus = 'Ready to upload'
+        this.progressValue = 100
         this.$emit('selected', compressedFile)
       } catch (error) {
-        this.$emit('error', error?.message || 'Could not prepare the photo.')
+        this.progressStatus = 'Compression failed'
+        this.progressValue = 100
+        this.$emit('error', error?.message || 'Could not compress the photo.')
       }
     },
 
     setLocalPreview(file) {
       this.clearLocalPreview()
       this.imageFailed = false
+      this.uploadFailed = false
       this.localPreviewUrl = createPreviewUrl(file)
     },
 
@@ -185,18 +311,53 @@ export default {
       this.localPreviewUrl = ''
     },
 
+    clearCropSource() {
+      revokePreviewUrl(this.cropSourceUrl)
+      this.cropSourceUrl = ''
+    },
+
     restorePrevious() {
+      if (this.localPreviewUrl && this.preparedPhotoFile) {
+        this.uploadFailed = true
+        this.progressStatus = ''
+        this.progressValue = 100
+        return
+      }
+
       this.clearLocalPreview()
+      this.resetPreparedState()
       this.imageFailed = false
     },
 
     commitPreview() {
       this.clearLocalPreview()
+      this.resetPreparedState()
       this.imageFailed = false
+    },
+
+    resetPreparedState() {
+      this.preparedPhotoFile = null
+      this.uploadFailed = false
+      this.resetProgress()
+    },
+
+    resetProgress() {
+      this.progressStatus = ''
+      this.progressValue = 0
+    },
+
+    retryPreparedPhoto() {
+      if (!this.preparedPhotoFile) return
+      this.uploadFailed = false
+      this.progressStatus = 'Retrying upload...'
+      this.progressValue = 100
+      this.$emit('selected', this.preparedPhotoFile)
+      this.$emit('retry')
     },
 
     removePhoto() {
       this.clearLocalPreview()
+      this.resetPreparedState()
       this.imageFailed = false
       this.$emit('removed')
     },
@@ -208,12 +369,13 @@ export default {
       }
 
       try {
+        this.stopCamera()
         this.cameraStream = await navigator.mediaDevices.getUserMedia({
           audio: false,
           video: {
-            facingMode: 'user',
-            width: { ideal: 640 },
-            height: { ideal: 640 },
+            facingMode: { ideal: this.cameraFacingMode },
+            width: { ideal: 960 },
+            height: { ideal: 960 },
           },
         })
         this.cameraActive = true
@@ -224,17 +386,57 @@ export default {
         }
       } catch (error) {
         this.stopCamera()
-        this.$emit('error', 'Camera permission was denied or the camera could not be opened.')
+        this.$emit('error', this.getCameraErrorMessage(error))
       }
     },
 
-    capturePhoto() {
+    async switchCamera() {
+      if (this.capturePending) return
+      this.cameraFacingMode = this.cameraFacingMode === 'user' ? 'environment' : 'user'
+      localStorage.setItem(CAMERA_FACING_STORAGE_KEY, this.cameraFacingMode)
+      if (this.cameraActive) {
+        await this.startCamera()
+      }
+    },
+
+    toggleCountdown() {
+      this.countdownEnabled = !this.countdownEnabled
+      localStorage.setItem(CAMERA_TIMER_STORAGE_KEY, String(this.countdownEnabled))
+    },
+
+    async capturePhoto() {
+      if (this.capturePending) return
+
       const video = this.$refs.cameraVideo
       if (!video?.videoWidth || !video?.videoHeight) {
         this.$emit('error', 'Camera is still starting. Please try again.')
         return
       }
 
+      this.capturePending = true
+      try {
+        if (this.countdownEnabled) {
+          await this.runCountdown()
+        }
+
+        const blob = await this.captureFrameBlob(video)
+        await this.playFlash()
+        this.stopCamera()
+
+        const file = new File([blob], `camera_${Date.now()}.webp`, {
+          type: 'image/webp',
+          lastModified: Date.now(),
+        })
+        await this.openCropperForFile(file)
+      } catch (error) {
+        this.$emit('error', error?.message || 'Could not capture the photo.')
+      } finally {
+        this.capturePending = false
+        this.countdownValue = null
+      }
+    },
+
+    async captureFrameBlob(video) {
       const sourceSize = Math.min(video.videoWidth, video.videoHeight)
       const sourceX = (video.videoWidth - sourceSize) / 2
       const sourceY = (video.videoHeight - sourceSize) / 2
@@ -244,27 +446,58 @@ export default {
       const context = canvas.getContext('2d')
       context.drawImage(video, sourceX, sourceY, sourceSize, sourceSize, 0, 0, 400, 400)
 
-      canvas.toBlob(async (blob) => {
-        this.stopCamera()
-        if (!blob) {
-          this.$emit('error', 'Could not capture the photo.')
-          return
-        }
+      try {
+        return await canvasToBlob(canvas)
+      } finally {
+        canvas.width = 0
+        canvas.height = 0
+      }
+    },
 
-        const file = new File([blob], `camera_${Date.now()}.webp`, {
-          type: 'image/webp',
-          lastModified: Date.now(),
-        })
-        await this.processFile(file)
-      }, 'image/webp', 0.9)
+    async runCountdown() {
+      for (let value = 3; value >= 1; value -= 1) {
+        this.countdownValue = value
+        await this.delay(700)
+      }
+      this.countdownValue = null
+    },
+
+    async playFlash() {
+      this.cameraFlash = true
+      await this.delay(140)
+      this.cameraFlash = false
+    },
+
+    delay(ms) {
+      return new Promise((resolve) => {
+        setTimeout(resolve, ms)
+      })
     },
 
     stopCamera() {
       if (this.cameraStream) {
         this.cameraStream.getTracks().forEach((track) => track.stop())
       }
+      if (this.$refs.cameraVideo) {
+        this.$refs.cameraVideo.srcObject = null
+      }
       this.cameraStream = null
       this.cameraActive = false
+      this.countdownValue = null
+      this.cameraFlash = false
+    },
+
+    getCameraErrorMessage(error) {
+      if (error?.name === 'NotAllowedError' || error?.name === 'PermissionDeniedError') {
+        return 'Camera permission was denied. Please allow camera access and try again.'
+      }
+      if (error?.name === 'NotFoundError' || error?.name === 'DevicesNotFoundError') {
+        return 'No camera was found on this device.'
+      }
+      if (error?.name === 'NotReadableError' || error?.name === 'TrackStartError') {
+        return 'Camera is already in use by another app.'
+      }
+      return 'Camera could not be opened. Please try upload instead.'
     },
   },
 }
@@ -302,10 +535,35 @@ export default {
   font-weight: 700;
 }
 
+.uploading-chip.failed {
+  background: var(--theme-danger-soft);
+  color: var(--theme-danger-text);
+}
+
 .chip-spinner {
   width: 0.85rem;
   height: 0.85rem;
   animation: spin 0.8s linear infinite;
+}
+
+.progress-track {
+  margin-top: 0.62rem;
+  height: 7px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--theme-surface-soft-heavy);
+}
+
+.progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--theme-brand-a), var(--theme-brand-b));
+  transition: width 0.24s ease;
+}
+
+.progress-track.failed .progress-fill {
+  background: var(--theme-danger-text);
 }
 
 .photo-content {
@@ -386,11 +644,16 @@ export default {
   font-size: 0.8rem;
   font-weight: 800;
   cursor: pointer;
+  transition: border-color 0.16s ease, transform 0.16s ease;
 }
 
 .photo-btn:hover:not(:disabled) {
   border-color: var(--theme-brand-border);
   color: var(--theme-brand-pill-text);
+}
+
+.photo-btn:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 .photo-btn:disabled {
@@ -402,6 +665,13 @@ export default {
   border-color: var(--theme-danger-border);
   background: var(--theme-danger-soft);
   color: var(--theme-danger-text);
+}
+
+.photo-btn.warning,
+.photo-btn.active {
+  border-color: var(--theme-warning-border);
+  background: var(--theme-warning-soft);
+  color: var(--theme-warning-text);
 }
 
 .photo-btn.solid {
@@ -418,23 +688,49 @@ export default {
 
 .camera-panel {
   margin-top: 0.8rem;
-  border-radius: 14px;
+  border-radius: 16px;
   border: 1px solid var(--theme-border);
   background: var(--theme-panel);
   padding: 0.7rem;
 }
 
+.camera-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #111827;
+}
+
 .camera-video {
   width: 100%;
-  max-height: 360px;
-  border-radius: 12px;
-  background: #111827;
+  max-height: 430px;
+  min-height: 260px;
+  display: block;
   object-fit: cover;
 }
 
+.countdown-badge {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: clamp(3rem, 13vw, 6rem);
+  font-weight: 900;
+  background: rgba(17, 24, 39, 0.24);
+}
+
+.camera-flash {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.9);
+  animation: camera-flash 0.16s ease-out;
+}
+
 .camera-actions {
-  margin-top: 0.55rem;
+  margin-top: 0.65rem;
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.45rem;
 }
@@ -451,9 +747,24 @@ export default {
   border: 0;
 }
 
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid var(--theme-brand-ring);
+  outline-offset: 2px;
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes camera-flash {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
   }
 }
 
@@ -473,7 +784,7 @@ export default {
   }
 
   .photo-btn {
-    flex: 1 1 120px;
+    flex: 1 1 132px;
   }
 }
 </style>

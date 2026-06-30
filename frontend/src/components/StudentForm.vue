@@ -59,6 +59,7 @@
           :uploading="photoUploading"
           :disabled="loading"
           @selected="handlePhotoSelected"
+          @retry="submitForm"
           @removed="handlePhotoRemoved"
           @error="showError"
         />
@@ -151,7 +152,7 @@
           <button type="button" @click="$emit('close')" class="btn btn-ghost">Cancel</button>
           <button type="submit" :disabled="loading || !formValid" class="btn btn-solid">
             <LoaderCircle v-if="loading" class="spinner" aria-hidden="true" />
-            <span>{{ loading ? 'Please wait...' : (isEdit ? 'Update Student' : 'Register Student') }}</span>
+            <span>{{ submitButtonLabel }}</span>
           </button>
         </div>
       </form>
@@ -263,6 +264,7 @@ export default {
       feeError: '',
       showWelcomeModal: false,
       newStudentData: null,
+      createdStudentForPhotoRetry: null,
     }
   },
 
@@ -290,6 +292,13 @@ export default {
     welcomeModalMessage() {
       if (!this.newStudentData) return ''
       return `Send welcome message to ${this.newStudentData.name.toUpperCase()}?`
+    },
+
+    submitButtonLabel() {
+      if (this.loading) return 'Please wait...'
+      if (this.isEdit) return 'Update Student'
+      if (this.createdStudentForPhotoRetry) return 'Retry Photo Upload'
+      return 'Register Student'
     },
   },
 
@@ -446,8 +455,17 @@ export default {
           this.showSuccess('Student updated successfully!')
           this.$emit('close')
         } else {
-          const response = await API.post('/students/', this.buildStudentPayload({ photo_url: null }))
-          let savedStudent = response.data
+          const retryingCreatedStudent = this.createdStudentForPhotoRetry
+          let savedStudent = retryingCreatedStudent
+          if (!savedStudent) {
+            const response = await API.post('/students/', this.buildStudentPayload({ photo_url: null }))
+            savedStudent = response.data
+          } else {
+            savedStudent = {
+              ...savedStudent,
+              ...this.buildStudentPayload({ id: savedStudent.id, photo_url: savedStudent.photo_url || null }),
+            }
+          }
           let photoUploadFailed = false
 
           if (this.pendingPhotoFile) {
@@ -457,6 +475,7 @@ export default {
                 `/students/${savedStudent.id}`,
                 {
                   ...savedStudent,
+                  ...this.buildStudentPayload({ id: savedStudent.id }),
                   photo_url: uploadedPhotoUrl,
                   library_id: localStorage.getItem('library_id'),
                 }
@@ -475,8 +494,19 @@ export default {
 
           this.newStudentData = savedStudent
 
-          this.showSuccess(photoUploadFailed ? 'Student registered. Photo can be added from the profile.' : 'Student registered successfully!')
-          this.resetForm()
+          if (photoUploadFailed) {
+            this.createdStudentForPhotoRetry = savedStudent
+            this.student = {
+              ...this.student,
+              ...savedStudent,
+              photo_url: null,
+            }
+            this.showSuccess('Student registered. Retry photo upload or add it from the profile.')
+          } else {
+            this.createdStudentForPhotoRetry = null
+            this.showSuccess(retryingCreatedStudent ? 'Photo uploaded successfully!' : 'Student registered successfully!')
+            this.resetForm()
+          }
         }
 
         this.$emit('updated')
@@ -512,7 +542,8 @@ export default {
       this.pendingPhotoFile = null
       this.photoRemoved = false
       this.previousPhotoUrl = null
-      this.$refs.photoPicker?.restorePrevious()
+      this.createdStudentForPhotoRetry = null
+      this.$refs.photoPicker?.commitPreview()
       this.feeError = ''
     },
 

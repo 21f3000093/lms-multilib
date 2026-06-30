@@ -1,0 +1,23 @@
+I’ll inspect the current picker and photo utilities first, then upgrade the flow in place so the parent APIs stay the same: selected, removed, error, commitPreview, and restorePrevious will keep working. I’ll add Cropper.js as a frontend-only dependency, split the crop UI into StudentPhotoCropper.vue, and keep compression/upload helpers unchanged except for moving compression after crop.
+
+
+Explored 2 files, 1 search, ran 2 commands
+The current picker emits a compressed WebP file immediately after selection/capture, and the parent components rely on that exact selected(file) contract plus commitPreview() and restorePrevious(). I’m going to preserve that contract, but insert a cropper modal before compression so parents don’t need to change.
+
+Ran npm install cropperjs@1.6.2
+cropperjs is installing now so the lockfile stays npm-generated. While that runs I’m planning the component split: picker owns camera/file state, cropper owns modal interactions and emits a cropped image file back to the picker.
+
+Cropper.js is installed. I’m adding the crop utility and the dedicated crop modal component first, then I’ll simplify StudentPhotoPicker.vue around that new component.
+
+Created 2 files
+I’m replacing the picker internals now. The parent-facing API stays the same, but selection/camera capture will now open the crop modal first, and only the saved crop gets compressed and emitted.
+
+Created 1 file
+The picker is now routed through the cropper, with camera switching, countdown toggle, flash, retry state, and post-crop compression. I’m adjusting the registration form reset path so successful saves clear the prepared crop, while failed uploads keep the cropped preview for retry.
+
+Edited 1 file
+One subtle flow issue is new-student upload retry: a new student has to be created before R2 can use the real student_id. I’m preserving that created student after a photo upload failure so a second submit retries the photo update instead of creating a duplicate student.
+
+Edited 1 file
+Worked for 13m 29s
+The retry path is in place. I’m making the submit button label reflect that state so an admin doesn’t accidentally think a second click will register another student.
