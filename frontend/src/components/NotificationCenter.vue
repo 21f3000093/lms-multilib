@@ -74,7 +74,7 @@
           <div class="card-footer">
             <span class="sender-text">
               <CircleUserRound class="sender-icon" aria-hidden="true" />
-              {{ item.sender_username || 'Superadmin' }}
+              {{ 'Shubham' }}
             </span>
 
             <button v-if="!item.is_read" class="mark-btn" @click="markOneRead(item)">
